@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: payment-service-system
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/payment
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+
+server:
+  port: 8082
+
+payment:
+  stripe:
+    api-key: ${STRIPE_API_KEY:sk_test_dummy}
+  paypal:
+    client-id: ${PAYPAL_CLIENT_ID:dummy_client_id}
+  square:
+    access-token: ${SQUARE_ACCESS_TOKEN:dummy_token}
+
+logging:
+  level:
+    org.sudhir512kj.payment: INFO

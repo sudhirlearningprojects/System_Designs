@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: dropbox-clone-system
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dropbox
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+
+server:
+  port: 8081
+
+dropbox:
+  storage:
+    path: ${DROPBOX_STORAGE_PATH:/tmp/dropbox}
+  s3:
+    bucket: ${DROPBOX_S3_BUCKET:dropbox-storage-bucket}
+
+logging:
+  level:
+    org.sudhir512kj.dropbox: INFO

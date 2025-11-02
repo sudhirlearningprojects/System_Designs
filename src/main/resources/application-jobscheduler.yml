@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: job-scheduler-system
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/jobscheduler
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+
+server:
+  port: 8083
+
+scheduler:
+  lease:
+    duration: ${SCHEDULER_LEASE_DURATION:30}
+  heartbeat:
+    interval: ${SCHEDULER_HEARTBEAT_INTERVAL:10}
+
+logging:
+  level:
+    org.sudhir512kj.jobscheduler: INFO

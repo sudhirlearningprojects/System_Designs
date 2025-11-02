@@ -52,6 +52,54 @@ A highly available and fault-tolerant payment service that guarantees exactly-on
 
 ---
 
+### 3. Job Scheduler - Distributed Job Scheduling System
+**Location**: `org.sudhir512kj.jobscheduler` package
+
+A reliable, scalable, and fault-tolerant distributed job scheduling system:
+- One-off and recurring job scheduling
+- Cron-based and interval-based scheduling
+- Job pause/resume/cancel functionality
+- Fault-tolerant execution with retries
+- Horizontal scalability with lease-based coordination
+
+**Documentation**: [docs/jobscheduler/](docs/jobscheduler/)
+
+**Key Features**:
+- Timing wheel for efficient scheduling
+- Distributed coordination with lease management
+- Exactly-once job execution guarantee
+- Dead letter queue for failed jobs
+- Real-time job status tracking
+- Thundering herd prevention
+
+**Scale**: Millions of scheduled jobs, 100K+ executions/sec, sub-second latency
+
+---
+
+### 4. Parking Lot Management System - High-Availability Parking System
+**Location**: `org.sudhir512kj.parkinglot` package
+
+A fault-tolerant parking lot management system for multi-story facilities:
+- Multi-floor, multi-gate support
+- Real-time spot availability tracking
+- Thread-safe spot allocation
+- Multiple payment methods
+- High availability (99.99% uptime)
+
+**Documentation**: [docs/parkinglot/](docs/parkinglot/)
+
+**Key Features**:
+- Atomic spot assignment (no double-booking)
+- Redis caching for O(1) availability lookups
+- Circuit breaker pattern for payment resilience
+- Real-time display board updates
+- Support for multiple vehicle types
+- Microservices architecture
+
+**Scale**: 1000+ spots, sub-second response times, concurrent vehicle processing
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -86,6 +134,16 @@ export STRIPE_API_KEY=sk_test_...
 export PAYPAL_CLIENT_ID=...
 export SQUARE_ACCESS_TOKEN=...
 
+# For Job Scheduler system
+export SCHEDULER_LEASE_DURATION=30
+export SCHEDULER_HEARTBEAT_INTERVAL=10
+
+# For Parking Lot system
+export DB_USERNAME=postgres
+export DB_PASSWORD=password
+export REDIS_HOST=localhost
+export REDIS_PORT=6379
+
 # Common
 export JWT_SECRET=mySecretKey
 ```
@@ -99,6 +157,12 @@ mvn spring-boot:run -Dspring-boot.run.main-class=org.sudhir512kj.dropbox.Dropbox
 
 # Run Payment system
 mvn spring-boot:run -Dspring-boot.run.main-class=org.sudhir512kj.payment.PaymentApplication
+
+# Run Job Scheduler system
+mvn spring-boot:run -Dspring-boot.run.main-class=org.sudhir512kj.jobscheduler.JobSchedulerApplication
+
+# Run Parking Lot system
+mvn spring-boot:run -Dspring-boot.run.main-class=org.sudhir512kj.parkinglot.ParkingLotApplication
 ```
 
 ## 🏗️ Project Structure
@@ -121,6 +185,14 @@ src/main/java/org/sudhir512kj/
 │   ├── dto/                    # Payment DTOs
 │   └── config/                 # Payment configuration
 │
+├── parkinglot/                 # Parking lot system implementation
+│   ├── model/                  # Parking entities (Vehicle, Spot, Ticket)
+│   ├── service/                # Parking business logic
+│   ├── repository/             # Parking data access
+│   ├── controller/             # Parking APIs
+│   ├── dto/                    # Parking DTOs
+│   └── config/                 # Parking configuration
+│
 ├── [future-system]/            # Next system design
 │   └── ...
 │
@@ -136,6 +208,12 @@ docs/
 │   ├── Architecture_Diagrams.md # Payment architecture
 │   ├── API_Documentation.md    # Payment API reference
 │   └── Scale_Calculations.md   # Payment performance analysis
+│
+├── parkinglot/                 # Parking lot documentation
+│   ├── System_Design.md        # Parking system HLD/LLD
+│   ├── Architecture_Diagrams.md # Parking architecture
+│   ├── API_Documentation.md    # Parking API reference
+│   └── Scale_Calculations.md   # Parking performance analysis
 │
 └── [future-system]/            # Future system docs
 ```
@@ -184,8 +262,8 @@ mvn test
 # Integration tests
 mvn verify -P integration-tests
 
-# Load testing (example for Dropbox)
-k6 run docs/dropbox/load-test.js
+# Load testing (example for Parking Lot)
+k6 run docs/parkinglot/load-test.js
 ```
 
 ## 📈 Performance Benchmarks

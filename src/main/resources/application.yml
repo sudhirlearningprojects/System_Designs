@@ -1,107 +1,12 @@
-server:
-  port: 8080
-
 spring:
-  application:
-    name: cloud-storage-system
-  
-  datasource:
-    url: jdbc:postgresql://localhost:5432/cloudstorage
-    username: ${DB_USERNAME:cloudstorage}
-    password: ${DB_PASSWORD:password}
-    driver-class-name: org.postgresql.Driver
-  
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-  
-  redis:
-    host: ${REDIS_HOST:localhost}
-    port: ${REDIS_PORT:6379}
-    password: ${REDIS_PASSWORD:}
-    timeout: 2000ms
-    lettuce:
-      pool:
-        max-active: 8
-        max-idle: 8
-        min-idle: 0
-  
-  kafka:
-    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    consumer:
-      group-id: cloud-storage-group
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "org.sudhir512kj.dto"
-  
-  servlet:
-    multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB
-
-app:
-  dropbox:
-    storage:
-      path: ${DROPBOX_STORAGE_PATH:/tmp/dropbox}
-      chunk-size: 4194304 # 4MB
-    
-    aws:
-      s3:
-        bucket-name: ${DROPBOX_S3_BUCKET:dropbox-storage-bucket}
-        region: ${AWS_REGION:us-east-1}
-    
-    security:
-      jwt:
-        secret: ${JWT_SECRET:mySecretKey}
-        expiration: 86400000 # 24 hours
-  
-  payment:
-    processors:
-      stripe:
-        api-key: ${STRIPE_API_KEY:sk_test_...}
-        webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_...}
-      paypal:
-        client-id: ${PAYPAL_CLIENT_ID:...}
-        client-secret: ${PAYPAL_CLIENT_SECRET:...}
-      square:
-        access-token: ${SQUARE_ACCESS_TOKEN:...}
-        application-id: ${SQUARE_APPLICATION_ID:...}
-    
-    retry:
-      max-attempts: 5
-      base-delay-seconds: 30
-      max-delay-seconds: 300
-    
-    circuit-breaker:
-      failure-rate-threshold: 50
-      wait-duration-seconds: 30
-      sliding-window-size: 10
-
-logging:
-  level:
-    org.sudhir512kj.dropbox: DEBUG
-    org.sudhir512kj.payment: DEBUG
-    org.springframework.security: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: logs/system-designs.log
+  profiles:
+    active: ${ACTIVE_PROFILE:parkinglot}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics
   endpoint:
     health:
       show-details: always
