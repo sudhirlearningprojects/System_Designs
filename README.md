@@ -100,6 +100,30 @@ A fault-tolerant parking lot management system for multi-story facilities:
 
 ---
 
+### 5. Digital Payment Platform - PhonePe/GPay Clone
+**Location**: `org.sudhir512kj.digitalpayment` package
+
+A highly scalable digital payment platform enabling instant money transfers:
+- P2P and P2M transactions
+- Multiple payment methods (UPI, Cards, Net Banking, Wallet)
+- Real-time fraud detection
+- Strong consistency for financial data
+- High availability (99.99% uptime)
+
+**Documentation**: [docs/digitalpayment/](docs/digitalpayment/)
+
+**Key Features**:
+- Atomic wallet operations with pessimistic locking
+- Idempotency for duplicate prevention
+- Strategy pattern for PSP integration
+- Real-time fraud detection and rate limiting
+- Comprehensive transaction lifecycle management
+- Event-driven architecture with Kafka
+
+**Scale**: 100M users, 50K TPS, sub-2 second response times
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -163,6 +187,9 @@ mvn spring-boot:run -Dspring-boot.run.main-class=org.sudhir512kj.jobscheduler.Jo
 
 # Run Parking Lot system
 mvn spring-boot:run -Dspring-boot.run.main-class=org.sudhir512kj.parkinglot.ParkingLotApplication
+
+# Run Digital Payment system
+mvn spring-boot:run -Dspring-boot.run.main-class=org.sudhir512kj.digitalpayment.DigitalPaymentApplication
 ```
 
 ## 🏗️ Project Structure

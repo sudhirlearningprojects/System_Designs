@@ -1,7 +1,6 @@
 package org.sudhir512kj.payment.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -13,15 +12,17 @@ import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class TransactionManagerService {
-    private final RetryQueueRepository retryQueueRepository;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    
+    @Autowired
+    private RetryQueueRepository retryQueueRepository;
+    
+    @Autowired
+    private KafkaTemplate<String, Object> kafkaTemplate;
     
     @Transactional
     public void scheduleRetry(PaymentTransaction transaction, Exception error) {
-        log.info("Scheduling retry for transaction: {}", transaction.getId());
+        System.out.println("Scheduling retry for transaction: " + transaction.getId());
         
         RetryQueue retryEntry = new RetryQueue();
         retryEntry.setTransactionId(transaction.getId());
@@ -35,13 +36,12 @@ public class TransactionManagerService {
         // Send to retry queue via Kafka
         kafkaTemplate.send("payment-retry-queue", transaction.getId().toString(), retryEntry);
         
-        log.info("Retry scheduled for transaction: {} at {}", 
-                transaction.getId(), retryEntry.getNextRetryAt());
+        System.out.println("Retry scheduled for transaction: " + transaction.getId() + " at " + retryEntry.getNextRetryAt());
     }
     
     @Async
     public CompletableFuture<Void> processRetryQueue() {
-        log.debug("Processing retry queue");
+        System.out.println("Processing retry queue");
         
         LocalDateTime now = LocalDateTime.now();
         var retryEntries = retryQueueRepository.findByNextRetryAtBeforeAndRetryCountLessThanMaxRetries(now);
@@ -50,7 +50,7 @@ public class TransactionManagerService {
             try {
                 processRetryEntry(entry);
             } catch (Exception e) {
-                log.error("Error processing retry entry: {}", entry.getId(), e);
+                System.err.println("Error processing retry entry: " + entry.getId() + ", error: " + e.getMessage());
             }
         }
         
@@ -58,7 +58,7 @@ public class TransactionManagerService {
     }
     
     private void processRetryEntry(RetryQueue entry) {
-        log.info("Processing retry entry for transaction: {}", entry.getTransactionId());
+        System.out.println("Processing retry entry for transaction: " + entry.getTransactionId());
         
         entry.setRetryCount(entry.getRetryCount() + 1);
         
@@ -67,7 +67,7 @@ public class TransactionManagerService {
             kafkaTemplate.send("payment-dead-letter-queue", 
                     entry.getTransactionId().toString(), entry);
             retryQueueRepository.delete(entry);
-            log.warn("Transaction moved to dead letter queue: {}", entry.getTransactionId());
+            System.out.println("Transaction moved to dead letter queue: " + entry.getTransactionId());
         } else {
             // Schedule next retry
             entry.setNextRetryAt(calculateNextRetryTime(entry.getRetryCount()));
@@ -90,7 +90,7 @@ public class TransactionManagerService {
     
     @Transactional
     public void handleSagaCompensation(PaymentTransaction transaction) {
-        log.info("Handling saga compensation for transaction: {}", transaction.getId());
+        System.out.println("Handling saga compensation for transaction: " + transaction.getId());
         
         // Implement compensation logic
         // 1. Reverse any partial operations

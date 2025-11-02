@@ -11,7 +11,7 @@ import java.util.UUID;
 @Repository
 public interface RetryQueueRepository extends JpaRepository<RetryQueue, UUID> {
     
-    @Query("SELECT r FROM RetryQueue r WHERE r.nextRetryAt <= :now AND r.retryCount < r.maxRetries")
+    @Query("SELECT r FROM RetryQueue r WHERE r.nextRetryAt <= ?1 AND r.retryCount < r.maxRetries")
     List<RetryQueue> findByNextRetryAtBeforeAndRetryCountLessThanMaxRetries(LocalDateTime now);
     
     List<RetryQueue> findByTransactionId(UUID transactionId);

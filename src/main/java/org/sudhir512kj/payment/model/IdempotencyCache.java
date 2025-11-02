@@ -1,9 +1,6 @@
 package org.sudhir512kj.payment.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -11,9 +8,6 @@ import java.util.UUID;
 @Table(name = "payment_idempotency_cache", indexes = {
     @Index(name = "idx_idempotency_expires", columnList = "expires_at")
 })
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class IdempotencyCache {
     @Id
     @Column(name = "idempotency_key")
@@ -30,4 +24,30 @@ public class IdempotencyCache {
     
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
+    
+    // Constructors
+    public IdempotencyCache() {}
+    
+    public IdempotencyCache(String key, UUID transactionId, String responseData, LocalDateTime expiresAt) {
+        this.key = key;
+        this.transactionId = transactionId;
+        this.responseData = responseData;
+        this.expiresAt = expiresAt;
+    }
+    
+    // Getters and setters
+    public String getKey() { return key; }
+    public void setKey(String key) { this.key = key; }
+    
+    public UUID getTransactionId() { return transactionId; }
+    public void setTransactionId(UUID transactionId) { this.transactionId = transactionId; }
+    
+    public String getResponseData() { return responseData; }
+    public void setResponseData(String responseData) { this.responseData = responseData; }
+    
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    
+    public LocalDateTime getExpiresAt() { return expiresAt; }
+    public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
 }

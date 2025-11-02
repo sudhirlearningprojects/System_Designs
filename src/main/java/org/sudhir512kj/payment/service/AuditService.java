@@ -1,7 +1,6 @@
 package org.sudhir512kj.payment.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.sudhir512kj.payment.model.PaymentTransaction;
@@ -10,10 +9,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class AuditService {
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    
+    @Autowired
+    private KafkaTemplate<String, Object> kafkaTemplate;
     
     public void logPaymentSuccess(PaymentTransaction transaction) {
         Map<String, Object> auditEvent = createBaseAuditEvent(transaction);
@@ -23,7 +22,7 @@ public class AuditService {
         
         kafkaTemplate.send("payment-audit-events", transaction.getId().toString(), auditEvent);
         
-        log.info("Audit log created for successful payment: {}", transaction.getId());
+        System.out.println("Audit log created for successful payment: " + transaction.getId());
     }
     
     public void logPaymentFailure(PaymentTransaction transaction, Exception error) {
@@ -34,7 +33,7 @@ public class AuditService {
         
         kafkaTemplate.send("payment-audit-events", transaction.getId().toString(), auditEvent);
         
-        log.info("Audit log created for failed payment: {}", transaction.getId());
+        System.out.println("Audit log created for failed payment: " + transaction.getId());
     }
     
     public void logRefund(PaymentTransaction originalTransaction, PaymentTransaction refundTransaction) {
@@ -45,7 +44,7 @@ public class AuditService {
         
         kafkaTemplate.send("payment-audit-events", refundTransaction.getId().toString(), auditEvent);
         
-        log.info("Audit log created for refund: {}", refundTransaction.getId());
+        System.out.println("Audit log created for refund: " + refundTransaction.getId());
     }
     
     public void logSecurityEvent(String eventType, String details, String userId) {
@@ -58,7 +57,7 @@ public class AuditService {
         
         kafkaTemplate.send("security-audit-events", userId, securityEvent);
         
-        log.warn("Security audit event logged: {} for user: {}", eventType, userId);
+        System.out.println("Security audit event logged: " + eventType + " for user: " + userId);
     }
     
     private Map<String, Object> createBaseAuditEvent(PaymentTransaction transaction) {

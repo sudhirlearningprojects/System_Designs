@@ -1,7 +1,6 @@
 package org.sudhir512kj.payment.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.sudhir512kj.payment.dto.PaymentRequest;
@@ -13,23 +12,31 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class PaymentService {
-    private final PaymentTransactionRepository transactionRepository;
-    private final IdempotencyService idempotencyService;
-    private final PaymentProcessorService processorService;
-    private final TransactionManagerService transactionManager;
-    private final AuditService auditService;
+    
+    @Autowired
+    private PaymentTransactionRepository transactionRepository;
+    
+    @Autowired
+    private IdempotencyService idempotencyService;
+    
+    @Autowired
+    private PaymentProcessorService processorService;
+    
+    @Autowired
+    private TransactionManagerService transactionManager;
+    
+    @Autowired
+    private AuditService auditService;
     
     @Transactional
     public PaymentResponse processPayment(PaymentRequest request, String idempotencyKey) {
-        log.info("Processing payment with idempotency key: {}", idempotencyKey);
+        System.out.println("Processing payment with idempotency key: " + idempotencyKey);
         
         // Check for duplicate request
         PaymentResponse cachedResponse = idempotencyService.getCachedResponse(idempotencyKey);
         if (cachedResponse != null) {
-            log.info("Returning cached response for idempotency key: {}", idempotencyKey);
+            System.out.println("Returning cached response for idempotency key: " + idempotencyKey);
             return cachedResponse;
         }
         
@@ -58,11 +65,11 @@ public class PaymentService {
             // Audit log
             auditService.logPaymentSuccess(transaction);
             
-            log.info("Payment completed successfully: {}", transaction.getId());
+            System.out.println("Payment completed successfully: " + transaction.getId());
             return response;
             
         } catch (Exception e) {
-            log.error("Payment processing failed for transaction: {}", transaction.getId(), e);
+            System.err.println("Payment processing failed for transaction: " + transaction.getId() + ", error: " + e.getMessage());
             
             // Update transaction on failure
             transaction.setStatus(PaymentStatus.FAILED);

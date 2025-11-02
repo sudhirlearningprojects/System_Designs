@@ -1,8 +1,7 @@
 package org.sudhir512kj.payment.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.sudhir512kj.payment.dto.PaymentResponse;
@@ -14,12 +13,16 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class IdempotencyService {
-    private final IdempotencyCacheRepository cacheRepository;
-    private final RedisTemplate<String, String> redisTemplate;
-    private final ObjectMapper objectMapper;
+    
+    @Autowired
+    private IdempotencyCacheRepository cacheRepository;
+    
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+    
+    @Autowired
+    private ObjectMapper objectMapper;
     
     private static final Duration CACHE_TTL = Duration.ofHours(24);
     private static final String REDIS_PREFIX = "payment:idempotency:";
@@ -31,14 +34,14 @@ public class IdempotencyService {
             String cachedJson = redisTemplate.opsForValue().get(redisKey);
             
             if (cachedJson != null) {
-                log.debug("Found cached response in Redis for key: {}", idempotencyKey);
+                System.out.println("Found cached response in Redis for key: " + idempotencyKey);
                 return objectMapper.readValue(cachedJson, PaymentResponse.class);
             }
             
             // Fallback to database
             Optional<IdempotencyCache> dbCache = cacheRepository.findById(idempotencyKey);
             if (dbCache.isPresent() && dbCache.get().getExpiresAt().isAfter(LocalDateTime.now())) {
-                log.debug("Found cached response in DB for key: {}", idempotencyKey);
+                System.out.println("Found cached response in DB for key: " + idempotencyKey);
                 PaymentResponse response = objectMapper.readValue(
                     dbCache.get().getResponseData(), PaymentResponse.class);
                 
@@ -49,7 +52,7 @@ public class IdempotencyService {
             }
             
         } catch (Exception e) {
-            log.error("Error retrieving cached response for key: {}", idempotencyKey, e);
+            System.err.println("Error retrieving cached response for key: " + idempotencyKey + ", error: " + e.getMessage());
         }
         
         return null;
@@ -72,10 +75,10 @@ public class IdempotencyService {
             
             cacheRepository.save(dbCache);
             
-            log.debug("Cached response for idempotency key: {}", idempotencyKey);
+            System.out.println("Cached response for idempotency key: " + idempotencyKey);
             
         } catch (Exception e) {
-            log.error("Error caching response for key: {}", idempotencyKey, e);
+            System.err.println("Error caching response for key: " + idempotencyKey + ", error: " + e.getMessage());
         }
     }
     
@@ -86,9 +89,9 @@ public class IdempotencyService {
     public void cleanupExpiredEntries() {
         try {
             cacheRepository.deleteExpiredEntries(LocalDateTime.now());
-            log.debug("Cleaned up expired idempotency cache entries");
+            System.out.println("Cleaned up expired idempotency cache entries");
         } catch (Exception e) {
-            log.error("Error cleaning up expired cache entries", e);
+            System.err.println("Error cleaning up expired cache entries: " + e.getMessage());
         }
     }
 }
