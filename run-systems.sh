@@ -9,6 +9,7 @@ echo "3. Payment Service System (port 8082)"
 echo "4. Job Scheduler System (port 8083)"
 echo "5. Digital Payment Platform (port 8084)"
 echo "6. Ticket Booking Platform (port 8086)"
+echo "7. Instagram Clone Platform (port 8087)"
 echo ""
 
 case "$1" in
@@ -36,8 +37,12 @@ case "$1" in
     echo "Starting Ticket Booking Platform..."
     mvn spring-boot:run -Dspring-boot.run.profiles=ticketbooking
     ;;
+  "instagram")
+    echo "Starting Instagram Clone Platform..."
+    mvn spring-boot:run -Dspring-boot.run.profiles=instagram
+    ;;
   *)
-    echo "Usage: $0 {parkinglot|dropbox|payment|jobscheduler|digitalpayment|ticketbooking}"
+    echo "Usage: $0 {parkinglot|dropbox|payment|jobscheduler|digitalpayment|ticketbooking|instagram}"
     echo ""
     echo "Examples:"
     echo "  ./run-systems.sh parkinglot"
@@ -46,6 +51,7 @@ case "$1" in
     echo "  ./run-systems.sh jobscheduler"
     echo "  ./run-systems.sh digitalpayment"
     echo "  ./run-systems.sh ticketbooking"
+    echo "  ./run-systems.sh instagram"
     exit 1
     ;;
 esac

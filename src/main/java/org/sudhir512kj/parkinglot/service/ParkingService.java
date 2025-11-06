@@ -74,12 +74,12 @@ public class ParkingService {
     }
     
     private Vehicle createVehicle(String plate, VehicleType type) {
-        switch (type) {
-            case CAR: return new Car(plate);
-            case TRUCK: return new Truck(plate);
-            case MOTORCYCLE: return new Motorcycle(plate);
-            default: throw new IllegalArgumentException("Unknown vehicle type");
-        }
+        return switch (type) {
+            case CAR -> new Car(plate);
+            case TRUCK -> new Truck(plate);
+            case MOTORCYCLE -> new Motorcycle(plate);
+            default -> throw new IllegalArgumentException("Unknown vehicle type");
+        };
     }
     
     public void addFloor(int floorNumber, List<ParkingSpot> spots) {

@@ -1,0 +1,92 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: instagram-clone
+  
+  profiles:
+    active: instagram
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/instagram_db
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+  
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+    consumer:
+      group-id: instagram-service
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+  
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000 # 1 hour
+      cache-null-values: false
+
+jwt:
+  secret: ${JWT_SECRET:mySecretKey}
+  expiration: 3600000 # 1 hour
+
+logging:
+  level:
+    org.sudhir512kj.instagram: INFO
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+# Instagram specific configurations
+instagram:
+  media:
+    upload-path: ${MEDIA_UPLOAD_PATH:/tmp/instagram/media}
+    max-file-size: 50MB
+    allowed-types: jpg,jpeg,png,gif,mp4,mov,avi
+  
+  feed:
+    cache-ttl: 300 # 5 minutes
+    max-posts-per-feed: 1000
+    celebrity-threshold: 1000000 # 1M followers
+  
+  rate-limit:
+    posts-per-hour: 50
+    likes-per-hour: 1000
+    follows-per-hour: 200

@@ -1,5 +1,201 @@
 # Ticket Booking Platform - System Design
 
+## Understanding Ticket Booking Systems
+
+### What is a Ticket Booking Platform?
+A ticket booking platform is a system that manages event tickets, handles reservations, and processes payments while ensuring no overselling occurs. The core challenge is managing inventory under high concurrency during flash sales.
+
+### Key Challenges in Ticket Booking
+1. **Overselling Prevention**: Never sell more tickets than available
+2. **Flash Sale Handling**: Manage thousands of concurrent booking requests
+3. **Inventory Consistency**: Real-time accurate ticket counts
+4. **Hold Management**: Reserve tickets temporarily during checkout
+5. **Payment Integration**: Reliable payment processing
+6. **Scalability**: Handle millions of users and events
+
+### Ticket Booking Fundamentals
+
+#### The Overselling Problem
+```
+Scenario: Concert has 1 ticket left, 1000 users try to book simultaneously
+
+Without proper concurrency control:
+User 1: Check availability (1 ticket) → Book ticket → Success
+User 2: Check availability (1 ticket) → Book ticket → Success
+...
+User 1000: Check availability (1 ticket) → Book ticket → Success
+
+Result: 1000 tickets sold instead of 1!
+```
+
+#### Solution: Atomic Inventory Management
+```java
+// Wrong approach - Race condition
+public boolean bookTicket(Long ticketTypeId, int quantity) {
+    TicketType ticketType = repository.findById(ticketTypeId);
+    if (ticketType.getAvailableQuantity() >= quantity) {
+        ticketType.setAvailableQuantity(
+            ticketType.getAvailableQuantity() - quantity);
+        repository.save(ticketType);
+        return true;
+    }
+    return false;
+}
+
+// Correct approach - Atomic operation
+public boolean bookTicketAtomic(Long ticketTypeId, int quantity) {
+    String key = "inventory:" + ticketTypeId;
+    Long remaining = redisTemplate.opsForValue().decrement(key, quantity);
+    
+    if (remaining < 0) {
+        // Rollback if insufficient inventory
+        redisTemplate.opsForValue().increment(key, quantity);
+        return false;
+    }
+    return true;
+}
+```
+
+#### Ticket Hold Mechanism
+
+##### Why Hold Tickets?
+```
+Problem: User selects tickets → Goes to payment → Someone else books same tickets
+Result: Payment fails, poor user experience
+
+Solution: Hold tickets temporarily during checkout process
+```
+
+##### Hold Implementation
+```java
+public class TicketHoldService {
+    private static final int HOLD_DURATION_MINUTES = 10;
+    
+    public String holdTickets(Long ticketTypeId, int quantity, Long userId) {
+        String holdId = generateHoldId();
+        String inventoryKey = "inventory:" + ticketTypeId;
+        String holdKey = "hold:" + holdId;
+        
+        // Atomic decrement
+        Long remaining = redisTemplate.opsForValue().decrement(inventoryKey, quantity);
+        
+        if (remaining < 0) {
+            // Insufficient inventory, rollback
+            redisTemplate.opsForValue().increment(inventoryKey, quantity);
+            return null;
+        }
+        
+        // Create hold with expiry
+        HoldInfo holdInfo = new HoldInfo(ticketTypeId, quantity, userId);
+        redisTemplate.opsForValue().set(holdKey, holdInfo, 
+                                      Duration.ofMinutes(HOLD_DURATION_MINUTES));
+        
+        return holdId;
+    }
+    
+    public void releaseHold(String holdId) {
+        String holdKey = "hold:" + holdId;
+        HoldInfo holdInfo = (HoldInfo) redisTemplate.opsForValue().get(holdKey);
+        
+        if (holdInfo != null) {
+            // Release inventory back
+            String inventoryKey = "inventory:" + holdInfo.getTicketTypeId();
+            redisTemplate.opsForValue().increment(inventoryKey, holdInfo.getQuantity());
+            
+            // Remove hold
+            redisTemplate.delete(holdKey);
+        }
+    }
+}
+```
+
+### Database vs Cache for Inventory
+
+#### Database-Only Approach (Slow)
+```java
+@Transactional(isolation = Isolation.SERIALIZABLE)
+public boolean bookTicketDB(Long ticketTypeId, int quantity) {
+    TicketType ticketType = repository.findByIdWithLock(ticketTypeId);
+    
+    if (ticketType.getAvailableQuantity() >= quantity) {
+        ticketType.setAvailableQuantity(
+            ticketType.getAvailableQuantity() - quantity);
+        repository.save(ticketType);
+        return true;
+    }
+    return false;
+}
+```
+**Problems**: 
+- Database locks cause bottlenecks
+- Slow response times during high load
+- Limited concurrent transactions
+
+#### Redis-First Approach (Fast)
+```java
+public boolean bookTicketRedis(Long ticketTypeId, int quantity) {
+    String key = "inventory:" + ticketTypeId;
+    
+    // Atomic operation in Redis
+    Long remaining = redisTemplate.opsForValue().decrement(key, quantity);
+    
+    if (remaining < 0) {
+        redisTemplate.opsForValue().increment(key, quantity);
+        return false;
+    }
+    
+    // Async update to database for persistence
+    asyncUpdateDatabase(ticketTypeId, quantity);
+    return true;
+}
+```
+**Benefits**:
+- Sub-millisecond response times
+- Handles thousands of concurrent requests
+- Atomic operations prevent race conditions
+
+### Flash Sale Architecture
+
+#### Traditional Approach (Fails at Scale)
+```
+User Request → Load Balancer → App Server → Database
+                                    ↓
+                              Bottleneck!
+```
+
+#### Optimized Approach
+```
+User Request → CDN → Load Balancer → App Server → Redis → Async DB Update
+                                              ↓
+                                        Fast Response
+```
+
+#### Queue-Based Processing
+```java
+@Component
+public class BookingQueueProcessor {
+    
+    @EventListener
+    public void handleBookingRequest(BookingRequestEvent event) {
+        // Process booking requests in order
+        BookingRequest request = event.getBookingRequest();
+        
+        boolean success = inventoryService.reserveTickets(
+            request.getTicketTypeId(), 
+            request.getQuantity()
+        );
+        
+        if (success) {
+            // Send to payment processing
+            paymentQueue.send(new PaymentRequest(request));
+        } else {
+            // Notify user of failure
+            notificationService.sendFailureNotification(request.getUserId());
+        }
+    }
+}
+```
+
 ## 1. Requirements
 
 ### Functional Requirements
@@ -151,6 +347,160 @@ hold:{hold_id} -> quantity (INTEGER with TTL of 10 minutes)
 # Event caching
 event:{event_id} -> event_data (JSON)
 events:search:{hash} -> search_results (JSON)
+```
+
+### Inventory Synchronization Strategies
+
+#### Strategy 1: Write-Through Cache
+```java
+public void updateInventory(Long ticketTypeId, int quantity) {
+    // Update Redis first
+    String key = "inventory:" + ticketTypeId;
+    redisTemplate.opsForValue().decrement(key, quantity);
+    
+    // Immediately update database
+    ticketTypeRepository.decrementAvailableQuantity(ticketTypeId, quantity);
+}
+```
+**Pros**: Strong consistency
+**Cons**: Slower writes, database bottleneck
+
+#### Strategy 2: Write-Behind Cache (Recommended)
+```java
+public void updateInventoryAsync(Long ticketTypeId, int quantity) {
+    // Update Redis immediately
+    String key = "inventory:" + ticketTypeId;
+    redisTemplate.opsForValue().decrement(key, quantity);
+    
+    // Queue database update
+    inventoryUpdateQueue.send(new InventoryUpdate(ticketTypeId, quantity));
+}
+
+@EventListener
+public void processInventoryUpdate(InventoryUpdate update) {
+    // Batch updates for efficiency
+    ticketTypeRepository.decrementAvailableQuantity(
+        update.getTicketTypeId(), 
+        update.getQuantity()
+    );
+}
+```
+**Pros**: Fast writes, high throughput
+**Cons**: Eventual consistency
+
+#### Strategy 3: Periodic Reconciliation
+```java
+@Scheduled(fixedRate = 60000) // Every minute
+public void reconcileInventory() {
+    List<TicketType> ticketTypes = ticketTypeRepository.findAll();
+    
+    for (TicketType ticketType : ticketTypes) {
+        String key = "inventory:" + ticketType.getId();
+        Integer redisCount = (Integer) redisTemplate.opsForValue().get(key);
+        
+        if (redisCount == null) {
+            // Initialize Redis from database
+            redisTemplate.opsForValue().set(key, ticketType.getAvailableQuantity());
+        } else if (!redisCount.equals(ticketType.getAvailableQuantity())) {
+            // Reconcile differences
+            log.warn("Inventory mismatch for ticket type {}: Redis={}, DB={}", 
+                    ticketType.getId(), redisCount, ticketType.getAvailableQuantity());
+            
+            // Use Redis as source of truth during active sales
+            ticketType.setAvailableQuantity(redisCount);
+            ticketTypeRepository.save(ticketType);
+        }
+    }
+}
+```
+
+### Payment Integration Patterns
+
+#### Synchronous Payment (Simple but Risky)
+```java
+public BookingResult processBooking(BookingRequest request) {
+    // Hold tickets
+    String holdId = holdService.holdTickets(request.getTicketTypeId(), 
+                                          request.getQuantity(), 
+                                          request.getUserId());
+    
+    if (holdId == null) {
+        return BookingResult.failure("No tickets available");
+    }
+    
+    try {
+        // Process payment synchronously
+        PaymentResult paymentResult = paymentService.processPayment(
+            request.getPaymentInfo(), request.getTotalAmount());
+        
+        if (paymentResult.isSuccess()) {
+            // Confirm booking
+            Booking booking = confirmBooking(request, holdId, paymentResult.getTransactionId());
+            return BookingResult.success(booking);
+        } else {
+            // Release hold
+            holdService.releaseHold(holdId);
+            return BookingResult.failure("Payment failed");
+        }
+    } catch (Exception e) {
+        // Release hold on any error
+        holdService.releaseHold(holdId);
+        throw e;
+    }
+}
+```
+**Problems**: 
+- Payment gateway timeouts affect user experience
+- Holds may expire during slow payment processing
+- Blocking operations reduce throughput
+
+#### Asynchronous Payment (Recommended)
+```java
+public BookingResult initiateBooking(BookingRequest request) {
+    // Hold tickets
+    String holdId = holdService.holdTickets(request.getTicketTypeId(), 
+                                          request.getQuantity(), 
+                                          request.getUserId());
+    
+    if (holdId == null) {
+        return BookingResult.failure("No tickets available");
+    }
+    
+    // Create pending booking
+    Booking booking = createPendingBooking(request, holdId);
+    
+    // Initiate async payment
+    paymentService.initiatePaymentAsync(
+        booking.getId(), 
+        request.getPaymentInfo(), 
+        request.getTotalAmount()
+    );
+    
+    return BookingResult.pending(booking);
+}
+
+@EventListener
+public void handlePaymentResult(PaymentResultEvent event) {
+    Booking booking = bookingRepository.findById(event.getBookingId());
+    
+    if (event.isSuccess()) {
+        // Confirm booking
+        booking.setStatus(BookingStatus.CONFIRMED);
+        booking.setPaymentTransactionId(event.getTransactionId());
+        
+        // Convert hold to permanent reservation
+        holdService.confirmHold(booking.getHoldId());
+    } else {
+        // Cancel booking and release hold
+        booking.setStatus(BookingStatus.CANCELLED);
+        holdService.releaseHold(booking.getHoldId());
+    }
+    
+    bookingRepository.save(booking);
+    
+    // Notify user
+    notificationService.sendBookingUpdate(booking);
+}
 ```
 
 ### 3.2 Core Algorithms

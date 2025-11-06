@@ -1,5 +1,189 @@
 # Payment Service System Design
 
+## Understanding Payment Systems
+
+### What is a Payment Service?
+A payment service is a critical financial system that processes monetary transactions between parties. Unlike regular applications, payment systems require absolute reliability, security, and compliance with financial regulations.
+
+### Key Challenges in Payment Processing
+1. **Exactly-Once Processing**: Never charge a customer twice
+2. **Atomicity**: Either the entire transaction succeeds or fails completely
+3. **Idempotency**: Same request should produce same result
+4. **Fault Tolerance**: Handle external service failures gracefully
+5. **Regulatory Compliance**: Meet PCI DSS and financial regulations
+6. **Security**: Protect sensitive financial data
+
+### Payment System Fundamentals
+
+#### The Double-Spending Problem
+```
+Scenario: User clicks "Pay" button multiple times due to slow response
+Request 1: Charge $100 → Success
+Request 2: Charge $100 → Success (Duplicate!)
+Result: Customer charged $200 instead of $100
+```
+
+#### Solution: Idempotency Keys
+```java
+@Service
+public class PaymentService {
+    
+    public PaymentResult processPayment(PaymentRequest request) {
+        String idempotencyKey = request.getIdempotencyKey();
+        
+        // Check if we've processed this request before
+        PaymentResult cachedResult = idempotencyCache.get(idempotencyKey);
+        if (cachedResult != null) {
+            return cachedResult; // Return cached result
+        }
+        
+        // Process payment for the first time
+        PaymentResult result = executePayment(request);
+        
+        // Cache result to handle future duplicate requests
+        idempotencyCache.put(idempotencyKey, result, Duration.ofHours(24));
+        
+        return result;
+    }
+}
+```
+
+#### Payment State Machine
+```
+PENDING → PROCESSING → COMPLETED
+   │         │           │
+   │         ↓           ↓
+   → → → FAILED → → REFUNDED
+```
+
+#### Transaction Isolation Levels
+
+##### Read Uncommitted (Dangerous for Payments)
+```sql
+-- Transaction 1: Transfer $100 from Alice to Bob
+UPDATE accounts SET balance = balance - 100 WHERE user_id = 'alice';
+-- Transaction 2 can see Alice's reduced balance before commit
+SELECT balance FROM accounts WHERE user_id = 'alice'; -- Shows reduced balance
+-- If Transaction 1 rolls back, Transaction 2 saw "dirty" data
+```
+
+##### Serializable (Safe for Payments)
+```sql
+-- Transactions execute as if they were run one after another
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+BEGIN;
+  UPDATE accounts SET balance = balance - 100 WHERE user_id = 'alice';
+  UPDATE accounts SET balance = balance + 100 WHERE user_id = 'bob';
+COMMIT;
+```
+
+### Distributed Transaction Patterns
+
+#### Two-Phase Commit (2PC)
+```
+Phase 1 (Prepare):
+Coordinator → "Can you commit?" → All Participants
+Participants → "Yes/No" → Coordinator
+
+Phase 2 (Commit/Abort):
+If all said "Yes":
+  Coordinator → "Commit" → All Participants
+If any said "No":
+  Coordinator → "Abort" → All Participants
+```
+
+**Problems with 2PC**:
+- Blocking protocol (participants wait for coordinator)
+- Single point of failure (coordinator)
+- Not suitable for microservices across networks
+
+#### Saga Pattern (Better for Microservices)
+```java
+public class PaymentSaga {
+    public void processPayment(PaymentRequest request) {
+        try {
+            // Step 1: Reserve funds
+            reserveFunds(request.getUserId(), request.getAmount());
+            
+            // Step 2: Process with external gateway
+            PaymentResult result = paymentGateway.charge(request);
+            
+            if (result.isSuccess()) {
+                // Step 3: Confirm transaction
+                confirmPayment(request.getTransactionId());
+            } else {
+                // Compensate: Release reserved funds
+                releaseFunds(request.getUserId(), request.getAmount());
+            }
+        } catch (Exception e) {
+            // Compensate all completed steps
+            compensateTransaction(request);
+        }
+    }
+}
+```
+
+### Circuit Breaker Pattern for External Services
+
+#### Why Circuit Breakers in Payments?
+```
+Scenario: Payment gateway is down
+Without Circuit Breaker:
+- Every request waits for timeout (30 seconds)
+- System becomes unresponsive
+- Cascading failures
+
+With Circuit Breaker:
+- Detect failures quickly
+- Fail fast for subsequent requests
+- Automatic recovery when service is back
+```
+
+#### Circuit Breaker Implementation
+```java
+public class PaymentGatewayCircuitBreaker {
+    private volatile CircuitState state = CircuitState.CLOSED;
+    private final AtomicInteger failureCount = new AtomicInteger(0);
+    private final AtomicLong lastFailureTime = new AtomicLong(0);
+    
+    private static final int FAILURE_THRESHOLD = 5;
+    private static final long TIMEOUT_DURATION = 60000; // 1 minute
+    
+    public PaymentResult callGateway(PaymentRequest request) {
+        if (state == CircuitState.OPEN) {
+            if (System.currentTimeMillis() - lastFailureTime.get() > TIMEOUT_DURATION) {
+                state = CircuitState.HALF_OPEN;
+            } else {
+                return PaymentResult.failure("Payment gateway unavailable");
+            }
+        }
+        
+        try {
+            PaymentResult result = paymentGateway.processPayment(request);
+            onSuccess();
+            return result;
+        } catch (Exception e) {
+            onFailure();
+            throw e;
+        }
+    }
+    
+    private void onSuccess() {
+        failureCount.set(0);
+        state = CircuitState.CLOSED;
+    }
+    
+    private void onFailure() {
+        int failures = failureCount.incrementAndGet();
+        lastFailureTime.set(System.currentTimeMillis());
+        
+        if (failures >= FAILURE_THRESHOLD) {
+            state = CircuitState.OPEN;
+        }
+    }
+}
+```
+
 ## Table of Contents
 1. [System Overview](#system-overview)
 2. [High-Level Design (HLD)](#high-level-design-hld)

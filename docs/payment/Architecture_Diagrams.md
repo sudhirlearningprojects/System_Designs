@@ -1,5 +1,164 @@
 # Payment Service - Architecture Diagrams
 
+## Understanding Payment Service Architecture
+
+### What Makes Payment Architecture Critical?
+Payment services are the backbone of financial systems and require specialized architectural patterns:
+
+1. **Financial Accuracy**: Never lose or duplicate money
+2. **Regulatory Compliance**: Meet PCI DSS and banking regulations
+3. **Fault Tolerance**: Handle external service failures gracefully
+4. **Exactly-Once Processing**: Prevent duplicate transactions
+5. **Audit Trails**: Complete transaction history for compliance
+
+### Key Architectural Patterns
+
+#### Idempotency Pattern
+```java
+// The core challenge: Network failures can cause duplicate requests
+public class PaymentController {
+    
+    @PostMapping("/process")
+    public PaymentResponse processPayment(
+            @RequestBody PaymentRequest request,
+            @RequestHeader("Idempotency-Key") String idempotencyKey) {
+        
+        // Check if we've seen this request before
+        PaymentResponse cachedResponse = idempotencyService.getCachedResponse(idempotencyKey);
+        if (cachedResponse != null) {
+            return cachedResponse; // Return same result for duplicate request
+        }
+        
+        // Process payment for the first time
+        PaymentResponse response = paymentService.processPayment(request);
+        
+        // Cache the response for future duplicate requests
+        idempotencyService.cacheResponse(idempotencyKey, response, Duration.ofHours(24));
+        
+        return response;
+    }
+}
+```
+
+#### Circuit Breaker Pattern for External Services
+```java
+// Prevent cascade failures when payment processors are down
+@Component
+public class PaymentProcessorCircuitBreaker {
+    private volatile CircuitState state = CircuitState.CLOSED;
+    private final AtomicInteger failureCount = new AtomicInteger(0);
+    private final AtomicLong lastFailureTime = new AtomicLong(0);
+    
+    public PaymentResult callProcessor(PaymentRequest request) {
+        if (state == CircuitState.OPEN) {
+            if (shouldAttemptReset()) {
+                state = CircuitState.HALF_OPEN;
+            } else {
+                return PaymentResult.failure("Payment processor unavailable");
+            }
+        }
+        
+        try {
+            PaymentResult result = actualProcessorCall(request);
+            onSuccess();
+            return result;
+        } catch (Exception e) {
+            onFailure();
+            throw e;
+        }
+    }
+}
+```
+
+#### Saga Pattern for Distributed Transactions
+```java
+// Handle complex payment flows across multiple services
+public class PaymentSaga {
+    public void executePayment(PaymentRequest request) {
+        SagaTransaction saga = new SagaTransaction();
+        
+        try {
+            // Step 1: Reserve funds
+            saga.addStep(
+                () -> walletService.reserveFunds(request.getUserId(), request.getAmount()),
+                () -> walletService.releaseFunds(request.getUserId(), request.getAmount())
+            );
+            
+            // Step 2: Process with external gateway
+            saga.addStep(
+                () -> paymentGateway.charge(request),
+                () -> paymentGateway.refund(request.getTransactionId())
+            );
+            
+            // Step 3: Update ledger
+            saga.addStep(
+                () -> ledgerService.recordTransaction(request),
+                () -> ledgerService.reverseTransaction(request.getTransactionId())
+            );
+            
+            // Execute all steps
+            saga.execute();
+            
+        } catch (Exception e) {
+            // Compensate all completed steps in reverse order
+            saga.compensate();
+            throw e;
+        }
+    }
+}
+```
+
+### Database Design for Financial Systems
+
+#### Immutable Transaction Records
+```sql
+-- Financial records should NEVER be updated, only inserted
+CREATE TABLE payment_transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    idempotency_key VARCHAR(255) UNIQUE NOT NULL,
+    amount DECIMAL(15,2) NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    -- Notice: NO updated_at column!
+    -- Financial records are immutable
+    
+    CONSTRAINT positive_amount CHECK (amount > 0)
+);
+
+-- Status changes are tracked in separate table
+CREATE TABLE transaction_status_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    transaction_id UUID NOT NULL REFERENCES payment_transactions(id),
+    old_status VARCHAR(20),
+    new_status VARCHAR(20) NOT NULL,
+    reason TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+```
+
+#### Optimistic Locking for Account Balances
+```sql
+-- Prevent lost updates in concurrent scenarios
+CREATE TABLE account_balances (
+    account_id UUID PRIMARY KEY,
+    balance DECIMAL(15,2) NOT NULL DEFAULT 0,
+    version BIGINT NOT NULL DEFAULT 1, -- For optimistic locking
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    
+    CONSTRAINT non_negative_balance CHECK (balance >= 0)
+);
+
+-- Update with version check
+UPDATE account_balances 
+SET balance = balance - ?, 
+    version = version + 1,
+    updated_at = NOW()
+WHERE account_id = ? 
+  AND version = ? -- This prevents lost updates
+  AND balance >= ?; -- Ensure sufficient funds
+```
+
 ## 1. High-Level System Architecture
 
 ![High-Level System Architecture](./images/high-level-system-architecture.png)
@@ -81,7 +240,183 @@ graph TB
     AUDIT --> KAFKA
 ```
 
+### Retry Mechanisms in Payment Systems
+
+#### Exponential Backoff with Jitter
+```java
+public class PaymentRetryService {
+    private static final long BASE_DELAY_MS = 1000; // 1 second
+    private static final int MAX_RETRIES = 5;
+    private static final double JITTER_FACTOR = 0.1; // 10% jitter
+    
+    public void scheduleRetry(PaymentRequest request, int retryCount) {
+        if (retryCount >= MAX_RETRIES) {
+            moveToDeadLetterQueue(request);
+            return;
+        }
+        
+        // Calculate exponential backoff: base_delay * 2^retry_count
+        long delayMs = BASE_DELAY_MS * (1L << retryCount);
+        
+        // Add jitter to prevent thundering herd
+        double jitter = (Math.random() - 0.5) * 2 * JITTER_FACTOR;
+        delayMs = (long) (delayMs * (1 + jitter));
+        
+        // Schedule retry
+        scheduler.schedule(() -> {
+            try {
+                PaymentResult result = paymentProcessor.processPayment(request);
+                if (result.isSuccess()) {
+                    handleSuccess(request, result);
+                } else {
+                    scheduleRetry(request, retryCount + 1);
+                }
+            } catch (Exception e) {
+                scheduleRetry(request, retryCount + 1);
+            }
+        }, delayMs, TimeUnit.MILLISECONDS);
+    }
+}
+```
+
+#### Dead Letter Queue Handling
+```java
+@Component
+public class DeadLetterQueueProcessor {
+    
+    @EventListener
+    public void handleDeadLetterMessage(DeadLetterEvent event) {
+        PaymentRequest request = event.getPaymentRequest();
+        
+        // Log for manual investigation
+        log.error("Payment moved to DLQ after {} retries: {}", 
+                 MAX_RETRIES, request.getTransactionId());
+        
+        // Create alert for operations team
+        alertService.createAlert(
+            AlertLevel.HIGH,
+            "Payment Processing Failed",
+            String.format("Transaction %s failed after %d retries", 
+                         request.getTransactionId(), MAX_RETRIES)
+        );
+        
+        // Store for manual processing
+        deadLetterRepository.save(new DeadLetterRecord(
+            request.getTransactionId(),
+            request,
+            event.getLastError(),
+            System.currentTimeMillis()
+        ));
+    }
+    
+    // Manual retry endpoint for operations team
+    @PostMapping("/admin/retry-dead-letter/{transactionId}")
+    public ResponseEntity<String> retryDeadLetter(@PathVariable String transactionId) {
+        DeadLetterRecord record = deadLetterRepository.findByTransactionId(transactionId);
+        if (record != null) {
+            // Reset retry count and reprocess
+            paymentService.processPayment(record.getPaymentRequest());
+            return ResponseEntity.ok("Retry initiated");
+        }
+        return ResponseEntity.notFound().build();
+    }
+}
+```
+
 ## 2. Payment Processing Flow
+
+### Understanding the Payment Flow
+This sequence diagram shows the complete payment processing flow with all safety mechanisms:
+
+#### Critical Decision Points
+
+1. **Idempotency Check**: First line of defense against duplicate processing
+2. **Database Transaction**: Ensure atomicity of payment state changes
+3. **External Processor Call**: Handle third-party service integration
+4. **Event Publishing**: Async notification and audit trail
+5. **Response Caching**: Enable consistent responses for duplicate requests
+
+#### Error Handling Strategies
+
+```java
+@Service
+public class PaymentProcessingService {
+    
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public PaymentResponse processPayment(PaymentRequest request, String idempotencyKey) {
+        // Step 1: Check idempotency
+        PaymentResponse cached = idempotencyService.getCached(idempotencyKey);
+        if (cached != null) {
+            return cached;
+        }
+        
+        // Step 2: Create transaction record
+        PaymentTransaction transaction = new PaymentTransaction(
+            idempotencyKey,
+            request.getAmount(),
+            request.getCurrency(),
+            PaymentStatus.PENDING
+        );
+        transaction = transactionRepository.save(transaction);
+        
+        try {
+            // Step 3: Process with external service
+            PaymentProcessorResult result = paymentProcessor.process(request);
+            
+            if (result.isSuccess()) {
+                // Update transaction status
+                transaction.setStatus(PaymentStatus.COMPLETED);
+                transaction.setProcessorTransactionId(result.getTransactionId());
+                transactionRepository.save(transaction);
+                
+                // Create success response
+                PaymentResponse response = PaymentResponse.success(
+                    transaction.getId(),
+                    result.getTransactionId()
+                );
+                
+                // Cache response
+                idempotencyService.cache(idempotencyKey, response);
+                
+                // Publish success event
+                eventPublisher.publishEvent(new PaymentSuccessEvent(transaction));
+                
+                return response;
+                
+            } else {
+                // Handle processor failure
+                transaction.setStatus(PaymentStatus.FAILED);
+                transaction.setFailureReason(result.getErrorMessage());
+                transactionRepository.save(transaction);
+                
+                // Determine if retry is appropriate
+                if (result.isRetryable()) {
+                    retryService.scheduleRetry(request, 0);
+                }
+                
+                PaymentResponse response = PaymentResponse.failure(
+                    transaction.getId(),
+                    result.getErrorMessage()
+                );
+                
+                idempotencyService.cache(idempotencyKey, response);
+                return response;
+            }
+            
+        } catch (PaymentProcessorException e) {
+            // Handle technical failures
+            transaction.setStatus(PaymentStatus.FAILED);
+            transaction.setFailureReason(e.getMessage());
+            transactionRepository.save(transaction);
+            
+            // Always retry technical failures
+            retryService.scheduleRetry(request, 0);
+            
+            throw new PaymentProcessingException("Payment processing failed", e);
+        }
+    }
+}
+```
 
 ![Payment Processing Flow](./images/payment-processing-flow.png)
 

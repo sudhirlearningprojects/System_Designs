@@ -1,5 +1,85 @@
 # Cloud Storage System Design (Dropbox/Google Drive)
 
+## Understanding Cloud Storage Systems
+
+### What is Cloud Storage?
+Cloud storage is a service that allows users to store, access, and manage files over the internet instead of on local devices. The system must handle file synchronization across multiple devices while ensuring data durability and availability.
+
+### Key Challenges in Cloud Storage
+1. **File Synchronization**: Keep files consistent across multiple devices
+2. **Conflict Resolution**: Handle simultaneous edits to the same file
+3. **Data Deduplication**: Avoid storing duplicate content
+4. **Scalability**: Handle billions of files and petabytes of data
+5. **Consistency**: Balance between performance and data consistency
+
+### Cloud Storage Fundamentals
+
+#### File vs Object Storage
+- **File Storage**: Hierarchical structure (folders/files)
+- **Object Storage**: Flat namespace with metadata
+- **Dropbox Approach**: File interface with object storage backend
+
+#### Synchronization Models
+
+##### Client-Server Sync
+```
+Client A → Server → Client B
+- Centralized conflict resolution
+- Server is source of truth
+- Simpler consistency model
+```
+
+##### Peer-to-Peer Sync
+```
+Client A ↔ Client B
+- Distributed conflict resolution
+- No single point of failure
+- Complex consistency model
+```
+
+#### Consistency Models
+- **Strong Consistency**: All clients see same data immediately
+- **Eventual Consistency**: Clients eventually see same data
+- **Causal Consistency**: Preserve cause-effect relationships
+
+### File Chunking Strategy
+
+#### Why Chunking?
+1. **Resume Uploads**: Continue from where it left off
+2. **Parallel Transfer**: Upload/download multiple chunks simultaneously
+3. **Deduplication**: Share common chunks between files
+4. **Delta Sync**: Only transfer changed chunks
+
+#### Chunking Algorithms
+
+##### Fixed-Size Chunking
+```python
+def fixed_chunk(file_data, chunk_size=4*1024*1024):  # 4MB chunks
+    chunks = []
+    for i in range(0, len(file_data), chunk_size):
+        chunk = file_data[i:i+chunk_size]
+        chunk_hash = sha256(chunk).hexdigest()
+        chunks.append({'data': chunk, 'hash': chunk_hash})
+    return chunks
+```
+
+##### Content-Defined Chunking (Better for Deduplication)
+```python
+def content_defined_chunk(file_data):
+    chunks = []
+    start = 0
+    
+    for i in range(len(file_data)):
+        # Rolling hash to find chunk boundaries
+        if rolling_hash(file_data[start:i]) % 8192 == 0:
+            chunk = file_data[start:i]
+            chunk_hash = sha256(chunk).hexdigest()
+            chunks.append({'data': chunk, 'hash': chunk_hash})
+            start = i
+    
+    return chunks
+```
+
 ## Table of Contents
 1. [System Overview](#system-overview)
 2. [High-Level Design (HLD)](#high-level-design-hld)
@@ -184,6 +264,123 @@ A distributed cloud storage system that allows users to store, sync, and share f
 - Data at rest encryption
 - Access control lists (ACL)
 - Audit logging
+
+### Data Deduplication Deep Dive
+
+#### The Deduplication Problem
+```
+Scenario: 1000 users upload the same 100MB video
+Without deduplication: 1000 × 100MB = 100GB storage
+With deduplication: 1 × 100MB = 100MB storage
+Savings: 99.9% storage reduction
+```
+
+#### Hash-Based Deduplication Implementation
+```java
+@Service
+public class DeduplicationService {
+    
+    @Autowired
+    private ChunkRepository chunkRepository;
+    
+    public List<ChunkInfo> deduplicateFile(byte[] fileData) {
+        List<ChunkInfo> chunks = new ArrayList<>();
+        
+        // Split file into chunks
+        List<byte[]> fileChunks = chunkFile(fileData);
+        
+        for (byte[] chunkData : fileChunks) {
+            String chunkHash = calculateSHA256(chunkData);
+            
+            // Check if chunk already exists
+            Optional<Chunk> existingChunk = chunkRepository.findByHash(chunkHash);
+            
+            if (existingChunk.isPresent()) {
+                // Increment reference count
+                existingChunk.get().incrementRefCount();
+                chunks.add(new ChunkInfo(chunkHash, existingChunk.get().getStoragePath()));
+            } else {
+                // Store new chunk
+                String storagePath = storeChunk(chunkData, chunkHash);
+                Chunk newChunk = new Chunk(chunkHash, storagePath, 1);
+                chunkRepository.save(newChunk);
+                chunks.add(new ChunkInfo(chunkHash, storagePath));
+            }
+        }
+        
+        return chunks;
+    }
+}
+```
+
+### Conflict Resolution Strategies
+
+#### Types of Conflicts
+1. **Edit-Edit Conflict**: Two users edit same file simultaneously
+2. **Edit-Delete Conflict**: One user edits, another deletes
+3. **Move-Move Conflict**: File moved to different locations
+4. **Name Conflict**: Two files with same name in folder
+
+#### Conflict Resolution Algorithms
+
+##### Last Writer Wins (LWW)
+```java
+public FileVersion resolveConflict(FileVersion version1, FileVersion version2) {
+    if (version1.getTimestamp().isAfter(version2.getTimestamp())) {
+        return version1;
+    } else {
+        return version2;
+    }
+}
+```
+
+##### Operational Transformation (for text files)
+```java
+public class OperationalTransform {
+    public Operation transform(Operation op1, Operation op2) {
+        // Transform op1 against op2
+        if (op1.getPosition() <= op2.getPosition()) {
+            return op1; // No transformation needed
+        } else {
+            // Adjust position based on op2's effect
+            return new Operation(
+                op1.getType(),
+                op1.getPosition() + op2.getLength(),
+                op1.getContent()
+            );
+        }
+    }
+}
+```
+
+##### Vector Clocks (for causality)
+```java
+public class VectorClock {
+    private Map<String, Integer> clock = new HashMap<>();
+    
+    public void increment(String nodeId) {
+        clock.put(nodeId, clock.getOrDefault(nodeId, 0) + 1);
+    }
+    
+    public boolean happensBefore(VectorClock other) {
+        boolean strictlyLess = false;
+        
+        for (String nodeId : getAllNodes()) {
+            int thisValue = clock.getOrDefault(nodeId, 0);
+            int otherValue = other.clock.getOrDefault(nodeId, 0);
+            
+            if (thisValue > otherValue) {
+                return false; // Not happens-before
+            }
+            if (thisValue < otherValue) {
+                strictlyLess = true;
+            }
+        }
+        
+        return strictlyLess;
+    }
+}
+```
 
 ## Deep-Dive Scenarios
 

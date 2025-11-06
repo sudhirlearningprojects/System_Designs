@@ -1,5 +1,192 @@
 # Job Scheduler - Architecture Diagrams
 
+## Understanding Job Scheduler Architecture
+
+### What Makes Job Scheduling Complex?
+Job scheduling systems face unique challenges that require specialized architectural patterns:
+
+1. **Timing Precision**: Execute jobs at exact scheduled times
+2. **Distributed Coordination**: Multiple scheduler nodes without conflicts
+3. **Fault Tolerance**: Handle node failures without losing jobs
+4. **Scalability**: Handle millions of scheduled jobs efficiently
+5. **Exactly-Once Execution**: Prevent duplicate job executions
+
+### Key Architectural Decisions
+
+#### Centralized vs Distributed Scheduling
+
+**Centralized Approach (Simple but Limited)**
+```
+Single Scheduler Node
+│
+├── Pros: Simple, no coordination needed
+└── Cons: Single point of failure, limited scale
+```
+
+**Distributed Approach (Complex but Scalable)**
+```
+Multiple Scheduler Nodes + Coordination
+│
+├── Pros: High availability, horizontal scaling
+└── Cons: Complex coordination, potential conflicts
+```
+
+#### Timing Wheel vs Priority Queue
+
+**Priority Queue (Traditional)**
+```java
+// O(log n) insertion and removal
+PriorityQueue<ScheduledJob> queue = new PriorityQueue<>(
+    Comparator.comparing(ScheduledJob::getExecutionTime)
+);
+
+// Add job: O(log n)
+queue.offer(new ScheduledJob(jobId, executionTime));
+
+// Get next job: O(log n)
+ScheduledJob nextJob = queue.poll();
+```
+**Problems**: 
+- O(log n) operations become expensive with millions of jobs
+- Memory overhead for large heaps
+- Not suitable for high-frequency scheduling
+
+**Timing Wheel (Optimized)**
+```java
+public class TimingWheel {
+    private final int wheelSize = 3600; // 1 hour with 1-second ticks
+    private final List<ScheduledJob>[] buckets = new List[wheelSize];
+    private int currentTick = 0;
+    
+    // O(1) insertion
+    public void schedule(ScheduledJob job, long delaySeconds) {
+        int targetBucket = (currentTick + (int)delaySeconds) % wheelSize;
+        buckets[targetBucket].add(job);
+    }
+    
+    // O(1) tick processing
+    public List<ScheduledJob> tick() {
+        List<ScheduledJob> readyJobs = buckets[currentTick];
+        buckets[currentTick] = new ArrayList<>(); // Clear bucket
+        currentTick = (currentTick + 1) % wheelSize;
+        return readyJobs;
+    }
+}
+```
+**Benefits**:
+- O(1) insertion and tick processing
+- Memory efficient for sparse schedules
+- Handles high-frequency scheduling
+
+#### Lease-Based Coordination
+
+**The Split-Brain Problem**
+```
+Scenario: Network partition splits scheduler cluster
+Node A: "I'm the leader" → Schedules Job X
+Node B: "I'm the leader" → Schedules Job X
+Result: Job X executed twice!
+```
+
+**Solution: Lease-Based Leadership**
+```java
+public class LeaseManager {
+    private static final long LEASE_DURATION_MS = 30_000; // 30 seconds
+    
+    public boolean acquireLease(String partitionKey, String nodeId) {
+        // Atomic compare-and-swap operation
+        return jdbcTemplate.update(
+            "INSERT INTO scheduler_leases (partition_key, node_id, expires_at) " +
+            "VALUES (?, ?, ?) ON CONFLICT (partition_key) DO UPDATE SET " +
+            "node_id = EXCLUDED.node_id, expires_at = EXCLUDED.expires_at " +
+            "WHERE scheduler_leases.expires_at < NOW()",
+            partitionKey, nodeId, Instant.now().plusMillis(LEASE_DURATION_MS)
+        ) > 0;
+    }
+    
+    @Scheduled(fixedRate = 10000) // Every 10 seconds
+    public void renewLease() {
+        for (String partition : ownedPartitions) {
+            boolean renewed = jdbcTemplate.update(
+                "UPDATE scheduler_leases SET expires_at = ?, heartbeat_at = NOW() " +
+                "WHERE partition_key = ? AND node_id = ?",
+                Instant.now().plusMillis(LEASE_DURATION_MS),
+                partition, nodeId
+            ) > 0;
+            
+            if (!renewed) {
+                log.warn("Lost lease for partition: {}", partition);
+                ownedPartitions.remove(partition);
+            }
+        }
+    }
+}
+```
+
+### Message Queue Architecture
+
+#### Why Kafka for Job Scheduling?
+1. **Durability**: Messages persisted to disk
+2. **Ordering**: Partition-based message ordering
+3. **Scalability**: Horizontal scaling with partitions
+4. **Reliability**: Replication and fault tolerance
+
+#### Queue Design Patterns
+```java
+// Producer: Scheduler publishes ready jobs
+public class JobScheduler {
+    public void publishReadyJob(ScheduledJob job) {
+        JobMessage message = new JobMessage(
+            job.getId(),
+            job.getType(),
+            job.getPayload(),
+            job.getPriority()
+        );
+        
+        // Use job type as partition key for load balancing
+        kafkaTemplate.send("ready-jobs", job.getType(), message);
+    }
+}
+
+// Consumer: Executor processes jobs
+@KafkaListener(topics = "ready-jobs")
+public class JobExecutor {
+    public void processJob(JobMessage message) {
+        try {
+            // Execute job logic
+            JobResult result = executeJob(message);
+            
+            // Update job status
+            jobService.markCompleted(message.getJobId(), result);
+            
+        } catch (Exception e) {
+            // Handle failure and retry logic
+            handleJobFailure(message, e);
+        }
+    }
+    
+    private void handleJobFailure(JobMessage message, Exception error) {
+        Job job = jobService.getJob(message.getJobId());
+        
+        if (job.getCurrentRetries() < job.getMaxRetries()) {
+            // Schedule retry with exponential backoff
+            long delayMs = calculateRetryDelay(job.getCurrentRetries());
+            
+            RetryMessage retryMessage = new RetryMessage(
+                message,
+                job.getCurrentRetries() + 1,
+                System.currentTimeMillis() + delayMs
+            );
+            
+            kafkaTemplate.send("retry-jobs", retryMessage);
+        } else {
+            // Move to dead letter queue
+            kafkaTemplate.send("dead-letter-jobs", message);
+        }
+    }
+}
+```
+
 ## 1. High-Level System Architecture
 
 ```mermaid
@@ -134,7 +321,120 @@ sequenceDiagram
     JMS-->>Client: Job Status Response
 ```
 
+### Cron Expression Processing
+
+#### Understanding Cron Complexity
+Cron expressions seem simple but have many edge cases:
+
+```java
+public class CronProcessor {
+    // Handle timezone conversions
+    public LocalDateTime getNextExecution(String cronExpression, ZoneId timezone) {
+        CronExpression cron = CronExpression.parse(cronExpression);
+        ZonedDateTime now = ZonedDateTime.now(timezone);
+        
+        // Handle Daylight Saving Time transitions
+        ZonedDateTime next = cron.next(now);
+        
+        // DST "spring forward" - 2 AM becomes 3 AM
+        if (next.getHour() == 2 && isDSTTransition(next)) {
+            next = next.plusHours(1); // Skip to 3 AM
+        }
+        
+        return next.toLocalDateTime();
+    }
+    
+    // Handle complex expressions like "last Friday of month"
+    public boolean isValidCronExpression(String expression) {
+        try {
+            CronExpression cron = CronExpression.parse(expression);
+            
+            // Test with multiple dates to catch edge cases
+            LocalDateTime testDate = LocalDateTime.now();
+            for (int i = 0; i < 100; i++) {
+                LocalDateTime next = cron.next(testDate);
+                if (next == null) return false;
+                testDate = next.plusMinutes(1);
+            }
+            
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+}
+```
+
+#### Cron Expression Examples
+```
+"0 0 9 * * MON"     - Every Monday at 9 AM
+"0 */15 * * * *"    - Every 15 minutes
+"0 0 0 1 */3 *"     - First day of every quarter
+"0 0 2 * * SUN#2"   - Second Sunday of month at 2 AM
+"0 0 0 L * *"       - Last day of every month
+```
+
 ## 3. Timing Wheel Architecture
+
+### Understanding Timing Wheel Efficiency
+
+The timing wheel is a crucial optimization for handling millions of scheduled jobs:
+
+#### Hierarchical Design Benefits
+1. **Memory Efficiency**: Only allocate buckets for time ranges with jobs
+2. **O(1) Operations**: Constant time insertion, deletion, and tick processing
+3. **Scalability**: Handle millions of jobs without performance degradation
+
+#### Implementation Details
+```java
+public class HierarchicalTimingWheel {
+    private final TimingWheelLevel[] levels;
+    
+    public HierarchicalTimingWheel() {
+        levels = new TimingWheelLevel[] {
+            new TimingWheelLevel(3600, 1000),      // Level 1: 1-second ticks, 1 hour
+            new TimingWheelLevel(1440, 60000),     // Level 2: 1-minute ticks, 1 day
+            new TimingWheelLevel(720, 3600000),    // Level 3: 1-hour ticks, 30 days
+            new TimingWheelLevel(365, 86400000)    // Level 4: 1-day ticks, 1 year
+        };
+    }
+    
+    public void addJob(ScheduledJob job, long delayMs) {
+        // Find appropriate level for the delay
+        for (int i = 0; i < levels.length; i++) {
+            if (delayMs <= levels[i].getMaxDelay()) {
+                levels[i].addJob(job, delayMs);
+                return;
+            }
+        }
+        
+        // For very long delays, use the highest level
+        levels[levels.length - 1].addJob(job, delayMs);
+    }
+    
+    public Set<ScheduledJob> tick() {
+        Set<ScheduledJob> readyJobs = new HashSet<>();
+        
+        // Process each level
+        for (TimingWheelLevel level : levels) {
+            Set<ScheduledJob> levelJobs = level.tick();
+            
+            // Jobs from higher levels need to be re-inserted into lower levels
+            for (ScheduledJob job : levelJobs) {
+                long remainingDelay = job.getExecutionTime() - System.currentTimeMillis();
+                
+                if (remainingDelay <= 0) {
+                    readyJobs.add(job); // Job is ready for execution
+                } else {
+                    addJob(job, remainingDelay); // Re-insert into appropriate level
+                }
+            }
+        }
+        
+        return readyJobs;
+    }
+}
+```
 
 ```mermaid
 graph TD

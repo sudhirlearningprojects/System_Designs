@@ -1,5 +1,122 @@
 # Distributed Job Scheduler System Design
 
+## Understanding Job Scheduling Systems
+
+### What is a Job Scheduler?
+A job scheduler is a system that executes tasks at predetermined times or intervals. Unlike simple cron jobs on a single machine, distributed job schedulers handle millions of jobs across multiple servers with fault tolerance and scalability.
+
+### Key Challenges in Job Scheduling
+1. **Timing Precision**: Execute jobs at exact scheduled times
+2. **Fault Tolerance**: Handle server failures without losing jobs
+3. **Exactly-Once Execution**: Prevent duplicate job executions
+4. **Scalability**: Handle millions of concurrent scheduled jobs
+5. **Thundering Herd**: Avoid overwhelming systems with simultaneous executions
+
+### Job Scheduling Fundamentals
+
+#### Types of Job Scheduling
+
+##### Time-based Scheduling
+- **One-time Jobs**: Execute once at specific time
+- **Recurring Jobs**: Execute repeatedly based on schedule
+- **Cron Jobs**: Unix cron expression based scheduling
+- **Interval Jobs**: Execute every N seconds/minutes/hours
+
+##### Event-based Scheduling
+- **Trigger Jobs**: Execute when specific event occurs
+- **Dependency Jobs**: Execute after other jobs complete
+- **Conditional Jobs**: Execute based on conditions
+
+#### Scheduling Algorithms
+
+##### Simple Queue (FIFO)
+```python
+class SimpleScheduler:
+    def __init__(self):
+        self.queue = []
+    
+    def schedule_job(self, job, execution_time):
+        self.queue.append((execution_time, job))
+        self.queue.sort(key=lambda x: x[0])  # Sort by time
+    
+    def get_ready_jobs(self, current_time):
+        ready_jobs = []
+        while self.queue and self.queue[0][0] <= current_time:
+            ready_jobs.append(self.queue.pop(0)[1])
+        return ready_jobs
+```
+**Problems**: O(n log n) insertion, not suitable for millions of jobs
+
+##### Priority Queue (Min-Heap)
+```python
+import heapq
+
+class PriorityScheduler:
+    def __init__(self):
+        self.heap = []
+    
+    def schedule_job(self, job, execution_time, priority=5):
+        # Lower number = higher priority
+        heapq.heappush(self.heap, (execution_time, priority, job))
+    
+    def get_ready_jobs(self, current_time):
+        ready_jobs = []
+        while self.heap and self.heap[0][0] <= current_time:
+            ready_jobs.append(heapq.heappop(self.heap)[2])
+        return ready_jobs
+```
+**Benefits**: O(log n) insertion, priority support
+**Problems**: Still not optimal for very large scales
+
+##### Timing Wheel (Optimal for Large Scale)
+```python
+class TimingWheel:
+    def __init__(self, wheel_size=3600, tick_duration=1000):  # 1 hour wheel, 1s ticks
+        self.wheel_size = wheel_size
+        self.tick_duration = tick_duration  # milliseconds
+        self.buckets = [[] for _ in range(wheel_size)]
+        self.current_tick = 0
+    
+    def schedule_job(self, job, delay_ms):
+        ticks_delay = delay_ms // self.tick_duration
+        bucket_index = (self.current_tick + ticks_delay) % self.wheel_size
+        self.buckets[bucket_index].append(job)
+    
+    def tick(self):
+        ready_jobs = self.buckets[self.current_tick]
+        self.buckets[self.current_tick] = []  # Clear bucket
+        self.current_tick = (self.current_tick + 1) % self.wheel_size
+        return ready_jobs
+```
+**Benefits**: O(1) insertion and tick processing, memory efficient
+
+### Distributed Coordination Challenges
+
+#### The Split-Brain Problem
+```
+Scenario: Network partition splits scheduler cluster
+Node A thinks it's the leader → Schedules jobs
+Node B thinks it's the leader → Schedules same jobs
+Result: Duplicate job executions
+```
+
+#### Solution: Lease-Based Leadership
+```java
+public class LeaderElection {
+    private static final long LEASE_DURATION = 30_000; // 30 seconds
+    
+    public boolean tryAcquireLeadership(String nodeId) {
+        return database.executeUpdate(
+            "INSERT INTO leader_lease (partition, node_id, expires_at) " +
+            "VALUES (?, ?, ?) ON CONFLICT (partition) DO UPDATE SET " +
+            "node_id = EXCLUDED.node_id, expires_at = EXCLUDED.expires_at " +
+            "WHERE leader_lease.expires_at < NOW()",
+            "scheduler", nodeId, System.currentTimeMillis() + LEASE_DURATION
+        ) > 0;
+    }
+}
+```
+
 ## Table of Contents
 1. [System Overview](#system-overview)
 2. [High-Level Design (HLD)](#high-level-design-hld)

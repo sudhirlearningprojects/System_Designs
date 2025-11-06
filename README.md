@@ -148,6 +148,33 @@ A highly available and scalable ticket booking platform that prevents oversellin
 
 ---
 
+### 7. Instagram Clone - Social Media Platform
+**Location**: `org.sudhir512kj.instagram` package
+
+A highly scalable social media platform with real-time features and billions of users:
+- User profiles and social graph management
+- Photo/video posts with media processing
+- News feed with hybrid push/pull algorithm
+- Real-time notifications and messaging
+- Stories with 24-hour expiry
+- Advanced search with Elasticsearch
+- Content moderation and security
+
+**Documentation**: [docs/instagram/](docs/instagram/)
+
+**Key Features**:
+- Hybrid feed generation (celebrity vs regular users)
+- Multi-layer caching strategy (L1/L2/L3)
+- Async media processing pipeline
+- Real-time WebSocket connections
+- Microservices architecture
+- AI-powered content moderation
+- Global CDN for media delivery
+
+**Scale**: 2B users, 100M DAU, 500M posts/day, 734PB storage
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -207,6 +234,7 @@ mvn clean install
 ./run-systems.sh jobscheduler    # Port 8083
 ./run-systems.sh digitalpayment  # Port 8084
 ./run-systems.sh ticketbooking   # Port 8086
+./run-systems.sh instagram       # Port 8087
 ```
 
 **Alternative: Run directly with Maven profiles**
@@ -217,6 +245,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=payment
 mvn spring-boot:run -Dspring-boot.run.profiles=jobscheduler
 mvn spring-boot:run -Dspring-boot.run.profiles=digitalpayment
 mvn spring-boot:run -Dspring-boot.run.profiles=ticketbooking
+mvn spring-boot:run -Dspring-boot.run.profiles=instagram
 ```
 
 ## 🏗️ Project Structure
@@ -255,6 +284,14 @@ src/main/java/org/sudhir512kj/
 │   ├── dto/                    # Booking DTOs
 │   └── config/                 # Booking configuration
 │
+├── instagram/                  # Instagram clone implementation
+│   ├── model/                  # Social entities (User, Post, Story, Comment)
+│   ├── service/                # Social business logic
+│   ├── repository/             # Social data access
+│   ├── controller/             # Social APIs
+│   ├── dto/                    # Social DTOs
+│   └── config/                 # Social configuration
+│
 ├── [future-system]/            # Next system design
 │   └── ...
 │
@@ -283,6 +320,13 @@ docs/
 │   ├── API_Documentation.md    # Ticket booking API reference
 │   ├── Scale_Calculations.md   # Ticket booking performance analysis
 │   └── README.md               # Ticket booking overview
+│
+├── instagram/                  # Instagram clone documentation
+│   ├── System_Design.md        # Instagram system HLD/LLD
+│   ├── Architecture_Diagrams.md # Instagram architecture
+│   ├── API_Documentation.md    # Instagram API reference
+│   ├── Scale_Calculations.md   # Instagram performance analysis
+│   └── README.md               # Instagram overview
 │
 └── [future-system]/            # Future system docs
 ```
