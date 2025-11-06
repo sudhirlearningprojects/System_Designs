@@ -8,6 +8,7 @@ echo "2. Dropbox Clone System (port 8081)"
 echo "3. Payment Service System (port 8082)"
 echo "4. Job Scheduler System (port 8083)"
 echo "5. Digital Payment Platform (port 8084)"
+echo "6. Ticket Booking Platform (port 8086)"
 echo ""
 
 case "$1" in
@@ -27,8 +28,16 @@ case "$1" in
     echo "Starting Job Scheduler System..."
     mvn spring-boot:run -Dspring-boot.run.profiles=jobscheduler
     ;;
+  "digitalpayment")
+    echo "Starting Digital Payment Platform..."
+    mvn spring-boot:run -Dspring-boot.run.profiles=digitalpayment
+    ;;
+  "ticketbooking")
+    echo "Starting Ticket Booking Platform..."
+    mvn spring-boot:run -Dspring-boot.run.profiles=ticketbooking
+    ;;
   *)
-    echo "Usage: $0 {parkinglot|dropbox|payment|jobscheduler|digitalpayment}"
+    echo "Usage: $0 {parkinglot|dropbox|payment|jobscheduler|digitalpayment|ticketbooking}"
     echo ""
     echo "Examples:"
     echo "  ./run-systems.sh parkinglot"
@@ -36,6 +45,7 @@ case "$1" in
     echo "  ./run-systems.sh payment"
     echo "  ./run-systems.sh jobscheduler"
     echo "  ./run-systems.sh digitalpayment"
+    echo "  ./run-systems.sh ticketbooking"
     exit 1
     ;;
 esac

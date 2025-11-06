@@ -124,6 +124,30 @@ A highly scalable digital payment platform enabling instant money transfers:
 
 ---
 
+### 6. Ticket Booking Platform - Ticketmaster/BookMyShow Clone
+**Location**: `org.sudhir512kj.ticketbooking` package
+
+A highly available and scalable ticket booking platform that prevents overselling:
+- Real-time inventory management with Redis
+- Atomic ticket hold and release mechanism
+- High-concurrency booking during flash sales
+- Secure payment processing integration
+- Zero overselling guarantee
+
+**Documentation**: [docs/ticketbooking/](docs/ticketbooking/)
+
+**Key Features**:
+- Redis-based inventory management for zero overselling
+- 10-minute ticket hold with automatic expiry
+- Pessimistic locking for critical operations
+- Multi-layer caching for optimal performance
+- Circuit breaker pattern for payment resilience
+- Event search and discovery with filters
+
+**Scale**: 50M users, 100K concurrent requests, 500K bookings/day
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -172,24 +196,27 @@ export REDIS_PORT=6379
 export JWT_SECRET=mySecretKey
 ```
 
-4. **Build and run**
+4. **Build and run using the convenience script**
 ```bash
 mvn clean install
 
-# Run Dropbox system
-mvn spring-boot:run -Dspring-boot.run.main-class=org.sudhir512kj.dropbox.DropboxApplication
+# Use the run-systems.sh script for easy startup
+./run-systems.sh parkinglot      # Port 8080
+./run-systems.sh dropbox         # Port 8081
+./run-systems.sh payment         # Port 8082
+./run-systems.sh jobscheduler    # Port 8083
+./run-systems.sh digitalpayment  # Port 8084
+./run-systems.sh ticketbooking   # Port 8086
+```
 
-# Run Payment system
-mvn spring-boot:run -Dspring-boot.run.main-class=org.sudhir512kj.payment.PaymentApplication
-
-# Run Job Scheduler system
-mvn spring-boot:run -Dspring-boot.run.main-class=org.sudhir512kj.jobscheduler.JobSchedulerApplication
-
-# Run Parking Lot system
-mvn spring-boot:run -Dspring-boot.run.main-class=org.sudhir512kj.parkinglot.ParkingLotApplication
-
-# Run Digital Payment system
-mvn spring-boot:run -Dspring-boot.run.main-class=org.sudhir512kj.digitalpayment.DigitalPaymentApplication
+**Alternative: Run directly with Maven profiles**
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=parkinglot
+mvn spring-boot:run -Dspring-boot.run.profiles=dropbox
+mvn spring-boot:run -Dspring-boot.run.profiles=payment
+mvn spring-boot:run -Dspring-boot.run.profiles=jobscheduler
+mvn spring-boot:run -Dspring-boot.run.profiles=digitalpayment
+mvn spring-boot:run -Dspring-boot.run.profiles=ticketbooking
 ```
 
 ## 🏗️ Project Structure
@@ -220,6 +247,14 @@ src/main/java/org/sudhir512kj/
 │   ├── dto/                    # Parking DTOs
 │   └── config/                 # Parking configuration
 │
+├── ticketbooking/              # Ticket booking system implementation
+│   ├── model/                  # Booking entities (Event, Booking, TicketType)
+│   ├── service/                # Booking business logic
+│   ├── repository/             # Booking data access
+│   ├── controller/             # Booking APIs
+│   ├── dto/                    # Booking DTOs
+│   └── config/                 # Booking configuration
+│
 ├── [future-system]/            # Next system design
 │   └── ...
 │
@@ -241,6 +276,13 @@ docs/
 │   ├── Architecture_Diagrams.md # Parking architecture
 │   ├── API_Documentation.md    # Parking API reference
 │   └── Scale_Calculations.md   # Parking performance analysis
+│
+├── ticketbooking/              # Ticket booking documentation
+│   ├── System_Design.md        # Ticket booking system HLD/LLD
+│   ├── Architecture_Diagrams.md # Ticket booking architecture
+│   ├── API_Documentation.md    # Ticket booking API reference
+│   ├── Scale_Calculations.md   # Ticket booking performance analysis
+│   └── README.md               # Ticket booking overview
 │
 └── [future-system]/            # Future system docs
 ```
