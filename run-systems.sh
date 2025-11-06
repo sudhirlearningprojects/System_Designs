@@ -1,57 +1,50 @@
 #!/bin/bash
 
-# System Designs Runner Script
+# System runner script
+SYSTEM=$1
 
-echo "Available System Designs:"
-echo "1. Parking Lot Management System (port 8080)"
-echo "2. Dropbox Clone System (port 8081)" 
-echo "3. Payment Service System (port 8082)"
-echo "4. Job Scheduler System (port 8083)"
-echo "5. Digital Payment Platform (port 8084)"
-echo "6. Ticket Booking Platform (port 8086)"
-echo "7. Instagram Clone Platform (port 8087)"
-echo ""
-
-case "$1" in
-  "parkinglot")
-    echo "Starting Parking Lot Management System..."
-    mvn spring-boot:run -Dspring-boot.run.profiles=parkinglot
-    ;;
-  "dropbox")
-    echo "Starting Dropbox Clone System..."
-    mvn spring-boot:run -Dspring-boot.run.profiles=dropbox
-    ;;
-  "payment")
-    echo "Starting Payment Service System..."
-    mvn spring-boot:run -Dspring-boot.run.profiles=payment
-    ;;
-  "jobscheduler")
-    echo "Starting Job Scheduler System..."
-    mvn spring-boot:run -Dspring-boot.run.profiles=jobscheduler
-    ;;
-  "digitalpayment")
-    echo "Starting Digital Payment Platform..."
-    mvn spring-boot:run -Dspring-boot.run.profiles=digitalpayment
-    ;;
-  "ticketbooking")
-    echo "Starting Ticket Booking Platform..."
-    mvn spring-boot:run -Dspring-boot.run.profiles=ticketbooking
-    ;;
-  "instagram")
-    echo "Starting Instagram Clone Platform..."
-    mvn spring-boot:run -Dspring-boot.run.profiles=instagram
-    ;;
-  *)
-    echo "Usage: $0 {parkinglot|dropbox|payment|jobscheduler|digitalpayment|ticketbooking|instagram}"
-    echo ""
-    echo "Examples:"
-    echo "  ./run-systems.sh parkinglot"
-    echo "  ./run-systems.sh dropbox"
-    echo "  ./run-systems.sh payment"
-    echo "  ./run-systems.sh jobscheduler"
-    echo "  ./run-systems.sh digitalpayment"
-    echo "  ./run-systems.sh ticketbooking"
-    echo "  ./run-systems.sh instagram"
+if [ -z "$SYSTEM" ]; then
+    echo "Usage: $0 <system>"
+    echo "Available systems: parkinglot, dropbox, payment, jobscheduler, digitalpayment, ticketbooking, instagram, ratelimiter"
     exit 1
-    ;;
+fi
+
+case $SYSTEM in
+    "parkinglot")
+        echo "🚗 Starting Parking Lot Management System on port 8080..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=parkinglot
+        ;;
+    "dropbox")
+        echo "☁️ Starting Dropbox Clone on port 8081..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=dropbox
+        ;;
+    "payment")
+        echo "💳 Starting Payment Service on port 8082..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=payment
+        ;;
+    "jobscheduler")
+        echo "⏰ Starting Job Scheduler on port 8083..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=jobscheduler
+        ;;
+    "digitalpayment")
+        echo "📱 Starting Digital Payment Platform on port 8084..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=digitalpayment
+        ;;
+    "ticketbooking")
+        echo "🎫 Starting Ticket Booking Platform on port 8086..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=ticketbooking
+        ;;
+    "instagram")
+        echo "📸 Starting Instagram Clone on port 8087..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=instagram
+        ;;
+    "ratelimiter")
+        echo "🛡️ Starting API Rate Limiter on port 8088..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=ratelimiter
+        ;;
+    *)
+        echo "❌ Unknown system: $SYSTEM"
+        echo "Available systems: parkinglot, dropbox, payment, jobscheduler, digitalpayment, ticketbooking, instagram, ratelimiter"
+        exit 1
+        ;;
 esac

@@ -175,6 +175,42 @@ A highly scalable social media platform with real-time features and billions of 
 
 ---
 
+### 8. API Rate Limiter - Distributed Rate Limiting System
+**Location**: `org.sudhir512kj.ratelimiter` package
+
+A highly available and scalable distributed API rate limiter with multi-layered protection:
+- Multi-algorithm support (Sliding Window, Token Bucket, Fixed Window, Leaky Bucket)
+- Multi-scope protection (User, IP, API Key, Tenant, Global)
+- Redis-based distributed state management
+- Dynamic rule configuration with priority matching
+- Real-time analytics and monitoring
+- DDoS protection and abuse prevention
+
+**Documentation**: [docs/ratelimiter/](docs/ratelimiter/)
+
+**Key Features**:
+- **Annotation-Based**: Simple `@RateLimit` annotations on methods
+- **Multi-Algorithm Support**: Sliding Window, Token Bucket, Fixed Window, Leaky Bucket
+- **Multi-Scope Protection**: User, IP, API Key, Tenant, Global, Custom (SpEL)
+- **Multi-Layer Defense**: Combine multiple rate limits for comprehensive protection
+- **Real-time Management**: Dynamic rule updates without restarts
+- **High Availability**: Redis clustering with automatic failover
+- **Comprehensive Analytics**: Request tracking and violation monitoring
+- **Developer-Friendly**: Clean annotations, no configuration files needed
+
+**Scale**: 1M requests/second, sub-millisecond latency, 99.99% availability
+
+**Quick Example**:
+```java
+@GetMapping("/api/data")
+@RateLimit(requests = 100, window = 3600, scope = RateLimit.Scope.USER)
+public String getData() {
+    return "data";
+}
+```
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -235,6 +271,7 @@ mvn clean install
 ./run-systems.sh digitalpayment  # Port 8084
 ./run-systems.sh ticketbooking   # Port 8086
 ./run-systems.sh instagram       # Port 8087
+./run-systems.sh ratelimiter     # Port 8088
 ```
 
 **Alternative: Run directly with Maven profiles**
@@ -246,6 +283,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=jobscheduler
 mvn spring-boot:run -Dspring-boot.run.profiles=digitalpayment
 mvn spring-boot:run -Dspring-boot.run.profiles=ticketbooking
 mvn spring-boot:run -Dspring-boot.run.profiles=instagram
+mvn spring-boot:run -Dspring-boot.run.profiles=ratelimiter
 ```
 
 ## 🏗️ Project Structure
@@ -292,6 +330,16 @@ src/main/java/org/sudhir512kj/
 │   ├── dto/                    # Social DTOs
 │   └── config/                 # Social configuration
 │
+├── ratelimiter/                # API Rate Limiter implementation
+│   ├── model/                  # Rate limit entities (Rule, Attempt)
+│   ├── service/                # Rate limiting business logic
+│   ├── repository/             # Rate limit data access
+│   ├── controller/             # Rate limit APIs
+│   ├── dto/                    # Rate limit DTOs
+│   ├── algorithm/              # Rate limiting algorithms
+│   ├── interceptor/            # Request interceptors
+│   └── config/                 # Rate limiter configuration
+│
 ├── [future-system]/            # Next system design
 │   └── ...
 │
@@ -327,6 +375,14 @@ docs/
 │   ├── API_Documentation.md    # Instagram API reference
 │   ├── Scale_Calculations.md   # Instagram performance analysis
 │   └── README.md               # Instagram overview
+│
+├── ratelimiter/                # API Rate Limiter documentation
+│   ├── System_Design.md        # Complete system design with theory
+│   ├── Theory_and_Concepts.md  # Rate limiting fundamentals and algorithms
+│   ├── Annotation_Usage_Guide.md # Complete annotation usage guide
+│   ├── Beginner_Tutorial.md    # Step-by-step tutorial for beginners
+│   ├── API_Documentation.md    # API reference and examples
+│   └── Scale_Calculations.md   # Performance analysis and cost calculations
 │
 └── [future-system]/            # Future system docs
 ```
