@@ -419,6 +419,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ by Sudhir Kumar**
+**Built with ❤️ by Sudhir Meena**
 
 For questions or support, please open an issue or visit my [portfolio website](https://sudhirmeenaswe.netlify.app/) and contact via [contact form](https://sudhirmeenaswe.netlify.app/#contact).
