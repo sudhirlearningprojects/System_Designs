@@ -4,15 +4,16 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.sudhir512kj.ratelimiter.dto.RateLimitResponse;
 import org.sudhir512kj.ratelimiter.model.RateLimitConfig;
-import lombok.RequiredArgsConstructor;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@RequiredArgsConstructor
 public class LeakyBucketAlgorithm implements RateLimitAlgorithm {
-    
     private final RedisTemplate<String, String> redisTemplate;
+    
+    public LeakyBucketAlgorithm(RedisTemplate<String, String> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
     
     @Override
     public RateLimitResponse checkRateLimit(String key, RateLimitConfig config) {

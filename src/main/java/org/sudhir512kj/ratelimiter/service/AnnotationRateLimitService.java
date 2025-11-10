@@ -1,6 +1,8 @@
 package org.sudhir512kj.ratelimiter.service;
 
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -9,18 +11,18 @@ import org.sudhir512kj.ratelimiter.algorithm.RateLimitAlgorithm;
 import org.sudhir512kj.ratelimiter.annotation.RateLimit;
 import org.sudhir512kj.ratelimiter.dto.RateLimitResponse;
 import org.sudhir512kj.ratelimiter.model.RateLimitConfig;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class AnnotationRateLimitService {
-    
+    private static final Logger log = LoggerFactory.getLogger(AnnotationRateLimitService.class);
     private final Map<String, RateLimitAlgorithm> algorithms;
     private final ExpressionParser parser = new SpelExpressionParser();
+    
+    public AnnotationRateLimitService(Map<String, RateLimitAlgorithm> algorithms) {
+        this.algorithms = algorithms;
+    }
     
     public boolean checkRateLimit(HttpServletRequest request, ProceedingJoinPoint joinPoint, RateLimit rateLimit) {
         String clientKey = buildClientKey(request, joinPoint, rateLimit);

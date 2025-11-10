@@ -1,7 +1,7 @@
 package org.sudhir512kj.dropbox.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.sudhir512kj.dropbox.dto.SyncEvent;
@@ -11,11 +11,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class SyncService {
+    private static final Logger log = LoggerFactory.getLogger(SyncService.class);
     private final SimpMessagingTemplate messagingTemplate;
     private final FileService fileService;
+    
+    public SyncService(SimpMessagingTemplate messagingTemplate, FileService fileService) {
+        this.messagingTemplate = messagingTemplate;
+        this.fileService = fileService;
+    }
     
     public void notifyFileChange(FileEntity file, String operation) {
         SyncEvent event = new SyncEvent();

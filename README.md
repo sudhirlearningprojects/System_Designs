@@ -211,6 +211,122 @@ public String getData() {
 
 ---
 
+### 9. Distributed Notification System
+**Location**: `org.sudhir512kj.notification` package
+
+A highly scalable, fault-tolerant distributed notification system for multi-channel message delivery:
+- Multi-channel support (Email, SMS, Push, In-App, WebSocket)
+- Retry mechanism with exponential backoff
+- Dead Letter Queue (DLQ) for failed messages
+- User preference management with quiet hours
+- Priority-based delivery (Critical <100ms, High <1s)
+- Scalable fan-out for broadcast notifications
+
+**Documentation**: [docs/notification/](docs/notification/)
+
+**Key Features**:
+- **Multi-Channel Delivery**: Email, SMS, Push, In-App, WebSocket
+- **Reliability**: Exponential backoff retry + DLQ + Circuit breaker
+- **User Preferences**: Channel opt-in/opt-out, quiet hours, timezone support
+- **Priority Queues**: CRITICAL, HIGH, MEDIUM, LOW with SLA guarantees
+- **Scalable Fan-Out**: Efficient broadcast to millions of users
+- **Idempotency**: Duplicate request prevention
+- **Provider Integration**: SendGrid, Twilio, FCM, APNS
+- **Observability**: Comprehensive metrics and distributed tracing
+
+**Scale**: 10M notifications/min, 500M users, 99.99% availability
+
+**Quick Example**:
+```java
+{
+  "userId": "user123",
+  "type": "TRANSACTIONAL",
+  "priority": "HIGH",
+  "channels": ["EMAIL", "PUSH"],
+  "templateId": "order-confirmation",
+  "idempotencyKey": "order-123-notif"
+}
+```
+
+---
+
+### 10. Uber Clone - Global Ride-Hailing Platform
+**Location**: `org.sudhir512kj.uber` package
+
+A production-ready, scalable ride-hailing platform like Uber supporting millions of concurrent users:
+- Real-time driver-rider matching with <1s latency
+- Geo-spatial indexing for efficient location queries
+- Dynamic surge pricing based on demand/supply
+- Real-time location tracking with WebSocket
+- Multi-region deployment for global scale
+- High availability (99.99% uptime)
+
+**Documentation**: [docs/uber/](docs/uber/)
+
+**Key Features**:
+- **gRPC Internal Communication**: 5-10x faster than REST (2ms vs 15ms latency)
+- **WebSocket Real-time Streaming**: Persistent connections for location updates
+- **Kafka Event Streaming**: 1M events/sec for analytics and audit logs
+- **Intelligent Matching**: Multi-factor scoring (distance, rating, experience)
+- **Geo-Sharding**: Geohash-based partitioning reduces search space 1000x
+- **Redis Geospatial**: GEOADD/GEORADIUS for O(log N) location queries
+- **Dynamic Pricing**: Surge multiplier based on demand/supply ratio
+- **Payment Integration**: Stripe, PayPal with idempotency
+- **Fault Tolerance**: Circuit breaker, retry, multi-region failover
+
+**Scale**: 10M concurrent users, 75K location updates/sec, 100TB storage
+
+**Quick Example**:
+```java
+// Request a ride
+POST /api/v1/rides/request
+{
+  "riderId": "uuid",
+  "pickupLocation": {"latitude": 37.7749, "longitude": -122.4194},
+  "dropoffLocation": {"latitude": 37.8044, "longitude": -122.2712},
+  "vehicleType": "UBERX"
+}
+```
+
+---
+
+### 11. Google Docs Clone - Collaborative Document Editing Platform
+**Location**: `org.sudhir512kj.googledocs` package
+
+A production-ready collaborative document editing platform with real-time synchronization:
+- Real-time multi-user editing with Operational Transformation
+- Version history with restore capability
+- Suggesting mode for tracked changes
+- Comments with threaded replies and emoji reactions
+- Offline editing with sync on reconnect
+- Auto-save every 3 seconds
+
+**Documentation**: [docs/googledocs/](docs/googledocs/)
+
+**Key Features**:
+- **Operational Transformation (OT)**: Conflict-free concurrent editing
+- **WebSocket Real-time Sync**: Sub-500ms latency for operations
+- **Live Cursor Tracking**: See where other users are editing
+- **Version Control**: Complete audit trail with restore
+- **Suggesting Mode**: Track changes with accept/reject workflow
+- **Comments & Reactions**: Threaded discussions with emoji support
+- **Granular Permissions**: Owner, Editor, Commenter, Viewer
+- **Watermarks**: Custom text/image watermarks
+- **Export Formats**: Word, PDF, Markdown, HTML
+
+**Scale**: 1B users, 100M DAU, 5B documents, 5M ops/sec, 11PB storage
+
+**Quick Example**:
+```javascript
+// Real-time collaboration via WebSocket
+stompClient.subscribe('/topic/document/' + docId, function(message) {
+    const operation = JSON.parse(message.body);
+    applyOperation(operation);
+});
+```
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -272,6 +388,9 @@ mvn clean install
 ./run-systems.sh ticketbooking   # Port 8086
 ./run-systems.sh instagram       # Port 8087
 ./run-systems.sh ratelimiter     # Port 8088
+./run-systems.sh notification    # Port 8089
+./run-systems.sh uber            # Port 8090
+./run-systems.sh googledocs      # Port 8091
 ```
 
 **Alternative: Run directly with Maven profiles**
@@ -284,6 +403,9 @@ mvn spring-boot:run -Dspring-boot.run.profiles=digitalpayment
 mvn spring-boot:run -Dspring-boot.run.profiles=ticketbooking
 mvn spring-boot:run -Dspring-boot.run.profiles=instagram
 mvn spring-boot:run -Dspring-boot.run.profiles=ratelimiter
+mvn spring-boot:run -Dspring-boot.run.profiles=notification
+mvn spring-boot:run -Dspring-boot.run.profiles=uber
+mvn spring-boot:run -Dspring-boot.run.profiles=googledocs
 ```
 
 ## 🏗️ Project Structure
@@ -340,6 +462,34 @@ src/main/java/org/sudhir512kj/
 │   ├── interceptor/            # Request interceptors
 │   └── config/                 # Rate limiter configuration
 │
+├── notification/               # Distributed Notification System
+│   ├── model/                  # Notification entities (Notification, DLQEntry)
+│   ├── service/                # Notification business logic
+│   ├── repository/             # Notification data access
+│   ├── controller/             # Notification APIs
+│   ├── dto/                    # Notification DTOs
+│   ├── worker/                 # Channel workers (Email, SMS, Push)
+│   └── config/                 # Notification configuration
+│
+├── uber/                       # Uber Clone - Ride-Hailing Platform
+│   ├── model/                  # Ride entities (User, Driver, Ride, Vehicle)
+│   ├── service/                # Ride-hailing business logic
+│   ├── repository/             # Ride data access
+│   ├── controller/             # Ride APIs
+│   ├── dto/                    # Ride DTOs
+│   ├── websocket/              # WebSocket for real-time tracking
+│   └── config/                 # Uber configuration
+│
+├── googledocs/                 # Google Docs Clone - Collaborative Editing
+│   ├── model/                  # Document entities (Document, Version, Comment)
+│   ├── service/                # Document business logic
+│   ├── repository/             # Document data access
+│   ├── controller/             # Document APIs
+│   ├── dto/                    # Document DTOs
+│   ├── websocket/              # WebSocket for real-time collaboration
+│   ├── ot/                     # Operational Transformation
+│   └── config/                 # Google Docs configuration
+│
 ├── [future-system]/            # Next system design
 │   └── ...
 │
@@ -381,8 +531,27 @@ docs/
 │   ├── Theory_and_Concepts.md  # Rate limiting fundamentals and algorithms
 │   ├── Annotation_Usage_Guide.md # Complete annotation usage guide
 │   ├── Beginner_Tutorial.md    # Step-by-step tutorial for beginners
+│   ├── Flow_Diagram.md         # Complete flow diagrams and visualizations
 │   ├── API_Documentation.md    # API reference and examples
 │   └── Scale_Calculations.md   # Performance analysis and cost calculations
+│
+├── notification/               # Distributed Notification System documentation
+│   ├── System_Design.md        # Notification system HLD/LLD
+│   ├── API_Documentation.md    # Notification API reference
+│   ├── Scale_Calculations.md   # Notification performance analysis
+│   └── README.md               # Notification overview
+│
+├── uber/                       # Uber Clone documentation
+│   ├── System_Design.md        # Uber system HLD/LLD with geo-location deep dive
+│   ├── API_Documentation.md    # Uber API reference
+│   ├── Scale_Calculations.md   # Uber performance analysis
+│   └── README.md               # Uber overview
+│
+├── googledocs/                 # Google Docs Clone documentation
+│   ├── System_Design.md        # Google Docs system HLD/LLD with OT deep dive
+│   ├── API_Documentation.md    # Google Docs API reference
+│   ├── Scale_Calculations.md   # Google Docs performance analysis
+│   └── README.md               # Google Docs overview
 │
 └── [future-system]/            # Future system docs
 ```

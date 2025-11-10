@@ -97,16 +97,16 @@ public class Transaction {
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-}
 
-enum TransactionType {
-    P2P, P2M, WALLET_TOPUP, BILL_PAYMENT
-}
+    public enum TransactionType {
+        P2P, P2M, WALLET_TOPUP, BILL_PAYMENT
+    }
 
-enum TransactionStatus {
-    PENDING, SUCCESS, FAILED, REVERSED, EXPIRED
-}
+    public enum TransactionStatus {
+        PENDING, SUCCESS, FAILED, REVERSED, EXPIRED
+    }
 
-enum PaymentMethod {
-    UPI, CREDIT_CARD, DEBIT_CARD, NET_BANKING, WALLET
+    public enum PaymentMethod {
+        UPI, CREDIT_CARD, DEBIT_CARD, NET_BANKING, WALLET
+    }
 }

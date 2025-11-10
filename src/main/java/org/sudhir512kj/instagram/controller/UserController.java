@@ -94,21 +94,20 @@ public class UserController {
         boolean isFollowedBy = currentUserId != null && 
             userService.isFollowing(userId, currentUserId);
         
-        Map<String, Object> profile = Map.of(
-            "userId", user.getUserId(),
-            "username", user.getUsername(),
-            "fullName", user.getFullName(),
-            "bio", user.getBio() != null ? user.getBio() : "",
-            "profilePictureUrl", user.getProfilePictureUrl() != null ? user.getProfilePictureUrl() : "",
-            "isVerified", user.getIsVerified(),
-            "isPrivate", user.getIsPrivate(),
-            "followerCount", user.getFollowerCount(),
-            "followingCount", user.getFollowingCount(),
-            "postCount", user.getPostCount(),
-            "isFollowing", isFollowing,
-            "isFollowedBy", isFollowedBy,
-            "createdAt", user.getCreatedAt()
-        );
+        Map<String, Object> profile = new java.util.HashMap<>();
+        profile.put("userId", user.getUserId());
+        profile.put("username", user.getUsername());
+        profile.put("fullName", user.getFullName());
+        profile.put("bio", user.getBio() != null ? user.getBio() : "");
+        profile.put("profilePictureUrl", user.getProfilePictureUrl() != null ? user.getProfilePictureUrl() : "");
+        profile.put("isVerified", user.getIsVerified());
+        profile.put("isPrivate", user.getIsPrivate());
+        profile.put("followerCount", user.getFollowerCount());
+        profile.put("followingCount", user.getFollowingCount());
+        profile.put("postCount", user.getPostCount());
+        profile.put("isFollowing", isFollowing);
+        profile.put("isFollowedBy", isFollowedBy);
+        profile.put("createdAt", user.getCreatedAt());
         
         return ResponseEntity.ok(ApiResponse.success(profile));
     }

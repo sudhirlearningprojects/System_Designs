@@ -1,50 +1,52 @@
 #!/bin/bash
 
-# System runner script
 SYSTEM=$1
 
 if [ -z "$SYSTEM" ]; then
-    echo "Usage: $0 <system>"
-    echo "Available systems: parkinglot, dropbox, payment, jobscheduler, digitalpayment, ticketbooking, instagram, ratelimiter"
+    echo "Usage: ./run-systems.sh <system-name>"
+    echo "Available systems: parkinglot, dropbox, payment, jobscheduler, digitalpayment, ticketbooking, instagram, ratelimiter, notification, uber, googledocs"
     exit 1
 fi
 
 case $SYSTEM in
-    "parkinglot")
-        echo "🚗 Starting Parking Lot Management System on port 8080..."
-        mvn spring-boot:run -Dspring-boot.run.profiles=parkinglot
+    parkinglot)
+        PORT=8080
         ;;
-    "dropbox")
-        echo "☁️ Starting Dropbox Clone on port 8081..."
-        mvn spring-boot:run -Dspring-boot.run.profiles=dropbox
+    dropbox)
+        PORT=8081
         ;;
-    "payment")
-        echo "💳 Starting Payment Service on port 8082..."
-        mvn spring-boot:run -Dspring-boot.run.profiles=payment
+    payment)
+        PORT=8082
         ;;
-    "jobscheduler")
-        echo "⏰ Starting Job Scheduler on port 8083..."
-        mvn spring-boot:run -Dspring-boot.run.profiles=jobscheduler
+    jobscheduler)
+        PORT=8083
         ;;
-    "digitalpayment")
-        echo "📱 Starting Digital Payment Platform on port 8084..."
-        mvn spring-boot:run -Dspring-boot.run.profiles=digitalpayment
+    digitalpayment)
+        PORT=8084
         ;;
-    "ticketbooking")
-        echo "🎫 Starting Ticket Booking Platform on port 8086..."
-        mvn spring-boot:run -Dspring-boot.run.profiles=ticketbooking
+    ticketbooking)
+        PORT=8086
         ;;
-    "instagram")
-        echo "📸 Starting Instagram Clone on port 8087..."
-        mvn spring-boot:run -Dspring-boot.run.profiles=instagram
+    instagram)
+        PORT=8087
         ;;
-    "ratelimiter")
-        echo "🛡️ Starting API Rate Limiter on port 8088..."
-        mvn spring-boot:run -Dspring-boot.run.profiles=ratelimiter
+    ratelimiter)
+        PORT=8088
+        ;;
+    notification)
+        PORT=8089
+        ;;
+    uber)
+        PORT=8090
+        ;;
+    googledocs)
+        PORT=8091
         ;;
     *)
-        echo "❌ Unknown system: $SYSTEM"
-        echo "Available systems: parkinglot, dropbox, payment, jobscheduler, digitalpayment, ticketbooking, instagram, ratelimiter"
+        echo "Unknown system: $SYSTEM"
         exit 1
         ;;
 esac
+
+echo "Starting $SYSTEM on port $PORT..."
+mvn spring-boot:run -Dspring-boot.run.profiles=$SYSTEM -Dserver.port=$PORT

@@ -1,7 +1,7 @@
 package org.sudhir512kj.dropbox.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.sudhir512kj.dropbox.model.FileEntity;
 import org.sudhir512kj.dropbox.repository.FileRepository;
@@ -9,11 +9,15 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class DeduplicationService {
+    private static final Logger log = LoggerFactory.getLogger(DeduplicationService.class);
     private final FileRepository fileRepository;
     private final StorageService storageService;
+    
+    public DeduplicationService(FileRepository fileRepository, StorageService storageService) {
+        this.fileRepository = fileRepository;
+        this.storageService = storageService;
+    }
     
     public Optional<FileEntity> findExistingFile(String contentHash) {
         List<FileEntity> existingFiles = fileRepository.findByContentHash(contentHash);
@@ -37,7 +41,7 @@ public class DeduplicationService {
             return 0L;
         }
         
-        long fileSize = duplicateFiles.get(0).getSize();
+        long fileSize = duplicateFiles.get(0).getSize() != null ? duplicateFiles.get(0).getSize() : 0L;
         return (duplicateFiles.size() - 1) * fileSize;
     }
 }

@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.sudhir512kj.uber.grpc";
+
+package uber;
+
+service LocationService {
+  rpc FindNearbyDrivers(NearbyDriversRequest) returns (NearbyDriversResponse);
+}
+
+message NearbyDriversRequest {
+  double latitude = 1;
+  double longitude = 2;
+  double radius_km = 3;
+  int32 limit = 4;
+}
+
+message NearbyDriversResponse {
+  repeated string driver_ids = 1;
+}

@@ -1,7 +1,7 @@
 package org.sudhir512kj.dropbox.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,13 +17,20 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class FileService {
+    private static final Logger log = LoggerFactory.getLogger(FileService.class);
     private final FileRepository fileRepository;
     private final StorageService storageService;
     private final DeduplicationService deduplicationService;
     private final SyncService syncService;
+    
+    public FileService(FileRepository fileRepository, StorageService storageService,
+                      DeduplicationService deduplicationService, SyncService syncService) {
+        this.fileRepository = fileRepository;
+        this.storageService = storageService;
+        this.deduplicationService = deduplicationService;
+        this.syncService = syncService;
+    }
     
     @Transactional
     public FileEntity uploadFile(MultipartFile file, String path, User owner) throws IOException {

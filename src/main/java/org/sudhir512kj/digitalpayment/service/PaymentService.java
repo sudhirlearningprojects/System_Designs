@@ -7,6 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.sudhir512kj.digitalpayment.dto.*;
 import org.sudhir512kj.digitalpayment.model.*;
 import org.sudhir512kj.digitalpayment.repository.TransactionRepository;
+import static org.sudhir512kj.digitalpayment.model.Transaction.TransactionType.*;
+import static org.sudhir512kj.digitalpayment.model.Transaction.TransactionStatus.*;
+import static org.sudhir512kj.digitalpayment.model.Transaction.PaymentMethod.*;
 import java.math.BigDecimal;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -52,8 +55,8 @@ public class PaymentService {
             request.getSenderId(),
             request.getReceiverId(),
             request.getAmount(),
-            TransactionType.valueOf(request.getType()),
-            PaymentMethod.valueOf(request.getPaymentMethod()),
+            Transaction.TransactionType.valueOf(request.getType()),
+            Transaction.PaymentMethod.valueOf(request.getPaymentMethod()),
             idempotencyKey
         );
         
@@ -72,7 +75,7 @@ public class PaymentService {
         
         // Update transaction status
         transaction.setPspTransactionId(pspResponse.getPspTransactionId());
-        transaction.setStatus(TransactionStatus.valueOf(pspResponse.getStatus()));
+        transaction.setStatus(Transaction.TransactionStatus.valueOf(pspResponse.getStatus()));
         transactionRepository.save(transaction);
         
         PaymentInitiationResponse response = new PaymentInitiationResponse(
@@ -121,7 +124,7 @@ public class PaymentService {
     public void processCallback(PaymentCallbackRequest callback) {
         Transaction transaction = transactionRepository.findById(callback.getTransactionId()).orElse(null);
         if (transaction != null) {
-            transaction.setStatus(TransactionStatus.valueOf(callback.getStatus()));
+            transaction.setStatus(Transaction.TransactionStatus.valueOf(callback.getStatus()));
             transaction.setPspTransactionId(callback.getPspTransactionId());
             transactionRepository.save(transaction);
         }

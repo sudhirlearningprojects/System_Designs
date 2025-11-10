@@ -59,22 +59,21 @@ public class PostController {
         boolean isLiked = currentUserId != null && 
             postService.isPostLikedByUser(postId, currentUserId);
         
-        Map<String, Object> postDetails = Map.of(
-            "postId", post.getPostId(),
-            "userId", post.getUserId(),
-            "username", user.getUsername(),
-            "userProfilePicture", user.getProfilePictureUrl() != null ? user.getProfilePictureUrl() : "",
-            "isVerified", user.getIsVerified(),
-            "content", post.getContent() != null ? post.getContent() : "",
-            "mediaUrls", post.getMediaUrls() != null ? post.getMediaUrls() : List.of(),
-            "location", post.getLocation() != null ? post.getLocation() : "",
-            "hashtags", post.getHashtags() != null ? post.getHashtags() : Set.of(),
-            "likeCount", post.getLikeCount(),
-            "commentCount", post.getCommentCount(),
-            "shareCount", post.getShareCount(),
-            "isLiked", isLiked,
-            "createdAt", post.getCreatedAt()
-        );
+        Map<String, Object> postDetails = new java.util.HashMap<>();
+        postDetails.put("postId", post.getPostId());
+        postDetails.put("userId", post.getUserId());
+        postDetails.put("username", user.getUsername());
+        postDetails.put("userProfilePicture", user.getProfilePictureUrl() != null ? user.getProfilePictureUrl() : "");
+        postDetails.put("isVerified", user.getIsVerified());
+        postDetails.put("content", post.getContent() != null ? post.getContent() : "");
+        postDetails.put("mediaUrls", post.getMediaUrls() != null ? post.getMediaUrls() : List.of());
+        postDetails.put("location", post.getLocation() != null ? post.getLocation() : "");
+        postDetails.put("hashtags", post.getHashtags() != null ? post.getHashtags() : Set.of());
+        postDetails.put("likeCount", post.getLikeCount());
+        postDetails.put("commentCount", post.getCommentCount());
+        postDetails.put("shareCount", post.getShareCount());
+        postDetails.put("isLiked", isLiked);
+        postDetails.put("createdAt", post.getCreatedAt());
         
         return ResponseEntity.ok(ApiResponse.success(postDetails));
     }
