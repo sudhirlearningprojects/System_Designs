@@ -1,9 +1,18 @@
-# Ticket Booking Platform - System Design
+# BookMyShow Clone - Comprehensive Ticket Booking Platform
 
-## Understanding Ticket Booking Systems
+## System Overview
 
-### What is a Ticket Booking Platform?
-A ticket booking platform is a system that manages event tickets, handles reservations, and processes payments while ensuring no overselling occurs. The core challenge is managing inventory under high concurrency during flash sales.
+### What is BookMyShow?
+BookMyShow is India's largest online entertainment ticketing platform that allows users to book tickets for movies, events, plays, sports, and activities across multiple cities. Our implementation provides all core BookMyShow features including:
+
+- **Multi-Category Events**: Movies, concerts, sports, plays, workshops
+- **Interactive Seat Selection**: Real-time seat maps with pricing
+- **Personalized Recommendations**: AI-driven event suggestions
+- **F&B Pre-ordering**: Food and beverage booking with tickets
+- **Reviews & Ratings**: User-generated content and ratings
+- **Offers & Discounts**: Promotional codes and bank offers
+- **Multi-language Support**: Regional language content
+- **E-tickets & QR Codes**: Digital ticket delivery and verification
 
 ### Key Challenges in Ticket Booking
 1. **Overselling Prevention**: Never sell more tickets than available
