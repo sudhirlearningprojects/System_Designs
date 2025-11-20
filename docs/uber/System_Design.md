@@ -381,17 +381,25 @@ CREATE TABLE ride_tracking (
 ### Problem Statement
 **How to efficiently store 100K active driver locations and find the top 10 nearest available drivers within 5km radius with <100ms latency?**
 
-### Solution: Multi-Layered Approach
+### Solution: H3 Hexagonal Hierarchical Spatial Index
 
-#### 1. Geo-Sharding Strategy
+#### 1. Why H3 Over Traditional Geohash?
 
-Divide the world into grid cells using **Google S2 Geometry** or **Geohash**:
+Uber uses **H3** (open-sourced by Uber in 2018) instead of traditional Geohash:
 
+**H3 Advantages**:
+- **Uniform cell sizes**: Hexagons have consistent neighbor distances (no edge distortion)
+- **Better coverage**: 6 neighbors vs 8 in square grids (more efficient)
+- **Hierarchical**: 16 resolutions from 4M km² to 0.9 m²
+- **Fast neighbor lookup**: O(1) for adjacent cells
+- **10x faster**: Proximity queries compared to Geohash
+
+**H3 Resolutions Used by Uber**:
 ```
-Level 0: Continents (few cells)
-Level 1: Countries (hundreds of cells)
-Level 2: Cities (thousands of cells)
-Level 3: Neighborhoods (millions of cells - ~1km²)
+Resolution 5: ~252 km² - City-level sharding
+Resolution 7: ~5.16 km² - Neighborhood matching  
+Resolution 9: ~0.105 km² - Fine-grained driver search (100m radius)
+Resolution 11: ~0.0016 km² - Precise location tracking
 ```
 
 **Benefits**:
@@ -399,85 +407,152 @@ Level 3: Neighborhoods (millions of cells - ~1km²)
 - Enables horizontal sharding by geography
 - Supports hierarchical queries (search nearby cells if not enough drivers)
 
-#### 2. Redis Geospatial Index
+#### 2. H3 + Redis Implementation
 
-Use Redis GEOADD/GEORADIUS for real-time location queries:
+Store drivers in Redis Sets indexed by H3 cell:
 
 ```redis
-# Add driver location
-GEOADD drivers:online:cell_{geohash} {longitude} {latitude} {driver_id}
+# Add driver to H3 cell (resolution 9)
+SADD drivers:h3:r9:{h3_cell_id} {driver_id}
 
-# Find nearby drivers
-GEORADIUS drivers:online:cell_{geohash} {lng} {lat} 5 km WITHDIST COUNT 10 ASC
+# Find nearby drivers (center + 6 neighbors = 7 cells)
+SUNION drivers:h3:r9:{cell1} drivers:h3:r9:{cell2} ... drivers:h3:r9:{cell7}
 ```
 
 **Performance**:
-- O(N+log(M)) where N = results, M = total items
-- <10ms for 1000 drivers per cell
-- Memory: ~100 bytes per driver × 100K = 10MB
+- O(1) for cell lookup
+- O(N) for union of 7 cells where N = drivers per cell (~50)
+- <5ms for 20 nearest drivers
+- Memory: ~8 bytes per H3 cell ID vs 16 bytes for lat/lng
 
-#### 3. Matching Engine Algorithm
+#### 3. DISCO Matching Algorithm (Uber's Production System)
+
+**DISCO** (Dispatch Optimization) is Uber's core matching engine:
 
 ```
-Algorithm: Find Best Driver
+Algorithm: Find Best Driver (DISCO-inspired)
 Input: rider_location, vehicle_type, max_radius_km
 Output: matched_driver_id
 
-1. Calculate geohash for rider location (precision: level 3)
-2. Query Redis for drivers in same cell:
-   GEORADIUS drivers:online:cell_{geohash} {lng} {lat} 5km WITHDIST COUNT 20
+1. Spatial Filtering (H3 Hierarchical Search):
+   a. Get rider's H3 cell (resolution 9 = ~100m radius)
+   b. Query center cell + 6 neighbors (7 cells total)
+   c. If < 10 drivers, expand to resolution 7 (5km radius)
+   d. If still < 10, expand to 10km radius
    
-3. If < 10 drivers found, expand to neighboring cells (8 adjacent cells)
-
-4. Filter drivers:
+2. Temporal Filtering:
    - status = ONLINE
    - vehicle_type matches
-   - not in cooldown period (rejected ride recently)
+   - not in cooldown period (recently declined)
+   - last location update < 30 seconds (freshness check)
    
-5. Score drivers:
-   score = w1 * (1/distance) + w2 * driver_rating + w3 * acceptance_rate
+3. Multi-Factor Scoring (ML-optimized weights):
+   score = 0.5 * (1/distance) + 0.2 * acceptance_rate + 
+           0.2 * driver_rating + 0.1 * (1/eta)
    
-6. Sort by score, select top driver
+   Factors:
+   - Distance: Closer is better (most important)
+   - Acceptance rate: Reliability (80-100%)
+   - Driver rating: Quality (1-5 stars)
+   - ETA: Faster arrival (ML-predicted)
+   
+4. Sort by score (descending), select top 3 drivers
 
-7. Send ride request to driver (30 sec timeout)
+5. Sequential notification (30 sec timeout per driver):
+   - Send to driver #1, wait 30 seconds
+   - If declined/timeout, add to cooldown (5 min)
+   - Try driver #2, then #3
+   
+6. If all decline:
+   - Expand radius to 10km
+   - Retry with new driver pool
+   - If still no match, notify rider "No drivers available"
 
-8. If declined/timeout, try next driver (max 3 attempts)
-
-9. If all decline, expand radius to 10km and retry
+7. Batching (for efficiency during peak):
+   - Batch 100 ride requests
+   - Run matching every 2 seconds
+   - Optimize global assignment (Hungarian algorithm)
 ```
 
-#### 4. Location Update Flow
+**Performance Metrics**:
+- **Match rate**: 95% of rides matched within 30 seconds
+- **Average ETA**: 4 minutes globally
+- **Throughput**: 100K matches/second during peak
+- **Latency**: p99 < 1 second
+
+#### 4. Location Update Flow (Production Architecture)
 
 ```
-Driver App → WebSocket → Location Service → Redis + Kafka
+Driver App → WebSocket → Location Service → H3 + Redis + Kafka → Cassandra
 
 1. Driver sends location every 4 seconds via WebSocket
-2. Location Service validates and updates Redis:
-   - GEOADD to update position
-   - HSET to update metadata
-3. Publish to Kafka for:
-   - Cassandra archival (analytics)
-   - Real-time tracking (active rides)
-   - ETA recalculation
+   - Persistent connection (reduces overhead)
+   - Binary protocol (smaller payload)
+   - Automatic reconnection on network loss
+   
+2. Location Service processes update:
+   a. Calculate H3 cell IDs (resolution 9, 7, 5)
+   b. Update Redis:
+      - SADD drivers:h3:r9:{cell} {driver_id}
+      - HSET driver:{id} lat {lat} lng {lng} updated_at {ts}
+   c. Remove from old H3 cells (if moved)
+   
+3. Publish to Kafka (async):
+   - Topic: location.updates
+   - Partition: by driver_id (for ordering)
+   - Throughput: 75K updates/sec
+   
+4. Kafka consumers:
+   - Cassandra: Archive for analytics (90-day retention)
+   - Flink: Real-time ETA calculation
+   - Pinot: Aggregate metrics (driver heatmaps)
+   - Active rides: Update rider's app with driver location
 ```
 
-#### 5. Optimizations
+**Optimizations**:
+- **Batching**: Process 100 updates together (reduces Redis round trips)
+- **Compression**: Gzip location payloads (50% size reduction)
+- **Sampling**: Archive 1 in 10 updates to Cassandra (reduce storage)
+- **TTL**: Expire stale locations after 60 seconds
 
-**Caching**:
-- Cache driver profiles in Redis (1 hour TTL)
-- Cache pricing rules per city (5 min TTL)
+#### 5. Production Optimizations
 
-**Connection Pooling**:
-- WebSocket connections for persistent driver connections
-- Reduces overhead of HTTP polling
+**Multi-Layer Caching**:
+```
+L1: Caffeine (Application) - 1 min TTL, 10K entries
+    - Driver profiles
+    - Pricing rules
+    
+L2: Redis (Distributed) - 5 min TTL, 1M entries  
+    - Active driver locations
+    - Ride details
+    - User profiles
+    
+L3: PostgreSQL (Database) - Persistent
+    - Historical data
+    - Audit logs
+```
+
+**Connection Management**:
+- **WebSocket**: Persistent connections for drivers (100K concurrent)
+- **HTTP/2**: Multiplexing for REST APIs
+- **gRPC**: Internal service communication (5-10x faster than REST)
+- **Connection pooling**: HikariCP with 50 max connections
 
 **Batch Processing**:
-- Batch location updates (100 updates/batch)
-- Reduces Redis round trips
+- Location updates: 100 updates/batch
+- Notification sending: 50 notifications/batch
+- Database inserts: 500 records/batch
 
-**Read Replicas**:
-- Redis read replicas for GEORADIUS queries
-- Master for writes only
+**Database Scaling**:
+- **PostgreSQL**: Master-slave replication (1 master, 3 read replicas)
+- **Redis**: Cluster mode with 6 nodes (3 masters, 3 replicas)
+- **Cassandra**: 9-node cluster with RF=3
+
+**Sharding Strategy**:
+- **Geographic sharding**: By H3 cell (city-level)
+- **User sharding**: By user_id hash (consistent hashing)
+- **Time-based partitioning**: Rides table by month
 
 ---
 
@@ -738,17 +813,18 @@ Driver App → WebSocket Gateway → Location Service → Redis → Rider App
 
 ---
 
-## Communication Protocols (Production-Grade)
+## Communication Protocols (Uber's Production Stack)
 
 ### Protocol Selection
 
 Uber uses **three protocols** optimized for different use cases:
 
-| Protocol | Use Case | Latency | Throughput |
-|----------|----------|---------|------------|
-| **gRPC** | Internal service-to-service | 1-5ms | 100K RPS |
-| **WebSocket** | Client real-time updates | 50-100ms | 100K connections |
-| **Kafka** | Event streaming | 5-10ms | 1M events/sec |
+| Protocol | Use Case | Latency | Throughput | When to Use |
+|----------|----------|---------|------------|-------------|
+| **gRPC** | Internal service-to-service | 1-5ms | 100K RPS | Synchronous, low-latency |
+| **WebSocket** | Client real-time updates | 50-100ms | 100K connections | Bidirectional streaming |
+| **Kafka** | Event streaming | 5-10ms | 1M events/sec | Async, high-throughput |
+| **REST** | Public APIs | 10-50ms | 10K RPS | External integrations |
 
 ### Why gRPC for Internal Services?
 

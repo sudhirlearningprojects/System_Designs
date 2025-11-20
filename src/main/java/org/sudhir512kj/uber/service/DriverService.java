@@ -65,4 +65,32 @@ public class DriverService {
         return driverRepository.findById(driverId)
             .orElseThrow(() -> new RuntimeException("Driver not found"));
     }
+    
+    @Transactional
+    public void updateEarnings(UUID driverId, BigDecimal amount) {
+        Driver driver = driverRepository.findById(driverId)
+            .orElseThrow(() -> new RuntimeException("Driver not found"));
+        
+        BigDecimal currentEarnings = driver.getTotalEarnings() != null ? 
+            driver.getTotalEarnings() : BigDecimal.ZERO;
+        driver.setTotalEarnings(currentEarnings.add(amount));
+        driver.setTotalRides(driver.getTotalRides() + 1);
+        
+        driverRepository.save(driver);
+        log.info("Driver {} earnings updated: +${}", driverId, amount);
+    }
+    
+    public List<Driver> getOnlineDrivers() {
+        return driverRepository.findByStatus(Driver.DriverStatus.ONLINE);
+    }
+    
+    @Transactional
+    public void goOnline(UUID driverId) {
+        updateStatus(driverId, Driver.DriverStatus.ONLINE);
+    }
+    
+    @Transactional
+    public void goOffline(UUID driverId) {
+        updateStatus(driverId, Driver.DriverStatus.OFFLINE);
+    }
 }

@@ -161,6 +161,20 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
         
+        <!-- H3 Geo-Spatial Library -->
+        <dependency>
+            <groupId>com.uber</groupId>
+            <artifactId>h3</artifactId>
+            <version>4.1.1</version>
+        </dependency>
+        
+        <!-- Stripe Payment Gateway -->
+        <dependency>
+            <groupId>com.stripe</groupId>
+            <artifactId>stripe-java</artifactId>
+            <version>24.3.0</version>
+        </dependency>
+        
         <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -182,7 +196,53 @@
                         </exclude>
                     </excludes>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>cloudflare</id>
+                        <configuration>
+                            <mainClass>org.sudhir512kj.cloudflare.CloudflareApplication</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
+    
+    <profiles>
+        <profile>
+            <id>cloudflare</id>
+            <properties>
+                <spring.profiles.active>cloudflare</spring.profiles.active>
+                <start-class>org.sudhir512kj.cloudflare.CloudflareApplication</start-class>
+            </properties>
+        </profile>
+        <profile>
+            <id>parkinglot</id>
+            <properties>
+                <spring.profiles.active>parkinglot</spring.profiles.active>
+                <start-class>org.sudhir512kj.parkinglot.ParkingLotApplication</start-class>
+            </properties>
+        </profile>
+        <profile>
+            <id>dropbox</id>
+            <properties>
+                <spring.profiles.active>dropbox</spring.profiles.active>
+                <start-class>org.sudhir512kj.dropbox.DropboxApplication</start-class>
+            </properties>
+        </profile>
+        <profile>
+            <id>payment</id>
+            <properties>
+                <spring.profiles.active>payment</spring.profiles.active>
+                <start-class>org.sudhir512kj.payment.PaymentApplication</start-class>
+            </properties>
+        </profile>
+        <profile>
+            <id>whatsapp</id>
+            <properties>
+                <spring.profiles.active>whatsapp</spring.profiles.active>
+                <start-class>org.sudhir512kj.whatsapp.WhatsAppApplication</start-class>
+            </properties>
+        </profile>
+    </profiles>
 </project>

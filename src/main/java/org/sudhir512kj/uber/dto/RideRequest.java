@@ -9,6 +9,15 @@ public class RideRequest {
     private Location pickupLocation;
     private Location dropoffLocation;
     private Vehicle.VehicleType vehicleType;
+    
+    public RideRequest() {}
+    
+    public RideRequest(UUID riderId, Location pickupLocation, Location dropoffLocation, Vehicle.VehicleType vehicleType) {
+        this.riderId = riderId;
+        this.pickupLocation = pickupLocation;
+        this.dropoffLocation = dropoffLocation;
+        this.vehicleType = vehicleType;
+    }
 
     public UUID getRiderId() { return riderId; }
     public void setRiderId(UUID riderId) { this.riderId = riderId; }

@@ -1,0 +1,39 @@
+server:
+  port: 8095
+
+spring:
+  application:
+    name: redis-clone
+  profiles:
+    active: redis
+
+redis:
+  protocol:
+    port: 6379
+    enabled: true
+  storage:
+    max-memory: 1GB
+    eviction-policy: allkeys-lru
+  persistence:
+    snapshot:
+      enabled: false
+      interval: 300s
+    aof:
+      enabled: false
+      sync: everysec
+
+logging:
+  level:
+    org.sudhir512kj.redis: DEBUG
+    root: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

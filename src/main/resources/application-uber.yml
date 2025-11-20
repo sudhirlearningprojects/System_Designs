@@ -33,6 +33,11 @@ elasticsearch:
   index:
     rides: uber_rides
 
+stripe:
+  api-key: sk_test_51QRmVvP123456789abcdefghijklmnopqrstuvwxyz
+  webhook-secret: whsec_test_abcdefghijklmnopqrstuvwxyz123456
+  currency: usd
+
 logging:
   level:
     org.sudhir512kj.uber: DEBUG

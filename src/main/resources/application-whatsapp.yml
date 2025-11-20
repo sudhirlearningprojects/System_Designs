@@ -1,0 +1,68 @@
+server:
+  port: 8093
+
+spring:
+  application:
+    name: whatsapp-messenger
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/whatsapp_db
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+  
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+    consumer:
+      group-id: whatsapp-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+      auto-offset-reset: earliest
+
+logging:
+  level:
+    org.sudhir512kj.whatsapp: INFO
+    org.springframework.web.socket: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# WhatsApp specific configurations
+whatsapp:
+  message:
+    max-size: 65536  # 64KB
+    retention-days: 365
+  media:
+    max-file-size: 16777216  # 16MB
+    allowed-types: image/jpeg,image/png,video/mp4,audio/mpeg,application/pdf
+  status:
+    expiry-hours: 24
+  group:
+    max-participants: 256

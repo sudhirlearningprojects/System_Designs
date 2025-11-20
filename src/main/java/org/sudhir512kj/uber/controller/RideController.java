@@ -5,10 +5,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.sudhir512kj.uber.dto.RideRequest;
 import org.sudhir512kj.uber.model.Ride;
-import org.sudhir512kj.uber.service.PricingService;
-import org.sudhir512kj.uber.service.RatingService;
-import org.sudhir512kj.uber.service.RideService;
+import org.sudhir512kj.uber.model.Location;
+import org.sudhir512kj.uber.service.*;
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -17,11 +18,17 @@ public class RideController {
     private final RideService rideService;
     private final PricingService pricingService;
     private final RatingService ratingService;
+    private final TripService tripService;
+    private final SurgePricingService surgePricingService;
     
-    public RideController(RideService rideService, PricingService pricingService, RatingService ratingService) {
+    public RideController(RideService rideService, PricingService pricingService, 
+                         RatingService ratingService, TripService tripService,
+                         SurgePricingService surgePricingService) {
         this.rideService = rideService;
         this.pricingService = pricingService;
         this.ratingService = ratingService;
+        this.tripService = tripService;
+        this.surgePricingService = surgePricingService;
     }
 
     @PostMapping("/request")
@@ -59,11 +66,41 @@ public class RideController {
     @GetMapping("/{rideId}/location")
     public ResponseEntity<LocationResponse> getRideLocation(@PathVariable UUID rideId) {
         Ride ride = rideService.getRide(rideId);
+        Location driverLocation = rideService.getDriverLocation(ride.getDriverId());
+        
+        if (driverLocation == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        int eta = rideService.calculateETA(driverLocation, ride.getPickupLocation());
+        
         return ResponseEntity.ok(new LocationResponse(
-            ride.getPickupLocation().getLatitude(), 
-            ride.getPickupLocation().getLongitude(), 
-            5
+            driverLocation.getLatitude(), 
+            driverLocation.getLongitude(), 
+            eta
         ));
+    }
+    
+    @GetMapping("/active")
+    public ResponseEntity<List<Ride>> getActiveRides(@RequestParam UUID userId) {
+        List<Ride> rides = tripService.getActiveRides(userId);
+        return ResponseEntity.ok(rides);
+    }
+    
+    @GetMapping("/history")
+    public ResponseEntity<List<Ride>> getRideHistory(@RequestParam UUID userId, 
+                                                      @RequestParam(defaultValue = "10") int limit) {
+        List<Ride> rides = tripService.getCompletedRides(userId, limit);
+        return ResponseEntity.ok(rides);
+    }
+    
+    @GetMapping("/surge-info")
+    public ResponseEntity<Map<String, Object>> getSurgeInfo(@RequestParam double lat, @RequestParam double lng) {
+        Location location = new Location();
+        location.setLatitude(lat);
+        location.setLongitude(lng);
+        Map<String, Object> surgeInfo = surgePricingService.getSurgeInfo(location);
+        return ResponseEntity.ok(surgeInfo);
     }
     
     @PostMapping("/{rideId}/rating")

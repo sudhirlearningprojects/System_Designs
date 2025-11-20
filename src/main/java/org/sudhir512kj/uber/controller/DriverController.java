@@ -9,7 +9,7 @@ import org.sudhir512kj.uber.model.Ride;
 import org.sudhir512kj.uber.model.Vehicle;
 import org.sudhir512kj.uber.service.AuthService;
 import org.sudhir512kj.uber.service.DriverService;
-import org.sudhir512kj.uber.service.GeoLocationService;
+import org.sudhir512kj.uber.service.H3GeoService;
 import org.sudhir512kj.uber.service.RideService;
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -17,14 +17,14 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/drivers")
 public class DriverController {
-    private final GeoLocationService geoLocationService;
+    private final H3GeoService h3GeoService;
     private final RideService rideService;
     private final DriverService driverService;
     private final AuthService authService;
     
-    public DriverController(GeoLocationService geoLocationService, RideService rideService, 
+    public DriverController(H3GeoService h3GeoService, RideService rideService, 
                            DriverService driverService, AuthService authService) {
-        this.geoLocationService = geoLocationService;
+        this.h3GeoService = h3GeoService;
         this.rideService = rideService;
         this.driverService = driverService;
         this.authService = authService;
@@ -32,7 +32,7 @@ public class DriverController {
 
     @PostMapping("/{driverId}/location")
     public ResponseEntity<Void> updateLocation(@PathVariable UUID driverId, @RequestBody Location location) {
-        geoLocationService.updateDriverLocation(driverId, location);
+        h3GeoService.updateDriverLocation(driverId, location);
         return ResponseEntity.ok().build();
     }
 
@@ -94,6 +94,25 @@ public class DriverController {
     public ResponseEntity<String> declineRide(@PathVariable UUID rideId, @RequestParam UUID driverId) {
         rideService.declineRide(rideId, driverId);
         return ResponseEntity.ok("Ride declined");
+    }
+    
+    @PutMapping("/{driverId}/online")
+    public ResponseEntity<String> goOnline(@PathVariable UUID driverId) {
+        driverService.goOnline(driverId);
+        return ResponseEntity.ok("Driver is now online");
+    }
+    
+    @PutMapping("/{driverId}/offline")
+    public ResponseEntity<String> goOffline(@PathVariable UUID driverId) {
+        driverService.goOffline(driverId);
+        h3GeoService.removeDriver(driverId);
+        return ResponseEntity.ok("Driver is now offline");
+    }
+    
+    @GetMapping("/online")
+    public ResponseEntity<List<Driver>> getOnlineDrivers() {
+        List<Driver> drivers = driverService.getOnlineDrivers();
+        return ResponseEntity.ok(drivers);
     }
     
     static class DriverRegistration {

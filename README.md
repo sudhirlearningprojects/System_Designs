@@ -327,6 +327,133 @@ stompClient.subscribe('/topic/document/' + docId, function(message) {
 
 ---
 
+### 12. TinyURL Clone - URL Shortener System
+**Location**: `org.sudhir512kj.urlshortener` package
+
+A highly scalable URL shortener service similar to TinyURL with sub-100ms redirect latency:
+- Convert long URLs to short, memorable links
+- Custom aliases and expiration dates
+- Real-time analytics and click tracking
+- High availability (99.99% uptime)
+- Handles billions of URLs and redirects
+
+**Documentation**: [docs/urlshortener/](docs/urlshortener/)
+
+**Key Features**:
+- **Base62 Encoding**: 3.5 trillion unique short URLs
+- **Multi-Layer Caching**: Application cache + Redis + Database
+- **Rate Limiting**: Prevent abuse with sliding window algorithm
+- **URL Validation**: Block malicious domains and validate format
+- **Analytics Tracking**: Geographic data, referrers, user agents
+- **Custom Aliases**: User-defined short URLs
+- **Expiration Support**: Time-based URL expiry
+- **Circuit Breaker**: Database fault tolerance
+
+**Scale**: 100M URLs/day, 10B redirects/day, <100ms latency
+
+**Quick Example**:
+```bash
+# Shorten URL
+curl -X POST http://localhost:8092/api/v1/urls/shorten \
+  -H "Content-Type: application/json" \
+  -d '{"longUrl": "https://www.example.com"}
+
+# Access short URL
+curl -I http://localhost:8092/abc123
+```
+
+---
+
+### 13. WhatsApp Messenger - Real-time Messaging Platform
+**Location**: `org.sudhir512kj.whatsapp` package
+
+A highly scalable, real-time messaging platform similar to WhatsApp supporting billions of users:
+- Real-time messaging with sub-100ms latency
+- Individual and group chats (up to 256 participants)
+- Message types: Text, Image, Video, Audio, Document, Location, Contact, Sticker
+- Message status tracking: Sent ✓, Delivered ✓✓, Read ✓✓ (blue ticks)
+- WhatsApp Status (24-hour expiry stories)
+- Typing indicators and online presence
+- High availability (99.99% uptime)
+
+**Documentation**: [docs/whatsapp/](docs/whatsapp/)
+
+**Key Features**:
+- **Real-time WebSocket Communication**: Sub-100ms message delivery
+- **Multi-Message Types**: Text, media, location, contact sharing
+- **Group Management**: Create groups, add/remove participants, admin controls
+- **Status Updates**: 24-hour expiry stories with view tracking
+- **Typing Indicators**: Real-time typing status and online presence
+- **Message Features**: Reply, forward, delete for everyone (within 1 hour)
+- **Read Receipts**: Delivery confirmation and read status tracking
+- **Media Handling**: Image/video compression, thumbnail generation
+- **Search Functionality**: Message search within chats
+- **Privacy Controls**: Last seen, profile visibility settings
+
+**Scale**: 2B users, 1B DAU, 100B messages/day, 1.2M messages/sec peak
+
+**Quick Example**:
+```javascript
+// Real-time messaging via WebSocket
+stompClient.subscribe('/topic/chat/chat123', function(message) {
+    const messageData = JSON.parse(message.body);
+    displayNewMessage(messageData);
+});
+
+// Send message via REST API
+fetch('/api/v1/messages/send?senderId=user123', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+        chatId: 'chat123',
+        content: 'Hello, how are you?',
+        type: 'TEXT'
+    })
+});
+```
+
+---
+
+### 14. Cloudflare Clone - CDN & Web Security Platform
+**Location**: `org.sudhir512kj.cloudflare` package
+
+A comprehensive CDN and web security platform that sits between websites and users:
+- Global CDN with 200+ edge locations worldwide
+- Multi-layered DDoS protection (L3/L4/L7)
+- Web Application Firewall (WAF) with OWASP Top 10 protection
+- DNS management with 1.1.1.1 resolver
+- SSL/TLS certificate management and encryption
+- Load balancing and traffic distribution
+- Real-time analytics and security insights
+
+**Documentation**: [docs/cloudflare/](docs/cloudflare/)
+
+**Key Features**:
+- **Global CDN**: 200+ edge locations with <50ms latency
+- **DDoS Mitigation**: Block 182B+ threats/day with 100Tbps capacity
+- **WAF Engine**: Pattern-based security rules with custom actions
+- **DNS Service**: Authoritative DNS with fast resolution
+- **SSL/TLS**: Automatic certificate provisioning and renewal
+- **Rate Limiting**: Token bucket algorithm for API protection
+- **Cache Management**: Multi-layer caching with Redis
+- **Analytics**: Real-time traffic and security monitoring
+- **Edge Computing**: Serverless functions at the edge
+
+**Scale**: 45M requests/sec, 200+ edge locations, 99.99% availability
+
+**Quick Example**:
+```bash
+# Add domain to Cloudflare
+curl -X POST http://localhost:8094/api/v1/zones \
+  -H "Content-Type: application/json" \
+  -d '{"domain": "example.com", "planType": "FREE"}'
+
+# Access through CDN
+curl -H "Host: example.com" http://localhost:8094/
+```
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -391,6 +518,9 @@ mvn clean install
 ./run-systems.sh notification    # Port 8089
 ./run-systems.sh uber            # Port 8090
 ./run-systems.sh googledocs      # Port 8091
+./run-systems.sh urlshortener    # Port 8092
+./run-systems.sh whatsapp        # Port 8093
+./run-systems.sh cloudflare      # Port 8094
 ```
 
 **Alternative: Run directly with Maven profiles**
@@ -406,6 +536,9 @@ mvn spring-boot:run -Dspring-boot.run.profiles=ratelimiter
 mvn spring-boot:run -Dspring-boot.run.profiles=notification
 mvn spring-boot:run -Dspring-boot.run.profiles=uber
 mvn spring-boot:run -Dspring-boot.run.profiles=googledocs
+mvn spring-boot:run -Dspring-boot.run.profiles=urlshortener
+mvn spring-boot:run -Dspring-boot.run.profiles=whatsapp
+mvn spring-boot:run -Dspring-boot.run.profiles=cloudflare
 ```
 
 ## 🏗️ Project Structure
@@ -490,6 +623,32 @@ src/main/java/org/sudhir512kj/
 │   ├── ot/                     # Operational Transformation
 │   └── config/                 # Google Docs configuration
 │
+├── urlshortener/               # URL Shortener implementation
+│   ├── model/                  # URL entities (URL, Analytics)
+│   ├── service/                # URL shortening business logic
+│   ├── repository/             # URL data access
+│   ├── controller/             # URL APIs
+│   ├── dto/                    # URL DTOs
+│   └── config/                 # URL shortener configuration
+│
+├── whatsapp/                   # WhatsApp Messenger implementation
+│   ├── model/                  # Messaging entities (User, Chat, Message, Status)
+│   ├── service/                # Messaging business logic
+│   ├── repository/             # Messaging data access
+│   ├── controller/             # Messaging APIs
+│   ├── dto/                    # Messaging DTOs
+│   ├── websocket/              # WebSocket for real-time messaging
+│   └── config/                 # WhatsApp configuration
+│
+├── cloudflare/                 # Cloudflare Clone - CDN & Security Platform
+│   ├── model/                  # CDN entities (Zone, DNSRecord, SecurityRule)
+│   ├── service/                # CDN business logic
+│   ├── repository/             # CDN data access
+│   ├── controller/             # CDN APIs
+│   ├── dto/                    # CDN DTOs
+│   ├── filter/                 # Security filters (DDoS, WAF)
+│   └── config/                 # Cloudflare configuration
+│
 ├── [future-system]/            # Next system design
 │   └── ...
 │
@@ -553,17 +712,44 @@ docs/
 │   ├── Scale_Calculations.md   # Google Docs performance analysis
 │   └── README.md               # Google Docs overview
 │
+├── urlshortener/               # URL Shortener documentation
+│   ├── System_Design.md        # URL shortener system HLD/LLD
+│   ├── API_Documentation.md    # URL shortener API reference
+│   └── README.md               # URL shortener overview
+│
+├── whatsapp/                   # WhatsApp Messenger documentation
+│   ├── System_Design.md        # WhatsApp system HLD/LLD with real-time messaging
+│   ├── API_Documentation.md    # WhatsApp API reference
+│   ├── Scale_Calculations.md   # WhatsApp performance analysis
+│   └── README.md               # WhatsApp overview
+│
+├── cloudflare/                 # Cloudflare Clone documentation
+│   ├── System_Design.md        # Cloudflare system HLD/LLD with CDN and security
+│   ├── API_Documentation.md    # Cloudflare API reference
+│   ├── Scale_Calculations.md   # Cloudflare performance analysis
+│   └── README.md               # Cloudflare overview
+│
 └── [future-system]/            # Future system docs
 ```
 
-## 📚 Documentation Standards
+## 📚 Enhanced Documentation Standards
 
-Each system design includes:
-- **System_Design.md**: Complete High-Level and Low-Level Design
-- **Architecture_Diagrams.md**: Visual system architecture using Mermaid
-- **API_Documentation.md**: Comprehensive API reference
-- **Scale_Calculations.md**: Back-of-envelope calculations and performance analysis
-- **README.md**: System-specific overview and quick start
+Each system design includes comprehensive documentation following enterprise standards:
+
+### Core Documentation
+- **System_Design.md**: Complete HLD/LLD with ByteByteGo principles and WhatsApp's actual tech stack references
+- **API_Documentation.md**: Production-ready API reference with SDKs, error handling, and integration examples
+- **Scale_Calculations.md**: Detailed performance analysis with real-world capacity planning
+- **README.md**: Quick start guide with architecture highlights and deployment instructions
+
+### Enhanced Features
+- **Software Design Principles**: SOLID principles, clean architecture, and design patterns
+- **Error Handling**: Comprehensive exception hierarchy with proper HTTP status codes
+- **Security Documentation**: Input validation, authorization, rate limiting, and security best practices
+- **Performance Optimization**: Multi-layer caching, horizontal scaling, and optimization strategies
+- **Integration Examples**: Real-world code examples for React Native, Flutter, and web applications
+- **Monitoring & Observability**: Health checks, metrics, logging, and alerting guidelines
+- **Development Workflow**: Testing strategies, CI/CD pipelines, and deployment procedures
 
 ## 🎯 Design Principles
 
@@ -644,6 +830,36 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
+## 🎆 Enhanced System Quality
+
+### Software Engineering Excellence
+- **Clean Architecture**: Layered design with proper separation of concerns
+- **SOLID Principles**: Single responsibility, open/closed, dependency inversion
+- **Design Patterns**: Repository, Factory, Observer, Strategy patterns
+- **Exception Handling**: Typed exceptions with proper error propagation
+- **Input Validation**: Comprehensive validation with meaningful error messages
+- **Security**: Authorization, rate limiting, input sanitization
+
+### Production Readiness
+- **Scalability**: Horizontal scaling with load balancers and connection management
+- **Reliability**: Circuit breakers, retry mechanisms, graceful degradation
+- **Performance**: Multi-layer caching, async processing, connection pooling
+- **Monitoring**: Health checks, metrics, distributed tracing
+- **Documentation**: Comprehensive API docs, integration guides, deployment instructions
+- **Testing**: Unit tests, integration tests, load testing scenarios
+
+### Technology Stack Highlights
+- **Backend**: Java 17 + Spring Boot 3.2 with reactive programming
+- **Real-time**: WebSocket with STOMP + SockJS fallback
+- **Messaging**: Apache Kafka with exactly-once semantics
+- **Caching**: Redis Cluster with consistent hashing
+- **Databases**: PostgreSQL + Cassandra + Redis (multi-database strategy)
+- **Infrastructure**: Docker + Kubernetes with auto-scaling
+
+---
+
 **Built with ❤️ by Sudhir Meena**
+
+🌟 **Enterprise-Grade System Designs** | 🚀 **Production-Ready Architecture** | 📚 **Comprehensive Documentation**
 
 For questions or support, please open an issue or visit my [portfolio website](https://sudhirmeenaswe.netlify.app/) and contact via [contact form](https://sudhirmeenaswe.netlify.app/#contact).
