@@ -29,6 +29,8 @@ public class PostService {
     private final PostLikeRepository postLikeRepository;
     private final UserRepository userRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final NotificationService notificationService;
+    private final org.sudhir512kj.instagram.elasticsearch.ElasticsearchService elasticsearchService;
     
     @Transactional
     public Post createPost(Long userId, PostCreateRequest request) {
@@ -46,6 +48,15 @@ public class PostService {
             user.setPostCount(user.getPostCount() + 1);
             userRepository.save(user);
         });
+        
+        // Index in Elasticsearch
+        try {
+            elasticsearchService.indexPost(savedPost.getPostId(), savedPost.getUserId(), 
+                savedPost.getContent(), savedPost.getHashtags() != null ? 
+                new java.util.ArrayList<>(savedPost.getHashtags()) : null);
+        } catch (Exception e) {
+            log.warn("Failed to index post in Elasticsearch", e);
+        }
         
         // Publish post creation event for feed generation
         kafkaTemplate.send("post-created", savedPost);
@@ -85,12 +96,9 @@ public class PostService {
             post.setLikeCount(post.getLikeCount() + 1);
             postRepository.save(post);
             
-            // Publish like event for notifications
-            kafkaTemplate.send("post-liked", Map.of(
-                "postId", postId,
-                "userId", userId,
-                "postOwnerId", post.getUserId()
-            ));
+            // Create notification
+            notificationService.createNotification(post.getUserId(), userId, 
+                org.sudhir512kj.instagram.model.Notification.NotificationType.LIKE, postId);
         });
         
         return true;

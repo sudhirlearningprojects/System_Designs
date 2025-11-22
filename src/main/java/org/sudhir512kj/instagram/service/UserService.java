@@ -24,6 +24,8 @@ public class UserService {
     private final FollowRepository followRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final NotificationService notificationService;
+    private final org.sudhir512kj.instagram.elasticsearch.ElasticsearchService elasticsearchService;
     
     @Transactional
     public User registerUser(UserRegistrationRequest request) {
@@ -41,7 +43,16 @@ public class UserService {
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
         
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        
+        // Index in Elasticsearch
+        try {
+            elasticsearchService.indexUser(savedUser);
+        } catch (Exception e) {
+            log.warn("Failed to index user in Elasticsearch", e);
+        }
+        
+        return savedUser;
     }
     
     public Optional<User> authenticateUser(UserLoginRequest request) {
@@ -113,6 +124,10 @@ public class UserService {
         follow.setFollowerId(followerId);
         follow.setFolloweeId(followeeId);
         followRepository.save(follow);
+        
+        // Create notification
+        notificationService.createNotification(followeeId, followerId,
+            org.sudhir512kj.instagram.model.Notification.NotificationType.FOLLOW, null);
     }
     
     @Transactional

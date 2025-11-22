@@ -653,6 +653,31 @@ src/main/java/org/sudhir512kj/
 │   └── ...
 │
 docs/
+├── webflux/                    # Spring WebFlux documentation
+│   ├── README.md               # WebFlux overview
+│   ├── Getting_Started.md      # Setup and first application
+│   ├── Annotated_Controllers.md # @RestController approach
+│   ├── Functional_Endpoints.md # RouterFunction approach
+│   ├── WebClient.md            # Reactive HTTP client
+│   ├── Reactive_Data_Access.md # R2DBC and reactive repositories
+│   ├── Error_Handling.md       # Exception management
+│   ├── Testing.md              # WebTestClient and testing strategies
+│   ├── Performance.md          # Optimization and backpressure
+│   └── Examples.md             # Real-world production patterns
+│
+├── webclient/                  # Spring WebClient documentation
+│   ├── README.md               # WebClient overview and comparison
+│   ├── Getting_Started.md      # Basic usage and setup
+│   ├── Configuration.md        # Connection pool, SSL, timeouts
+│   ├── Request_Building.md     # Building HTTP requests
+│   ├── Response_Handling.md    # Processing responses
+│   ├── Error_Handling.md       # Exception management
+│   ├── Resilience_Patterns.md  # Retry, timeout, circuit breaker
+│   ├── Authentication.md       # OAuth2, JWT, Basic Auth
+│   ├── Testing.md              # MockWebServer and testing
+│   ├── Performance.md          # Optimization strategies
+│   └── Examples.md             # Real-world integrations
+│
 ├── dropbox/                    # Dropbox documentation
 │   ├── System_Design.md        # Complete HLD/LLD
 │   ├── Architecture_Diagrams.md # Visual diagrams
@@ -765,10 +790,20 @@ All system designs follow these principles:
 
 ### Backend
 - **Framework**: Spring Boot 3.2, Java 17
-- **Database**: PostgreSQL (metadata), Redis (caching)
+- **Reactive**: Spring WebFlux with Project Reactor
+- **Database**: PostgreSQL (metadata), Redis (caching), R2DBC (reactive)
 - **Messaging**: Apache Kafka
 - **Storage**: Amazon S3 / Local filesystem
 - **Real-time**: WebSocket (STOMP)
+
+### Spring WebFlux Features
+- **Non-blocking I/O**: Event-driven architecture with Netty
+- **Reactive Streams**: Mono and Flux for async data processing
+- **WebClient**: Reactive HTTP client replacing RestTemplate
+- **R2DBC**: Reactive database connectivity
+- **Backpressure**: Built-in flow control
+- **High Concurrency**: Handle 10K+ concurrent connections
+- **Documentation**: [Complete WebFlux Guide](docs/webflux/)
 
 ### Infrastructure
 - **Containerization**: Docker & Docker Compose

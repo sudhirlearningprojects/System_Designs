@@ -20,6 +20,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.username LIKE %:query% OR u.fullName LIKE %:query%")
     Page<User> searchUsers(@Param("query") String query, Pageable pageable);
     
+    @Query("SELECT u FROM User u WHERE LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :query, '%')) ORDER BY u.followerCount DESC")
+    java.util.List<User> searchByUsernameOrFullName(@Param("query") String query, Pageable pageable);
+    
     @Query("SELECT u FROM User u WHERE u.isVerified = true ORDER BY u.followerCount DESC")
     Page<User> findVerifiedUsers(Pageable pageable);
+    
+    java.util.List<User> findTopByOrderByFollowerCountDesc(Pageable pageable);
 }
