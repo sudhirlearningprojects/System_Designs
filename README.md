@@ -454,6 +454,141 @@ curl -H "Host: example.com" http://localhost:8094/
 
 ---
 
+### 15. TikTok Clone - Short Video & Live Streaming Platform
+**Location**: `org.sudhir512kj.tiktok` package
+
+A production-ready short-form video sharing platform with live streaming capabilities:
+- Short video upload and sharing (15-60 seconds)
+- AI-powered For You feed with personalized recommendations
+- Live streaming with RTMP ingestion and HLS delivery
+- Real-time interactions (likes, comments, gifts)
+- Video effects and filters
+- Social features (follow, duet, stitch)
+- High availability (99.99% uptime)
+
+**Documentation**: [docs/tiktok/](docs/tiktok/)
+
+**Key Features**:
+- **Short Video Platform**: Upload, transcode, and share 15-60 second videos
+- **For You Feed**: Hybrid recommendation algorithm (collaborative + content-based + trending)
+- **Live Streaming**: RTMP ingestion, multi-bitrate transcoding, HLS delivery
+- **Real-time Chat**: WebSocket-based live comments, likes, and gifts
+- **Video Processing**: FFmpeg transcoding to multiple resolutions (360p-1080p)
+- **CDN Delivery**: CloudFront for global video distribution
+- **Recommendation Engine**: ML-powered personalized feed generation
+- **Social Graph**: Follow, like, comment, share functionality
+- **Analytics**: View count, engagement metrics, trending videos
+
+**Scale**: 1.5B MAU, 500M DAU, 1B videos/day, 500PB storage, 529 Gbps bandwidth
+
+**Quick Example**:
+```bash
+# Upload video
+curl -X POST http://localhost:8095/api/v1/videos/upload \
+  -H "Authorization: Bearer <token>" \
+  -F "file=@video.mp4" \
+  -F "caption=Amazing dance! #fyp"
+
+# Get For You feed
+curl http://localhost:8095/api/v1/videos/feed/foryou?userId=123&page=0&size=20
+
+# Create live stream
+curl -X POST http://localhost:8095/api/v1/live/create?userId=123 \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Live Q&A", "description": "Ask me anything!"}'
+```
+
+---
+
+### 16. Cloud Infrastructure Platform - AWS/Azure Clone
+**Location**: `org.sudhir512kj.cloudinfra` package
+
+A comprehensive cloud infrastructure management platform similar to AWS Console/Azure Portal:
+- Virtual machine provisioning and lifecycle management
+- Object storage with S3-like buckets
+- Virtual Private Cloud (VPC) networking
+- Managed database services
+- Load balancers for traffic distribution
+- Multi-region deployment support
+- High availability (99.99% uptime)
+
+**Documentation**: [docs/cloudinfra/](docs/cloudinfra/)
+
+**Key Features**:
+- **Compute Service**: VM creation with multiple instance types (t2.micro to t2.large)
+- **Storage Service**: S3-like object storage with versioning and encryption
+- **Network Service**: VPC, subnets, security groups for isolation
+- **Database Service**: Managed PostgreSQL, MySQL, MongoDB, Redis, Cassandra
+- **Load Balancers**: Application, Network, and Gateway load balancers
+- **Async Provisioning**: Non-blocking resource creation with state tracking
+- **Multi-Region**: Deploy resources across multiple geographic regions
+- **Pay-per-Use**: Cost-effective pricing model
+- **Resource Tagging**: Organize and track cloud resources
+
+**Scale**: 1M+ VMs, 100PB storage, 100K requests/sec, multi-region
+
+**Quick Example**:
+```bash
+# Create VM
+curl -X POST http://localhost:8096/api/v1/compute/vms \
+  -H "X-Account-Id: acc-123" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"web-server","region":"us-east-1","instanceType":"t2.medium","diskGb":50}'
+
+# Create storage bucket
+curl -X POST http://localhost:8096/api/v1/storage/buckets \
+  -H "X-Account-Id: acc-123" \
+  -d '{"bucketName":"my-data","region":"us-east-1","storageClass":"STANDARD"}'
+
+# Create VPC
+curl -X POST http://localhost:8096/api/v1/network/vpcs \
+  -H "X-Account-Id: acc-123" \
+  -d '{"name":"main-vpc","region":"us-east-1","cidrBlock":"10.0.0.0/16"}'
+```
+
+---
+
+### 17. Distributed Database System - PostgreSQL-Based Sharded Database
+**Location**: `org.sudhir512kj.distributeddb` package
+
+A highly scalable, available, and fault-tolerant distributed database system built on PostgreSQL:
+- Multi-criteria sharding (Hash, Range, Geo, Tenant-based)
+- Automatic failover with leader election
+- Read replicas for horizontal scaling
+- Cross-shard distributed transactions with 2PC
+- Intelligent query routing and aggregation
+- Strong and eventual consistency models
+- High availability (99.99% uptime)
+
+**Documentation**: [docs/distributeddb/](docs/distributeddb/)
+
+**Key Features**:
+- **Multi-Criteria Sharding**: Hash, Range, Geo-location, Tenant-based strategies
+- **Automatic Failover**: Health monitoring with replica promotion
+- **Read Scalability**: Load-balanced read replicas per shard
+- **Distributed Transactions**: Two-Phase Commit for ACID guarantees
+- **Query Routing**: Intelligent routing based on sharding criteria
+- **Consistency Models**: Strong, Eventual, and Causal consistency
+- **Replication**: Async replication with configurable lag tolerance
+- **Health Monitoring**: Continuous health checks every 5 seconds
+
+**Scale**: 100+ shards, 1M read QPS, 500K write QPS, 100TB+ storage, <10ms latency
+
+**Quick Example**:
+```bash
+# Register shard
+curl -X POST http://localhost:8097/api/v1/db/shards \
+  -H "Content-Type: application/json" \
+  -d '{"shardId":"shard-1","type":"HASH","strategy":"CONSISTENT_HASH","primaryNode":"node-1","replicaNodes":["node-2","node-3"],"region":"US-EAST"}'
+
+# Execute query
+curl -X POST http://localhost:8097/api/v1/db/query \
+  -H "Content-Type: application/json" \
+  -d '{"sql":"SELECT * FROM users WHERE user_id = ?","parameters":{"user_id":"user123"},"type":"SELECT","shardingKey":"user123","consistencyLevel":"STRONG"}'
+```
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -521,6 +656,9 @@ mvn clean install
 ./run-systems.sh urlshortener    # Port 8092
 ./run-systems.sh whatsapp        # Port 8093
 ./run-systems.sh cloudflare      # Port 8094
+./run-systems.sh tiktok          # Port 8095
+./run-systems.sh cloudinfra      # Port 8096
+./run-systems.sh distributeddb   # Port 8097
 ```
 
 **Alternative: Run directly with Maven profiles**
@@ -539,6 +677,9 @@ mvn spring-boot:run -Dspring-boot.run.profiles=googledocs
 mvn spring-boot:run -Dspring-boot.run.profiles=urlshortener
 mvn spring-boot:run -Dspring-boot.run.profiles=whatsapp
 mvn spring-boot:run -Dspring-boot.run.profiles=cloudflare
+mvn spring-boot:run -Dspring-boot.run.profiles=tiktok
+mvn spring-boot:run -Dspring-boot.run.profiles=cloudinfra
+mvn spring-boot:run -Dspring-boot.run.profiles=distributeddb
 ```
 
 ## 🏗️ Project Structure
@@ -649,6 +790,34 @@ src/main/java/org/sudhir512kj/
 │   ├── filter/                 # Security filters (DDoS, WAF)
 │   └── config/                 # Cloudflare configuration
 │
+├── tiktok/                     # TikTok Clone - Short Video & Live Streaming
+│   ├── model/                  # Video entities (User, Video, LiveStream, Comment)
+│   ├── service/                # Video business logic
+│   ├── repository/             # Video data access
+│   ├── controller/             # Video APIs
+│   ├── dto/                    # Video DTOs
+│   ├── websocket/              # WebSocket for live streaming
+│   ├── processor/              # Video processing workers
+│   └── config/                 # TikTok configuration
+│
+├── cloudinfra/                 # Cloud Infrastructure Platform
+│   ├── model/                  # Cloud entities (Resource, VM, StorageBucket, VPC)
+│   ├── service/                # Cloud business logic
+│   ├── repository/             # Cloud data access
+│   ├── controller/             # Cloud APIs
+│   ├── dto/                    # Cloud DTOs
+│   └── config/                 # Cloud configuration
+│
+├── distributeddb/              # Distributed Database System
+│   ├── model/                  # DB entities (ShardConfig, DatabaseNode, QueryRequest)
+│   ├── service/                # DB business logic
+│   ├── repository/             # DB data access
+│   ├── controller/             # DB APIs
+│   ├── dto/                    # DB DTOs
+│   ├── router/                 # Shard routing and registry
+│   ├── replication/            # Replication service
+│   └── config/                 # DB configuration
+│
 ├── [future-system]/            # Next system design
 │   └── ...
 │
@@ -753,6 +922,22 @@ docs/
 │   ├── API_Documentation.md    # Cloudflare API reference
 │   ├── Scale_Calculations.md   # Cloudflare performance analysis
 │   └── README.md               # Cloudflare overview
+│
+├── tiktok/                     # TikTok Clone documentation
+│   ├── System_Design.md        # TikTok system HLD/LLD with video streaming
+│   ├── API_Documentation.md    # TikTok API reference
+│   ├── Scale_Calculations.md   # TikTok performance analysis
+│   └── README.md               # TikTok overview
+│
+├── cloudinfra/                 # Cloud Infrastructure documentation
+│   ├── System_Design.md        # Cloud platform HLD/LLD
+│   ├── API_Documentation.md    # Cloud API reference
+│   └── README.md               # Cloud platform overview
+│
+├── distributeddb/              # Distributed Database documentation
+│   ├── System_Design.md        # Distributed DB HLD/LLD
+│   ├── API_Documentation.md    # Distributed DB API reference
+│   └── README.md               # Distributed DB overview
 │
 └── [future-system]/            # Future system docs
 ```

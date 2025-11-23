@@ -1,0 +1,27 @@
+server:
+  port: 8096
+
+spring:
+  application:
+    name: cloud-infrastructure
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cloudinfra
+    username: postgres
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+cloud:
+  storage:
+    base-path: /tmp/cloud-storage
+  regions:
+    - us-east-1
+    - us-west-2
+    - eu-west-1
+    - ap-south-1

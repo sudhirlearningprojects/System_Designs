@@ -1,0 +1,29 @@
+server:
+  port: 8097
+
+spring:
+  application:
+    name: distributed-database
+  datasource:
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      connection-timeout: 30000
+
+distributed-db:
+  replication:
+    enabled: true
+    async: true
+  failover:
+    health-check-interval: 5000
+    failover-timeout: 30000
+  sharding:
+    default-strategy: CONSISTENT_HASH
+    replication-factor: 3
+  transaction:
+    timeout: 60000
+    isolation-level: READ_COMMITTED
+
+logging:
+  level:
+    org.sudhir512kj.distributeddb: DEBUG

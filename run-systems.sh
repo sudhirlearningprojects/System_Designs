@@ -22,6 +22,8 @@ if [ -z "$SYSTEM" ]; then
     echo "  urlshortener    - Port 8092"
     echo "  whatsapp        - Port 8093"
     echo "  cloudflare      - Port 8094"
+    echo "  tiktok          - Port 8095"
+    echo "  cloudinfra      - Port 8096"
     exit 1
 fi
 
@@ -82,9 +84,55 @@ case $SYSTEM in
         echo "Starting Cloudflare Clone on port 8094..."
         mvn spring-boot:run -Dspring-boot.run.profiles=cloudflare
         ;;
+    "tiktok")
+        echo "Starting TikTok Clone on port 8095..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=tiktok
+        ;;
+    "cloudinfra")
+        echo "Starting Cloud Infrastructure Platform on port 8096..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=cloudinfra
+        ;;
     *)
         echo "Unknown system: $SYSTEM"
         echo "Run '$0' without arguments to see available systems"
         exit 1
         ;;
 esac
+#!/bin/bash
+
+SYSTEM=$1
+PORT_MAP=(
+    ["parkinglot"]=8080
+    ["dropbox"]=8081
+    ["payment"]=8082
+    ["jobscheduler"]=8083
+    ["digitalpayment"]=8084
+    ["ticketbooking"]=8086
+    ["instagram"]=8087
+    ["ratelimiter"]=8088
+    ["notification"]=8089
+    ["uber"]=8090
+    ["googledocs"]=8091
+    ["urlshortener"]=8092
+    ["whatsapp"]=8093
+    ["cloudflare"]=8094
+    ["tiktok"]=8095
+    ["cloudinfra"]=8096
+    ["distributeddb"]=8097
+)
+
+if [ -z "$SYSTEM" ]; then
+    echo "Usage: ./run-systems.sh <system-name>"
+    echo "Available systems: parkinglot, dropbox, payment, jobscheduler, digitalpayment, ticketbooking, instagram, ratelimiter, notification, uber, googledocs, urlshortener, whatsapp, cloudflare, tiktok, cloudinfra, distributeddb"
+    exit 1
+fi
+
+PORT=${PORT_MAP[$SYSTEM]}
+
+if [ -z "$PORT" ]; then
+    echo "Unknown system: $SYSTEM"
+    exit 1
+fi
+
+echo "Starting $SYSTEM on port $PORT..."
+mvn spring-boot:run -Dspring-boot.run.profiles=$SYSTEM -Dserver.port=$PORT
