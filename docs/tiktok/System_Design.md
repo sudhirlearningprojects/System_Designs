@@ -17,10 +17,11 @@ TikTok is a short-form video sharing platform with live streaming capabilities, 
 - **Users**: 1.5B monthly active users, 500M daily active users
 - **Videos**: 1B videos uploaded daily, 60M videos/hour
 - **Storage**: 500PB total video storage
-- **Bandwidth**: 100 Gbps peak bandwidth
-- **Live Streams**: 10M concurrent live streams
-- **Latency**: <100ms video feed load, <3s live stream latency
-- **Availability**: 99.99% uptime
+- **Bandwidth**: 529 Gbps peak bandwidth
+- **Live Streams**: 1M+ concurrent viewers, 800K concurrent streamers
+- **Latency**: <100ms video feed load, <5s live stream latency
+- **Availability**: 99.9% uptime
+- **Chat**: 75M messages/day during live streams
 
 ---
 
@@ -111,20 +112,35 @@ User → API Gateway → Video Service → S3 (Raw) → Kafka (Event)
                             Update Video Metadata (Cassandra)
 ```
 
-#### Live Streaming Pipeline
+#### Live Streaming Pipeline (Enhanced)
 ```
-Broadcaster (RTMP) → Media Server (Nginx-RTMP/Wowza)
-                              ↓
-                    ┌─────────┴─────────┐
-                    ▼                   ▼
-            Transcoding            Recording
-            (Multiple bitrates)    (S3 Storage)
-                    ↓
-            HLS/DASH Packaging
-                    ↓
-            CDN Distribution
-                    ↓
-            Viewers (HLS Player)
+Broadcaster (OBS/RTMP) → API Gateway (Auth) → Media Server Cluster
+                                                        ↓
+                                    ┌───────────────────┴───────────────────┐
+                                    ▼                                       ▼
+                            Ingestion Service                      Recording Service
+                            (RTMP/WebRTC)                         (S3 Storage)
+                                    ↓
+                            Transcoding Service
+                            (FFmpeg Workers)
+                            - 360p (500 Kbps)
+                            - 480p (1 Mbps)
+                            - 720p (2 Mbps)
+                            - 1080p (4 Mbps)
+                                    ↓
+                            Segmenting Service
+                            (HLS/DASH)
+                            - 3s segments
+                            - Adaptive bitrate
+                                    ↓
+                            CDN Push (Origin)
+                                    ↓
+                            Edge Locations (200+)
+                                    ↓
+                            Viewers (HLS Player)
+                            
+Parallel: Chat Service (WebSocket) ←→ Viewers
+          Analytics Service ←→ Metrics Collection
 ```
 
 #### Recommendation Algorithm (For You Feed)
@@ -430,7 +446,466 @@ ws.onmessage = (event) => {
 };
 ```
 
-### 3.3 Video Processing Workflow
+### 3.3 Live Streaming Deep Dive
+
+#### 3.3.1 Media Server Architecture
+
+**Ingestion Layer**
+```java
+@Service
+public class MediaIngestionService {
+    
+    // RTMP stream authentication
+    public boolean authenticateStream(String streamKey) {
+        LiveStream stream = liveStreamRepository.findByStreamKey(streamKey)
+            .orElseThrow(() -> new UnauthorizedException("Invalid stream key"));
+        
+        if (stream.getStatus() != StreamStatus.SCHEDULED) {
+            throw new IllegalStateException("Stream not in SCHEDULED state");
+        }
+        
+        // Validate user subscription tier
+        User user = userRepository.findById(stream.getUserId())
+            .orElseThrow(() -> new NotFoundException("User not found"));
+        
+        if (!user.canStartLiveStream()) {
+            throw new ForbiddenException("User not authorized for live streaming");
+        }
+        
+        return true;
+    }
+    
+    // Handle stream start callback from Nginx-RTMP
+    @Transactional
+    public void onStreamStart(String streamKey) {
+        LiveStream stream = liveStreamRepository.findByStreamKey(streamKey)
+            .orElseThrow();
+        
+        stream.setStatus(StreamStatus.LIVE);
+        stream.setStartedAt(LocalDateTime.now());
+        liveStreamRepository.save(stream);
+        
+        // Add to active streams
+        redisTemplate.opsForSet().add("live:active", stream.getStreamId());
+        
+        // Notify followers
+        notificationService.notifyFollowers(stream.getUserId(), 
+            "started a live stream: " + stream.getTitle());
+        
+        // Start analytics collection
+        analyticsService.startStreamMetrics(stream.getStreamId());
+    }
+}
+```
+
+**Transcoding Service**
+```java
+@Service
+public class TranscodingService {
+    private final ExecutorService transcodingPool = 
+        Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    
+    public void transcodeStream(String streamKey, String inputRtmpUrl) {
+        // Transcode to multiple bitrates using FFmpeg
+        List<TranscodingTask> tasks = Arrays.asList(
+            new TranscodingTask("360p", 640, 360, 500),
+            new TranscodingTask("480p", 854, 480, 1000),
+            new TranscodingTask("720p", 1280, 720, 2000),
+            new TranscodingTask("1080p", 1920, 1080, 4000)
+        );
+        
+        tasks.forEach(task -> transcodingPool.submit(() -> {
+            String command = String.format(
+                "ffmpeg -i %s -vf scale=%d:%d -b:v %dk -c:v libx264 " +
+                "-preset veryfast -g 60 -sc_threshold 0 " +
+                "-c:a aac -b:a 128k -f flv rtmp://localhost/hls/%s_%s",
+                inputRtmpUrl, task.width, task.height, task.bitrate,
+                streamKey, task.quality
+            );
+            
+            executeFFmpeg(command);
+        }));
+    }
+    
+    @Data
+    @AllArgsConstructor
+    static class TranscodingTask {
+        String quality;
+        int width;
+        int height;
+        int bitrate; // Kbps
+    }
+}
+```
+
+**HLS Segmenting Service**
+```java
+@Service
+public class HLSSegmentingService {
+    
+    public void generateHLSPlaylist(String streamKey, List<String> qualities) {
+        // Generate master playlist
+        StringBuilder masterPlaylist = new StringBuilder();
+        masterPlaylist.append("#EXTM3U\n");
+        masterPlaylist.append("#EXT-X-VERSION:3\n");
+        
+        for (String quality : qualities) {
+            int bandwidth = getBandwidth(quality);
+            String resolution = getResolution(quality);
+            
+            masterPlaylist.append(String.format(
+                "#EXT-X-STREAM-INF:BANDWIDTH=%d,RESOLUTION=%s\n",
+                bandwidth, resolution
+            ));
+            masterPlaylist.append(String.format("%s_%s/index.m3u8\n", 
+                streamKey, quality));
+        }
+        
+        // Upload to S3/CDN origin
+        String playlistUrl = uploadToOrigin(streamKey, masterPlaylist.toString());
+        
+        // Update stream HLS URL
+        updateStreamHlsUrl(streamKey, playlistUrl);
+    }
+    
+    private int getBandwidth(String quality) {
+        return switch (quality) {
+            case "360p" -> 500_000;
+            case "480p" -> 1_000_000;
+            case "720p" -> 2_000_000;
+            case "1080p" -> 4_000_000;
+            default -> 1_000_000;
+        };
+    }
+}
+```
+
+#### 3.3.2 Real-Time Chat Service
+
+**WebSocket Chat Handler**
+```java
+@Component
+public class LiveChatWebSocketHandler extends TextWebSocketHandler {
+    private final Map<Long, Set<WebSocketSession>> streamSessions = new ConcurrentHashMap<>();
+    private final RateLimiter chatRateLimiter = RateLimiter.create(10.0); // 10 msg/sec
+    
+    @Override
+    public void afterConnectionEstablished(WebSocketSession session) {
+        Long streamId = extractStreamId(session);
+        Long userId = extractUserId(session);
+        
+        // Add to stream session pool
+        streamSessions.computeIfAbsent(streamId, k -> ConcurrentHashMap.newKeySet())
+            .add(session);
+        
+        // Send recent chat history
+        List<ChatMessage> history = chatService.getRecentMessages(streamId, 50);
+        sendToSession(session, new ChatHistoryMessage(history));
+        
+        // Broadcast join notification
+        broadcastToStream(streamId, new UserJoinedMessage(userId));
+    }
+    
+    @Override
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+        Long streamId = extractStreamId(session);
+        Long userId = extractUserId(session);
+        
+        // Rate limiting
+        if (!chatRateLimiter.tryAcquire()) {
+            sendToSession(session, new ErrorMessage("Rate limit exceeded"));
+            return;
+        }
+        
+        ChatMessageDTO dto = parseMessage(message.getPayload());
+        
+        // Content moderation
+        if (moderationService.containsInappropriateContent(dto.getContent())) {
+            sendToSession(session, new ErrorMessage("Message blocked by moderation"));
+            return;
+        }
+        
+        // Save to database
+        ChatMessage chatMessage = chatService.saveMessage(streamId, userId, dto);
+        
+        // Broadcast to all viewers
+        broadcastToStream(streamId, chatMessage);
+        
+        // Update analytics
+        analyticsService.incrementChatCount(streamId);
+    }
+    
+    private void broadcastToStream(Long streamId, Object message) {
+        Set<WebSocketSession> sessions = streamSessions.get(streamId);
+        if (sessions == null) return;
+        
+        String json = objectMapper.writeValueAsString(message);
+        sessions.parallelStream()
+            .filter(WebSocketSession::isOpen)
+            .forEach(session -> {
+                try {
+                    session.sendMessage(new TextMessage(json));
+                } catch (IOException e) {
+                    log.error("Failed to send message", e);
+                }
+            });
+    }
+}
+```
+
+**Chat Message Queue (Kafka)**
+```java
+@Service
+public class ChatMessageProcessor {
+    
+    @KafkaListener(topics = "live-chat-messages", concurrency = "10")
+    public void processMessage(ChatMessageEvent event) {
+        // Persist to Cassandra
+        chatRepository.save(event.toChatMessage());
+        
+        // Update Redis cache (recent 100 messages)
+        String cacheKey = "chat:recent:" + event.getStreamId();
+        redisTemplate.opsForList().leftPush(cacheKey, event);
+        redisTemplate.opsForList().trim(cacheKey, 0, 99);
+        redisTemplate.expire(cacheKey, 1, TimeUnit.HOURS);
+        
+        // Check for spam patterns
+        if (spamDetectionService.isSpam(event)) {
+            moderationService.flagUser(event.getUserId(), "Spam detected");
+        }
+    }
+}
+```
+
+#### 3.3.3 Content Moderation
+
+**Multi-Layer Moderation**
+```java
+@Service
+public class ContentModerationService {
+    private final Set<String> bannedWords = loadBannedWords();
+    private final Pattern urlPattern = Pattern.compile("https?://\\S+");
+    
+    public boolean containsInappropriateContent(String content) {
+        // Layer 1: Banned words filter
+        String lowerContent = content.toLowerCase();
+        for (String word : bannedWords) {
+            if (lowerContent.contains(word)) {
+                return true;
+            }
+        }
+        
+        // Layer 2: URL spam detection
+        Matcher matcher = urlPattern.matcher(content);
+        if (matcher.find()) {
+            return true; // Block URLs in chat
+        }
+        
+        // Layer 3: Repetitive character detection
+        if (hasRepetitiveCharacters(content, 5)) {
+            return true;
+        }
+        
+        // Layer 4: ML-based toxicity detection (async)
+        CompletableFuture.runAsync(() -> {
+            double toxicityScore = mlModerationService.predictToxicity(content);
+            if (toxicityScore > 0.8) {
+                moderationQueue.add(new ModerationTask(content, toxicityScore));
+            }
+        });
+        
+        return false;
+    }
+    
+    private boolean hasRepetitiveCharacters(String text, int threshold) {
+        if (text.length() < threshold) return false;
+        
+        for (int i = 0; i <= text.length() - threshold; i++) {
+            char c = text.charAt(i);
+            boolean allSame = true;
+            for (int j = 1; j < threshold; j++) {
+                if (text.charAt(i + j) != c) {
+                    allSame = false;
+                    break;
+                }
+            }
+            if (allSame) return true;
+        }
+        return false;
+    }
+}
+```
+
+#### 3.3.4 Analytics Service
+
+**Real-Time Metrics Collection**
+```java
+@Service
+public class LiveStreamAnalyticsService {
+    
+    @Scheduled(fixedRate = 5000) // Every 5 seconds
+    public void collectMetrics() {
+        Set<Object> activeStreams = redisTemplate.opsForSet().members("live:active");
+        
+        activeStreams.forEach(streamIdObj -> {
+            Long streamId = (Long) streamIdObj;
+            
+            // Collect metrics
+            StreamMetrics metrics = new StreamMetrics();
+            metrics.setStreamId(streamId);
+            metrics.setTimestamp(LocalDateTime.now());
+            metrics.setViewerCount(getViewerCount(streamId));
+            metrics.setChatMessageRate(getChatMessageRate(streamId));
+            metrics.setLikeRate(getLikeRate(streamId));
+            metrics.setGiftCount(getGiftCount(streamId));
+            
+            // Save to time-series database
+            metricsRepository.save(metrics);
+            
+            // Update stream peak viewer count
+            updatePeakViewerCount(streamId, metrics.getViewerCount());
+        });
+    }
+    
+    public StreamAnalytics getStreamAnalytics(Long streamId) {
+        List<StreamMetrics> metrics = metricsRepository
+            .findByStreamIdOrderByTimestampAsc(streamId);
+        
+        return StreamAnalytics.builder()
+            .totalViewers(calculateTotalViewers(metrics))
+            .peakViewers(metrics.stream()
+                .mapToLong(StreamMetrics::getViewerCount)
+                .max().orElse(0))
+            .averageViewers(metrics.stream()
+                .mapToLong(StreamMetrics::getViewerCount)
+                .average().orElse(0))
+            .totalChatMessages(metrics.stream()
+                .mapToLong(StreamMetrics::getChatMessageRate)
+                .sum())
+            .totalLikes(metrics.stream()
+                .mapToLong(StreamMetrics::getLikeRate)
+                .sum())
+            .totalGifts(metrics.stream()
+                .mapToLong(StreamMetrics::getGiftCount)
+                .sum())
+            .streamDuration(calculateDuration(metrics))
+            .build();
+    }
+}
+```
+
+#### 3.3.5 Nginx-RTMP Configuration
+
+```nginx
+rtmp {
+    server {
+        listen 1935;
+        chunk_size 4096;
+        max_message 10M;
+        
+        application live {
+            live on;
+            record off;
+            
+            # Authentication
+            on_publish http://api.tiktok.com/api/v1/live/auth;
+            on_publish_done http://api.tiktok.com/api/v1/live/end;
+            
+            # HLS configuration
+            hls on;
+            hls_path /tmp/hls;
+            hls_fragment 3s;
+            hls_playlist_length 60s;
+            hls_continuous on;
+            hls_cleanup on;
+            hls_nested on;
+            
+            # DASH configuration
+            dash on;
+            dash_path /tmp/dash;
+            dash_fragment 3s;
+            dash_playlist_length 60s;
+            
+            # Recording (optional)
+            record all;
+            record_path /tmp/recordings;
+            record_suffix -%Y%m%d-%H%M%S.flv;
+            record_max_size 1024M;
+            
+            # Transcoding to multiple bitrates
+            exec ffmpeg -i rtmp://localhost/$app/$name
+                # 1080p
+                -c:v libx264 -b:v 4000k -s 1920x1080 -preset veryfast 
+                -profile:v high -level 4.1 -g 60 -keyint_min 60 
+                -sc_threshold 0 -c:a aac -b:a 128k -ar 44100 
+                -f flv rtmp://localhost/hls/$name_1080p
+                
+                # 720p
+                -c:v libx264 -b:v 2000k -s 1280x720 -preset veryfast 
+                -profile:v high -level 4.0 -g 60 -keyint_min 60 
+                -sc_threshold 0 -c:a aac -b:a 128k -ar 44100 
+                -f flv rtmp://localhost/hls/$name_720p
+                
+                # 480p
+                -c:v libx264 -b:v 1000k -s 854x480 -preset veryfast 
+                -profile:v main -level 3.1 -g 60 -keyint_min 60 
+                -sc_threshold 0 -c:a aac -b:a 96k -ar 44100 
+                -f flv rtmp://localhost/hls/$name_480p
+                
+                # 360p
+                -c:v libx264 -b:v 500k -s 640x360 -preset veryfast 
+                -profile:v main -level 3.0 -g 60 -keyint_min 60 
+                -sc_threshold 0 -c:a aac -b:a 64k -ar 44100 
+                -f flv rtmp://localhost/hls/$name_360p;
+        }
+        
+        application hls {
+            live on;
+            hls on;
+            hls_path /tmp/hls;
+            hls_fragment 3s;
+            hls_playlist_length 60s;
+            hls_nested on;
+            
+            # Variant playlist
+            hls_variant _1080p BANDWIDTH=4000000,RESOLUTION=1920x1080;
+            hls_variant _720p BANDWIDTH=2000000,RESOLUTION=1280x720;
+            hls_variant _480p BANDWIDTH=1000000,RESOLUTION=854x480;
+            hls_variant _360p BANDWIDTH=500000,RESOLUTION=640x360;
+        }
+    }
+}
+
+http {
+    server {
+        listen 8080;
+        
+        # HLS streaming endpoint
+        location /hls {
+            types {
+                application/vnd.apple.mpegurl m3u8;
+                video/mp2t ts;
+            }
+            root /tmp;
+            add_header Cache-Control no-cache;
+            add_header Access-Control-Allow-Origin *;
+        }
+        
+        # DASH streaming endpoint
+        location /dash {
+            types {
+                application/dash+xml mpd;
+                video/mp4 mp4;
+            }
+            root /tmp;
+            add_header Cache-Control no-cache;
+            add_header Access-Control-Allow-Origin *;
+        }
+    }
+}
+```
+
+### 3.4 Video Processing Workflow
 
 #### Transcoding Pipeline
 ```java
@@ -581,7 +1056,117 @@ public class RecommendationService {
 
 ---
 
-## 4. Key Design Decisions
+## 4. Trade-Off Analysis
+
+### 4.1 RTMP vs WebRTC for Ingestion
+
+**RTMP (Chosen)**
+- ✅ Well-supported by OBS, Streamlabs, and other broadcasting tools
+- ✅ Predictable ingestion workflow with mature ecosystem
+- ✅ Lower server resource consumption
+- ✅ Better for one-to-many broadcasting
+- ❌ Higher latency (2-5 seconds)
+- ❌ Requires Flash player (deprecated, but RTMP protocol still used)
+
+**WebRTC (Alternative)**
+- ✅ Ultra-low latency (<1 second)
+- ✅ Native browser support without plugins
+- ✅ Peer-to-peer capability
+- ❌ Complex SFU/MCU setup for scaling
+- ❌ Higher server resource consumption
+- ❌ Limited support in broadcasting tools
+- ❌ Not suitable for large-scale one-to-many
+
+**Decision**: Use RTMP for ingestion, HLS/DASH for delivery. Consider WebRTC for ultra-low latency use cases (e.g., live auctions, gaming tournaments).
+
+### 4.2 CDN vs Custom Edge Network
+
+**Commercial CDN (Chosen)**
+- ✅ Global distribution out-of-the-box (200+ edge locations)
+- ✅ DDoS protection and security features
+- ✅ TLS termination and certificate management
+- ✅ Pay-as-you-go pricing model
+- ❌ Higher cost at scale ($0.085/GB)
+- ❌ Less control over caching logic
+
+**Custom Edge Network (Alternative)**
+- ✅ Tighter control over caching and routing
+- ✅ Lower cost at massive scale
+- ✅ Custom optimization for video streaming
+- ❌ Heavy infrastructure investment
+- ❌ Complex monitoring and maintenance
+- ❌ Requires global data center presence
+
+**Decision**: Use commercial CDN (CloudFront/Akamai) with fallback to origin. Explore hybrid approach once scale justifies investment.
+
+### 4.3 WebSockets vs Polling for Chat
+
+**WebSockets (Chosen)**
+- ✅ Low-latency bi-directional communication
+- ✅ Efficient for real-time updates
+- ✅ Single persistent connection
+- ❌ Scaling challenges with millions of connections
+- ❌ Requires sticky sessions or pub/sub
+
+**Polling (Alternative)**
+- ✅ Simpler implementation
+- ✅ Works with any HTTP infrastructure
+- ❌ Higher latency (1-5 seconds)
+- ❌ Unnecessary bandwidth consumption
+- ❌ Increased server load
+
+**Decision**: Use WebSockets with Redis pub/sub for horizontal scaling. Implement sticky sessions at load balancer level.
+
+### 4.4 SQL vs NoSQL for Chat Messages
+
+**Cassandra (Chosen)**
+- ✅ High write throughput (75M messages/day)
+- ✅ Horizontal scalability
+- ✅ Time-series data model fits chat perfectly
+- ❌ Eventual consistency
+- ❌ Limited query flexibility
+
+**PostgreSQL (Alternative)**
+- ✅ ACID guarantees
+- ✅ Complex queries and joins
+- ❌ Write bottleneck at scale
+- ❌ Vertical scaling limits
+
+**Decision**: Use Cassandra for chat messages, PostgreSQL for user/stream metadata, Redis for ephemeral data (live viewer counts).
+
+### 4.5 Horizontal vs Vertical Scaling
+
+**Horizontal Scaling (Chosen)**
+- ✅ Load distribution across multiple servers
+- ✅ Failure isolation (one node failure doesn't affect others)
+- ✅ Cost-effective with commodity hardware
+- ❌ Requires stateless services
+- ❌ Complex coordination (distributed sessions)
+
+**Vertical Scaling (Alternative)**
+- ✅ Simpler architecture
+- ✅ No distributed state management
+- ❌ Hardware limits (max CPU/RAM)
+- ❌ Single point of failure
+- ❌ Expensive high-end servers
+
+**Decision**: Design for horizontal scaling with auto-scaling groups. Use stateless microservices with external session storage (Redis).
+
+### 4.6 Automated vs Manual Moderation
+
+**Hybrid Approach (Chosen)**
+- ✅ AI filters provide first-pass moderation (99% coverage)
+- ✅ Human moderators handle edge cases
+- ✅ User flagging system for community moderation
+- ✅ Continuous ML model improvement
+
+**Implementation**:
+1. Real-time: Regex filters, banned word lists (block immediately)
+2. Async: ML toxicity detection (flag for review)
+3. Manual: Human moderators review flagged content
+4. Feedback loop: Moderator decisions retrain ML model
+
+## 5. Key Design Decisions
 
 ### 4.1 Video Storage Strategy
 
@@ -678,7 +1263,403 @@ L3: CDN (CloudFront, all videos, 24 hour TTL)
 
 ---
 
-## 6. Fault Tolerance & Reliability
+## 6. Failure Modes & Mitigations
+
+### 6.1 Media Server Overload
+
+**Symptoms**:
+- Dropped frames during live streams
+- Stream disconnects and buffering
+- Increased transcoding latency
+
+**Root Cause**:
+- Spike in concurrent ingest streams without enough transcode resources
+- CPU/memory exhaustion on media servers
+- Network bandwidth saturation
+
+**Mitigations**:
+```java
+@Service
+public class MediaServerLoadBalancer {
+    
+    @Scheduled(fixedRate = 10000)
+    public void monitorServerLoad() {
+        List<MediaServer> servers = mediaServerRepository.findAll();
+        
+        for (MediaServer server : servers) {
+            ServerMetrics metrics = metricsService.getMetrics(server.getId());
+            
+            // Check CPU usage
+            if (metrics.getCpuUsage() > 80) {
+                // Scale up: Launch new media server
+                autoScalingService.scaleUp("media-server-group");
+                
+                // Throttle new stream ingestion
+                rateLimiter.setRate(server.getId(), 0.5); // 50% capacity
+                
+                alertService.alert("Media server " + server.getId() + 
+                    " CPU usage: " + metrics.getCpuUsage() + "%");
+            }
+            
+            // Check active stream count
+            if (metrics.getActiveStreams() > server.getMaxStreams()) {
+                // Reject new streams
+                server.setAcceptingStreams(false);
+            }
+        }
+    }
+    
+    // Prioritize streamers based on account tier
+    public MediaServer assignServer(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        
+        List<MediaServer> availableServers = mediaServerRepository
+            .findByAcceptingStreamsTrue();
+        
+        if (availableServers.isEmpty()) {
+            if (user.isPremium()) {
+                // Premium users get priority - force scale up
+                return autoScalingService.launchNewServer();
+            } else {
+                throw new ServiceUnavailableException(
+                    "No media servers available. Please try again later.");
+            }
+        }
+        
+        // Load balance based on current load
+        return availableServers.stream()
+            .min(Comparator.comparingInt(MediaServer::getActiveStreams))
+            .orElseThrow();
+    }
+}
+```
+
+### 6.2 CDN Outage or Degradation
+
+**Symptoms**:
+- Users experience buffering or complete video failure
+- High latency in video playback
+- Increased origin server load
+
+**Mitigations**:
+```java
+@Service
+public class MultiCDNFailoverService {
+    private final List<CDNProvider> cdnProviders = Arrays.asList(
+        new CloudFrontProvider(),
+        new AkamaiProvider(),
+        new CloudflareProvider()
+    );
+    
+    public String getVideoUrl(String videoId) {
+        // Try primary CDN
+        CDNProvider primary = cdnProviders.get(0);
+        if (primary.isHealthy()) {
+            return primary.getVideoUrl(videoId);
+        }
+        
+        // Failover to secondary CDN
+        log.warn("Primary CDN unhealthy, failing over to secondary");
+        CDNProvider secondary = cdnProviders.get(1);
+        if (secondary.isHealthy()) {
+            return secondary.getVideoUrl(videoId);
+        }
+        
+        // Last resort: Origin server (with rate limiting)
+        log.error("All CDNs unhealthy, serving from origin");
+        return originServer.getVideoUrl(videoId);
+    }
+    
+    @Scheduled(fixedRate = 30000)
+    public void healthCheck() {
+        cdnProviders.forEach(cdn -> {
+            boolean healthy = cdn.performHealthCheck();
+            if (!healthy) {
+                alertService.alert("CDN " + cdn.getName() + " is unhealthy");
+                
+                // Update DNS to route traffic away
+                route53Service.updateHealthCheck(cdn.getName(), false);
+            }
+        });
+    }
+}
+```
+
+### 6.3 Chat Service Bottlenecks
+
+**Symptoms**:
+- Delayed messages (>1 second latency)
+- Chat server crashes during popular events
+- WebSocket connection failures
+
+**Mitigations**:
+```java
+@Service
+public class ChatServiceScaling {
+    
+    // Shard chat rooms across multiple servers
+    public String getChatServerUrl(Long streamId) {
+        int shard = (int) (streamId % chatServerCount);
+        return "ws://chat-" + shard + ".tiktok.com/ws";
+    }
+    
+    // Rate limit per user
+    @RateLimit(requests = 10, window = 60, scope = RateLimit.Scope.USER)
+    public void sendMessage(Long userId, Long streamId, String message) {
+        // Send to Kafka for async processing
+        kafkaTemplate.send("chat-messages", new ChatMessageEvent(
+            streamId, userId, message, LocalDateTime.now()
+        ));
+    }
+    
+    // Pre-warm nodes for anticipated large events
+    public void prewarmForEvent(Long streamId, int expectedViewers) {
+        int requiredServers = (int) Math.ceil(expectedViewers / 10000.0);
+        
+        for (int i = 0; i < requiredServers; i++) {
+            autoScalingService.launchChatServer(streamId);
+        }
+        
+        log.info("Pre-warmed {} chat servers for stream {}", 
+            requiredServers, streamId);
+    }
+}
+```
+
+### 6.4 Database Hotspots
+
+**Symptoms**:
+- High latency during heavy write operations
+- Database connection pool exhaustion
+- Slow queries during chat floods
+
+**Mitigations**:
+```java
+@Service
+public class DatabaseOptimizationService {
+    
+    // Partition chat messages by stream_id and time
+    @Entity
+    @Table(name = "chat_messages", 
+           partitionKeys = {@PartitionKey("stream_id"), @PartitionKey("date")},
+           clusteringKeys = {@ClusteringKey("timestamp")})
+    public class ChatMessage {
+        private Long streamId;
+        private LocalDate date;
+        private LocalDateTime timestamp;
+        private Long userId;
+        private String message;
+    }
+    
+    // Use read replicas for high-read endpoints
+    @Transactional(readOnly = true)
+    public List<Video> getForYouFeed(Long userId) {
+        // Route to read replica
+        return videoRepository.findForYouFeed(userId);
+    }
+    
+    // Cache hot data in Redis
+    @Cacheable(value = "live:viewers", key = "#streamId")
+    public Long getViewerCount(Long streamId) {
+        return redisTemplate.opsForSet().size("live:viewers:" + streamId);
+    }
+    
+    // Batch writes to reduce database load
+    @Scheduled(fixedRate = 5000)
+    public void flushViewCountUpdates() {
+        Map<Long, Long> updates = viewCountBuffer.getAndClear();
+        
+        jdbcTemplate.batchUpdate(
+            "UPDATE live_streams SET viewer_count = ? WHERE stream_id = ?",
+            updates.entrySet().stream()
+                .map(e -> new Object[]{e.getValue(), e.getKey()})
+                .collect(Collectors.toList())
+        );
+    }
+}
+```
+
+### 6.5 Single Point of Failure (SPOF)
+
+**Examples**:
+- Single API gateway going down
+- Single database instance failure
+- Single Redis instance failure
+
+**Mitigations**:
+```yaml
+# Multi-AZ deployment with redundancy
+apiGateway:
+  instances: 3
+  loadBalancer: 
+    type: Application Load Balancer
+    healthCheck: /health
+    crossZone: true
+
+database:
+  postgres:
+    primary: us-east-1a
+    replicas:
+      - us-east-1b
+      - us-east-1c
+    autoFailover: true
+    
+  cassandra:
+    replicationFactor: 3
+    consistencyLevel: QUORUM
+    
+redis:
+  cluster:
+    nodes: 6
+    replicas: 2
+    sentinels: 3
+    autoFailover: true
+```
+
+### 6.6 Content Moderation Failures
+
+**Symptoms**:
+- Inappropriate content slipping through filters
+- False positives causing user dissatisfaction
+- Delayed moderation response
+
+**Mitigations**:
+```java
+@Service
+public class ModerationService {
+    
+    // Multi-layer moderation pipeline
+    public ModerationResult moderateContent(String content) {
+        // Layer 1: Regex filters (instant)
+        if (regexFilter.matches(content)) {
+            return ModerationResult.blocked("Banned word detected");
+        }
+        
+        // Layer 2: ML toxicity detection (100ms)
+        double toxicityScore = mlModel.predict(content);
+        if (toxicityScore > 0.9) {
+            return ModerationResult.blocked("High toxicity score");
+        } else if (toxicityScore > 0.7) {
+            // Flag for manual review
+            moderationQueue.add(new ModerationTask(content, toxicityScore));
+            return ModerationResult.flagged("Flagged for review");
+        }
+        
+        // Layer 3: User reports
+        int reportCount = reportService.getReportCount(content);
+        if (reportCount > 10) {
+            return ModerationResult.blocked("Multiple user reports");
+        }
+        
+        return ModerationResult.approved();
+    }
+    
+    // Allow user appeals
+    public void appealModeration(Long userId, Long contentId, String reason) {
+        Appeal appeal = new Appeal(userId, contentId, reason);
+        appealQueue.add(appeal);
+        
+        // Notify moderators
+        notificationService.notifyModerators(appeal);
+    }
+    
+    // Continuous model retraining
+    @Scheduled(cron = "0 0 2 * * ?") // Daily at 2 AM
+    public void retrainModel() {
+        List<ModerationDecision> decisions = moderationRepository
+            .findRecentDecisions(LocalDateTime.now().minusDays(7));
+        
+        mlModelService.retrain(decisions);
+        
+        log.info("Retrained moderation model with {} decisions", 
+            decisions.size());
+    }
+}
+```
+
+### 6.7 Security Breaches
+
+**Attack Vectors**:
+- JWT token hijacking
+- RTMP stream key leaks
+- Unauthorized database access
+- DDoS attacks
+
+**Mitigations**:
+```java
+@Service
+public class SecurityService {
+    
+    // Rotate JWT secrets regularly
+    @Scheduled(cron = "0 0 0 1 * ?") // Monthly
+    public void rotateJwtSecret() {
+        String newSecret = generateSecureSecret();
+        jwtConfig.setSecret(newSecret);
+        
+        // Invalidate all existing tokens
+        redisTemplate.delete("user:session:*");
+        
+        log.info("Rotated JWT secret");
+    }
+    
+    // Rotate stream keys after each stream
+    @Transactional
+    public void endStream(String streamKey) {
+        LiveStream stream = liveStreamRepository.findByStreamKey(streamKey)
+            .orElseThrow();
+        
+        stream.setStatus(StreamStatus.ENDED);
+        stream.setEndedAt(LocalDateTime.now());
+        
+        // Generate new stream key for next stream
+        stream.setStreamKey(UUID.randomUUID().toString());
+        
+        liveStreamRepository.save(stream);
+    }
+    
+    // Encrypt sensitive data at rest
+    @PrePersist
+    public void encryptSensitiveData(User user) {
+        if (user.getEmail() != null) {
+            user.setEmail(encryptionService.encrypt(user.getEmail()));
+        }
+    }
+    
+    // TLS everywhere
+    @Configuration
+    public class TLSConfig {
+        @Bean
+        public TomcatServletWebServerFactory servletContainer() {
+            TomcatServletWebServerFactory tomcat = 
+                new TomcatServletWebServerFactory();
+            tomcat.addAdditionalTomcatConnectors(createHttpsConnector());
+            return tomcat;
+        }
+    }
+    
+    // WAF rules for DDoS protection
+    @Component
+    public class DDoSProtectionFilter implements Filter {
+        private final RateLimiter globalRateLimiter = 
+            RateLimiter.create(10000.0); // 10K req/sec
+        
+        @Override
+        public void doFilter(ServletRequest request, 
+                           ServletResponse response, 
+                           FilterChain chain) {
+            if (!globalRateLimiter.tryAcquire()) {
+                ((HttpServletResponse) response)
+                    .setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+                return;
+            }
+            
+            chain.doFilter(request, response);
+        }
+    }
+}
+```
+
+## 7. Fault Tolerance & Reliability
 
 ### 6.1 High Availability
 
@@ -791,9 +1772,99 @@ Application logs → Filebeat → Logstash → Elasticsearch → Kibana
 
 ---
 
-## 9. Cost Analysis
+## 9. Scale Calculations
 
-### 9.1 Infrastructure Costs (Monthly)
+### 9.1 Traffic & Storage Estimates
+
+#### Bandwidth (Peak)
+
+**Live Streaming Viewers**:
+- 1M concurrent viewers
+- Distribution:
+  - 560K viewers @ 2 Mbps (720p) = 1,120 Gbps
+  - 240K viewers @ 4 Mbps (1080p) = 960 Gbps
+  - 120K viewers @ 1 Mbps (480p) = 120 Gbps
+  - 80K viewers @ 500 Kbps (360p) = 40 Gbps
+- **Total Live Bandwidth**: ~2,240 Gbps
+
+**Short Video Playback**:
+- 100M DAU, 50% watching videos during peak hour
+- 50M concurrent viewers
+- Average bitrate: 1.5 Mbps
+- **Total Video Bandwidth**: 75,000 Gbps
+
+**Total Peak Bandwidth**: ~77,240 Gbps (77.24 Tbps)
+
+#### Storage
+
+**Daily Stream Storage**:
+- 800K concurrent streamers
+- Average stream duration: 30 minutes
+- Average bitrate: 2 Mbps (after transcoding)
+- Storage per stream: 2 Mbps × 1800s = 3,600 Mb = 450 MB
+- Daily streams: 800K × 450 MB = 360 TB/day
+- With 4 quality levels: 360 TB × 4 = 1,440 TB/day
+- **Monthly retention (30 days)**: 1,440 TB × 30 = 43,200 TB = 43.2 PB
+
+**Short Videos**:
+- 1B videos/day × 30 seconds × 1.5 Mbps = 5.625 TB/day
+- With 4 quality levels: 5.625 TB × 4 = 22.5 TB/day
+- **Total video storage**: 500 PB (accumulated over years)
+
+**Chat Messages**:
+- 75M messages/day during live streams
+- Average message size: 200 bytes
+- Daily storage: 75M × 200 bytes = 15 GB/day
+- **Monthly storage**: 15 GB × 30 = 450 GB
+- With indexes and metadata: ~1.1 TB/month
+
+**Metadata**:
+- Users: 1.5B × 2 KB = 3 TB
+- Videos: 500B videos × 5 KB = 2.5 PB
+- Streams: 24M streams/month × 2 KB = 48 GB/month
+- **Total Metadata**: ~2.5 PB
+
+**Total Storage**: 500 PB (videos) + 43.2 PB (streams) + 2.5 PB (metadata) = **545.7 PB**
+
+### 9.2 Database Capacity Planning
+
+**PostgreSQL (User & Stream Metadata)**:
+- Users: 1.5B rows × 2 KB = 3 TB
+- Live streams: 24M rows/month × 2 KB = 48 GB/month
+- With indexes (3x): 9 TB + 144 GB/month
+- **Total**: ~10 TB
+
+**Cassandra (Videos, Comments, Likes)**:
+- Videos: 500B rows × 5 KB = 2.5 PB
+- Comments: 100B rows × 500 bytes = 50 TB
+- Likes: 1T rows × 100 bytes = 100 TB
+- With replication factor 3: (2.5 PB + 150 TB) × 3 = **7.95 PB**
+
+**Redis (Cache & Real-time Data)**:
+- User sessions: 100M × 1 KB = 100 GB
+- Video metadata cache: 10M × 5 KB = 50 GB
+- Live viewer sets: 1M streams × 1K viewers × 8 bytes = 8 GB
+- Feed cache: 50M × 20 videos × 5 KB = 5 TB
+- **Total**: ~5.2 TB
+
+### 9.3 QPS Estimates
+
+**Read Operations**:
+- Video feed requests: 100M DAU × 100 requests/day / 86400s = 115K QPS
+- Video playback: 50M concurrent × 1 request/10s = 5M QPS
+- Live stream viewers: 1M concurrent × 1 request/5s = 200K QPS
+- **Total Read QPS**: ~5.3M QPS
+
+**Write Operations**:
+- Video uploads: 1B/day / 86400s = 11.5K QPS
+- Likes: 100M DAU × 50 likes/day / 86400s = 57.8K QPS
+- Comments: 100M DAU × 10 comments/day / 86400s = 11.5K QPS
+- Chat messages: 75M/day / 86400s = 868 QPS
+- **Total Write QPS**: ~81.7K QPS
+
+## 10. Cost Analysis
+
+### 10.1 Infrastructure Costs (Monthly)
 
 | Component | Specification | Cost |
 |-----------|--------------|------|
