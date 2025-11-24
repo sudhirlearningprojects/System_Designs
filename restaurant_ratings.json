@@ -1,0 +1,2015 @@
+{
+  "ratings": [
+    {
+      "id": 1,
+      "restaurantName": "French Bistro",
+      "platform": "DoorDash",
+      "rating": 2.9,
+      "reviewText": "Excellent quality",
+      "reviewerName": "Alex F.",
+      "date": "2025-10-12",
+      "cuisine": "Asian"
+    },
+    {
+      "id": 2,
+      "restaurantName": "Steakhouse Prime",
+      "platform": "Zomato",
+      "rating": 2.7,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "Sarah M.",
+      "date": "2025-11-06",
+      "cuisine": "French"
+    },
+    {
+      "id": 3,
+      "restaurantName": "Curry Palace",
+      "platform": "Restaurant Website",
+      "rating": 2.7,
+      "reviewText": "Great atmosphere and tasty food",
+      "reviewerName": "John D.",
+      "date": "2025-10-29",
+      "cuisine": "BBQ"
+    },
+    {
+      "id": 4,
+      "restaurantName": "Pizza Corner",
+      "platform": "DoorDash",
+      "rating": 2.9,
+      "reviewText": "Not impressed this time",
+      "reviewerName": "Tom W.",
+      "date": "2025-10-22",
+      "cuisine": "American"
+    },
+    {
+      "id": 5,
+      "restaurantName": "Vegan Vibes",
+      "platform": "Restaurant Website",
+      "rating": 3.2,
+      "reviewText": "Overpriced for the quality",
+      "reviewerName": "Carlos V.",
+      "date": "2025-11-05",
+      "cuisine": "Cafe"
+    },
+    {
+      "id": 6,
+      "restaurantName": "Grill Station",
+      "platform": "Zomato",
+      "rating": 4.0,
+      "reviewText": "Decent food, could be better",
+      "reviewerName": "Nina C.",
+      "date": "2025-08-26",
+      "cuisine": "Diner"
+    },
+    {
+      "id": 7,
+      "restaurantName": "Cafe Mocha",
+      "platform": "DoorDash",
+      "rating": 3.5,
+      "reviewText": "Overpriced for the quality",
+      "reviewerName": "Chris B.",
+      "date": "2025-09-22",
+      "cuisine": "Chinese"
+    },
+    {
+      "id": 8,
+      "restaurantName": "Steakhouse Prime",
+      "platform": "Restaurant Website",
+      "rating": 4.5,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Ryan H.",
+      "date": "2025-11-03",
+      "cuisine": "BBQ"
+    },
+    {
+      "id": 9,
+      "restaurantName": "Grill Station",
+      "platform": "Zomato",
+      "rating": 3.0,
+      "reviewText": "Exceeded expectations",
+      "reviewerName": "David L.",
+      "date": "2025-10-18",
+      "cuisine": "Mediterranean"
+    },
+    {
+      "id": 10,
+      "restaurantName": "Steakhouse Prime",
+      "platform": "Restaurant Website",
+      "rating": 4.2,
+      "reviewText": "Will definitely order again",
+      "reviewerName": "Anna P.",
+      "date": "2025-10-05",
+      "cuisine": "Italian"
+    },
+    {
+      "id": 11,
+      "restaurantName": "BBQ Masters",
+      "platform": "UberEats",
+      "rating": 3.9,
+      "reviewText": "Authentic flavors",
+      "reviewerName": "Anna P.",
+      "date": "2025-10-07",
+      "cuisine": "Asian"
+    },
+    {
+      "id": 12,
+      "restaurantName": "Thai Orchid",
+      "platform": "UberEats",
+      "rating": 2.8,
+      "reviewText": "Quick service, hot food",
+      "reviewerName": "John D.",
+      "date": "2025-10-31",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 13,
+      "restaurantName": "Ramen House",
+      "platform": "DoorDash",
+      "rating": 3.6,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "David L.",
+      "date": "2025-09-20",
+      "cuisine": "Curry"
+    },
+    {
+      "id": 14,
+      "restaurantName": "BBQ Masters",
+      "platform": "Yelp",
+      "rating": 2.9,
+      "reviewText": "Exceeded expectations",
+      "reviewerName": "John D.",
+      "date": "2025-10-09",
+      "cuisine": "Italian"
+    },
+    {
+      "id": 15,
+      "restaurantName": "French Bistro",
+      "platform": "Yelp",
+      "rating": 2.5,
+      "reviewText": "Best in town!",
+      "reviewerName": "Lisa K.",
+      "date": "2025-09-12",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 16,
+      "restaurantName": "Grill Station",
+      "platform": "UberEats",
+      "rating": 3.1,
+      "reviewText": "Excellent quality",
+      "reviewerName": "Ryan H.",
+      "date": "2025-11-02",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 17,
+      "restaurantName": "Steakhouse Prime",
+      "platform": "Google Reviews",
+      "rating": 2.8,
+      "reviewText": "Exceeded expectations",
+      "reviewerName": "Carlos V.",
+      "date": "2025-10-13",
+      "cuisine": "Asian"
+    },
+    {
+      "id": 18,
+      "restaurantName": "Burger Palace",
+      "platform": "UberEats",
+      "rating": 3.7,
+      "reviewText": "Authentic flavors",
+      "reviewerName": "Maya J.",
+      "date": "2025-09-09",
+      "cuisine": "Mexican"
+    },
+    {
+      "id": 19,
+      "restaurantName": "Spice Garden",
+      "platform": "Zomato",
+      "rating": 2.6,
+      "reviewText": "Exceeded expectations",
+      "reviewerName": "Mike R.",
+      "date": "2025-08-31",
+      "cuisine": "Chinese"
+    },
+    {
+      "id": 20,
+      "restaurantName": "Sushi Zen",
+      "platform": "UberEats",
+      "rating": 4.3,
+      "reviewText": "Great atmosphere and tasty food",
+      "reviewerName": "Rachel S.",
+      "date": "2025-11-09",
+      "cuisine": "French"
+    },
+    {
+      "id": 21,
+      "restaurantName": "Curry Palace",
+      "platform": "DoorDash",
+      "rating": 3.7,
+      "reviewText": "Best in town!",
+      "reviewerName": "Carlos V.",
+      "date": "2025-09-17",
+      "cuisine": "Grill"
+    },
+    {
+      "id": 22,
+      "restaurantName": "Pizza Corner",
+      "platform": "Grubhub",
+      "rating": 2.7,
+      "reviewText": "Quick service, hot food",
+      "reviewerName": "Emma T.",
+      "date": "2025-09-01",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 23,
+      "restaurantName": "Taco Fiesta",
+      "platform": "Restaurant Website",
+      "rating": 4.0,
+      "reviewText": "Excellent quality",
+      "reviewerName": "Anna P.",
+      "date": "2025-10-12",
+      "cuisine": "Chinese"
+    },
+    {
+      "id": 24,
+      "restaurantName": "Spice Garden",
+      "platform": "UberEats",
+      "rating": 3.6,
+      "reviewText": "Great atmosphere and tasty food",
+      "reviewerName": "Chris B.",
+      "date": "2025-10-09",
+      "cuisine": "Chinese"
+    },
+    {
+      "id": 25,
+      "restaurantName": "Ramen House",
+      "platform": "Google Reviews",
+      "rating": 3.8,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "David L.",
+      "date": "2025-09-26",
+      "cuisine": "Mexican"
+    },
+    {
+      "id": 26,
+      "restaurantName": "Mario's Italian Bistro",
+      "platform": "DoorDash",
+      "rating": 3.2,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "Carlos V.",
+      "date": "2025-11-07",
+      "cuisine": "Indian"
+    },
+    {
+      "id": 27,
+      "restaurantName": "Cafe Mocha",
+      "platform": "UberEats",
+      "rating": 2.7,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "Emma T.",
+      "date": "2025-11-08",
+      "cuisine": "Vegan"
+    },
+    {
+      "id": 28,
+      "restaurantName": "Mediterranean Delight",
+      "platform": "DoorDash",
+      "rating": 4.7,
+      "reviewText": "Great atmosphere and tasty food",
+      "reviewerName": "Chris B.",
+      "date": "2025-09-14",
+      "cuisine": "American"
+    },
+    {
+      "id": 29,
+      "restaurantName": "Diner Classic",
+      "platform": "Restaurant Website",
+      "rating": 3.6,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "Anna P.",
+      "date": "2025-10-02",
+      "cuisine": "Grill"
+    },
+    {
+      "id": 30,
+      "restaurantName": "Seafood Shack",
+      "platform": "Restaurant Website",
+      "rating": 4.9,
+      "reviewText": "Best in town!",
+      "reviewerName": "David L.",
+      "date": "2025-10-08",
+      "cuisine": "BBQ"
+    },
+    {
+      "id": 31,
+      "restaurantName": "Mario's Italian Bistro",
+      "platform": "Grubhub",
+      "rating": 3.0,
+      "reviewText": "Excellent quality",
+      "reviewerName": "Tom W.",
+      "date": "2025-10-09",
+      "cuisine": "Mediterranean"
+    },
+    {
+      "id": 32,
+      "restaurantName": "Grill Station",
+      "platform": "Grubhub",
+      "rating": 3.4,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Anna P.",
+      "date": "2025-09-04",
+      "cuisine": "Ramen"
+    },
+    {
+      "id": 33,
+      "restaurantName": "Curry Palace",
+      "platform": "Yelp",
+      "rating": 3.1,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Rachel S.",
+      "date": "2025-09-05",
+      "cuisine": "Steakhouse"
+    },
+    {
+      "id": 34,
+      "restaurantName": "Vegan Vibes",
+      "platform": "Google Reviews",
+      "rating": 3.1,
+      "reviewText": "Authentic flavors",
+      "reviewerName": "Alex F.",
+      "date": "2025-11-22",
+      "cuisine": "Diner"
+    },
+    {
+      "id": 35,
+      "restaurantName": "Curry Palace",
+      "platform": "Yelp",
+      "rating": 3.9,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "Mike R.",
+      "date": "2025-10-27",
+      "cuisine": "Italian"
+    },
+    {
+      "id": 36,
+      "restaurantName": "Taco Fiesta",
+      "platform": "Google Reviews",
+      "rating": 3.8,
+      "reviewText": "Good food but slow delivery",
+      "reviewerName": "Sarah M.",
+      "date": "2025-10-30",
+      "cuisine": "Curry"
+    },
+    {
+      "id": 37,
+      "restaurantName": "BBQ Masters",
+      "platform": "Zomato",
+      "rating": 4.8,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "Mike R.",
+      "date": "2025-11-22",
+      "cuisine": "Indian"
+    },
+    {
+      "id": 38,
+      "restaurantName": "Mario's Italian Bistro",
+      "platform": "Restaurant Website",
+      "rating": 3.6,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "Sarah M.",
+      "date": "2025-09-26",
+      "cuisine": "Mexican"
+    },
+    {
+      "id": 39,
+      "restaurantName": "Grill Station",
+      "platform": "Yelp",
+      "rating": 2.7,
+      "reviewText": "Decent food, could be better",
+      "reviewerName": "Chris B.",
+      "date": "2025-09-04",
+      "cuisine": "Asian"
+    },
+    {
+      "id": 40,
+      "restaurantName": "Ramen House",
+      "platform": "DoorDash",
+      "rating": 4.7,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "Anna P.",
+      "date": "2025-09-06",
+      "cuisine": "Mediterranean"
+    },
+    {
+      "id": 41,
+      "restaurantName": "Steakhouse Prime",
+      "platform": "DoorDash",
+      "rating": 3.7,
+      "reviewText": "Will definitely order again",
+      "reviewerName": "David L.",
+      "date": "2025-08-30",
+      "cuisine": "Seafood"
+    },
+    {
+      "id": 42,
+      "restaurantName": "Taco Fiesta",
+      "platform": "Grubhub",
+      "rating": 3.7,
+      "reviewText": "Decent food, could be better",
+      "reviewerName": "Rachel S.",
+      "date": "2025-09-15",
+      "cuisine": "Mexican"
+    },
+    {
+      "id": 43,
+      "restaurantName": "Mario's Italian Bistro",
+      "platform": "Yelp",
+      "rating": 3.7,
+      "reviewText": "Excellent quality",
+      "reviewerName": "Tom W.",
+      "date": "2025-10-13",
+      "cuisine": "Cafe"
+    },
+    {
+      "id": 44,
+      "restaurantName": "Grill Station",
+      "platform": "Restaurant Website",
+      "rating": 3.9,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Carlos V.",
+      "date": "2025-10-23",
+      "cuisine": "French"
+    },
+    {
+      "id": 45,
+      "restaurantName": "Mediterranean Delight",
+      "platform": "DoorDash",
+      "rating": 3.8,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "Ryan H.",
+      "date": "2025-09-17",
+      "cuisine": "Seafood"
+    },
+    {
+      "id": 46,
+      "restaurantName": "Spice Garden",
+      "platform": "Google Reviews",
+      "rating": 4.6,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "Mike R.",
+      "date": "2025-10-30",
+      "cuisine": "BBQ"
+    },
+    {
+      "id": 47,
+      "restaurantName": "Steakhouse Prime",
+      "platform": "UberEats",
+      "rating": 4.6,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Emma T.",
+      "date": "2025-10-01",
+      "cuisine": "Steakhouse"
+    },
+    {
+      "id": 48,
+      "restaurantName": "Seafood Shack",
+      "platform": "Google Reviews",
+      "rating": 3.3,
+      "reviewText": "Will definitely order again",
+      "reviewerName": "Chris B.",
+      "date": "2025-09-16",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 49,
+      "restaurantName": "Cafe Mocha",
+      "platform": "UberEats",
+      "rating": 4.6,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Mike R.",
+      "date": "2025-08-28",
+      "cuisine": "American"
+    },
+    {
+      "id": 50,
+      "restaurantName": "Mediterranean Delight",
+      "platform": "UberEats",
+      "rating": 3.6,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Lisa K.",
+      "date": "2025-10-04",
+      "cuisine": "Chinese"
+    },
+    {
+      "id": 51,
+      "restaurantName": "Taco Fiesta",
+      "platform": "Zomato",
+      "rating": 4.2,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Carlos V.",
+      "date": "2025-09-11",
+      "cuisine": "Mediterranean"
+    },
+    {
+      "id": 52,
+      "restaurantName": "Diner Classic",
+      "platform": "Zomato",
+      "rating": 3.4,
+      "reviewText": "Quick service, hot food",
+      "reviewerName": "David L.",
+      "date": "2025-11-07",
+      "cuisine": "Italian"
+    },
+    {
+      "id": 53,
+      "restaurantName": "Vegan Vibes",
+      "platform": "Zomato",
+      "rating": 4.0,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "John D.",
+      "date": "2025-09-06",
+      "cuisine": "Grill"
+    },
+    {
+      "id": 54,
+      "restaurantName": "Spice Garden",
+      "platform": "Zomato",
+      "rating": 4.4,
+      "reviewText": "Decent food, could be better",
+      "reviewerName": "Ryan H.",
+      "date": "2025-09-13",
+      "cuisine": "Curry"
+    },
+    {
+      "id": 55,
+      "restaurantName": "Vegan Vibes",
+      "platform": "Zomato",
+      "rating": 4.0,
+      "reviewText": "Quick service, hot food",
+      "reviewerName": "John D.",
+      "date": "2025-10-27",
+      "cuisine": "Steakhouse"
+    },
+    {
+      "id": 56,
+      "restaurantName": "Spice Garden",
+      "platform": "UberEats",
+      "rating": 4.0,
+      "reviewText": "Exceeded expectations",
+      "reviewerName": "David L.",
+      "date": "2025-11-06",
+      "cuisine": "Vegan"
+    },
+    {
+      "id": 57,
+      "restaurantName": "Seafood Shack",
+      "platform": "UberEats",
+      "rating": 2.7,
+      "reviewText": "Best in town!",
+      "reviewerName": "Rachel S.",
+      "date": "2025-11-12",
+      "cuisine": "Mexican"
+    },
+    {
+      "id": 58,
+      "restaurantName": "Mario's Italian Bistro",
+      "platform": "Zomato",
+      "rating": 3.2,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "Emma T.",
+      "date": "2025-11-04",
+      "cuisine": "Grill"
+    },
+    {
+      "id": 59,
+      "restaurantName": "Pizza Corner",
+      "platform": "Yelp",
+      "rating": 4.6,
+      "reviewText": "Overpriced for the quality",
+      "reviewerName": "Tom W.",
+      "date": "2025-10-16",
+      "cuisine": "Asian"
+    },
+    {
+      "id": 60,
+      "restaurantName": "Pizza Corner",
+      "platform": "Yelp",
+      "rating": 2.7,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "Chris B.",
+      "date": "2025-08-28",
+      "cuisine": "Asian"
+    },
+    {
+      "id": 61,
+      "restaurantName": "Mario's Italian Bistro",
+      "platform": "DoorDash",
+      "rating": 5.0,
+      "reviewText": "Excellent quality",
+      "reviewerName": "Tom W.",
+      "date": "2025-09-14",
+      "cuisine": "Curry"
+    },
+    {
+      "id": 62,
+      "restaurantName": "Burger Palace",
+      "platform": "Restaurant Website",
+      "rating": 3.0,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "Ryan H.",
+      "date": "2025-09-07",
+      "cuisine": "French"
+    },
+    {
+      "id": 63,
+      "restaurantName": "Mario's Italian Bistro",
+      "platform": "Zomato",
+      "rating": 4.7,
+      "reviewText": "Authentic flavors",
+      "reviewerName": "Nina C.",
+      "date": "2025-08-25",
+      "cuisine": "Cafe"
+    },
+    {
+      "id": 64,
+      "restaurantName": "Curry Palace",
+      "platform": "Restaurant Website",
+      "rating": 3.1,
+      "reviewText": "Best in town!",
+      "reviewerName": "Alex F.",
+      "date": "2025-09-01",
+      "cuisine": "Asian"
+    },
+    {
+      "id": 65,
+      "restaurantName": "BBQ Masters",
+      "platform": "Google Reviews",
+      "rating": 4.6,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "David L.",
+      "date": "2025-09-23",
+      "cuisine": "Cafe"
+    },
+    {
+      "id": 66,
+      "restaurantName": "Vegan Vibes",
+      "platform": "Zomato",
+      "rating": 3.3,
+      "reviewText": "Decent food, could be better",
+      "reviewerName": "Rachel S.",
+      "date": "2025-11-15",
+      "cuisine": "Japanese"
+    },
+    {
+      "id": 67,
+      "restaurantName": "BBQ Masters",
+      "platform": "Zomato",
+      "rating": 3.5,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Ryan H.",
+      "date": "2025-11-13",
+      "cuisine": "Japanese"
+    },
+    {
+      "id": 68,
+      "restaurantName": "Sushi Zen",
+      "platform": "Zomato",
+      "rating": 3.1,
+      "reviewText": "Exceeded expectations",
+      "reviewerName": "Lisa K.",
+      "date": "2025-08-25",
+      "cuisine": "Ramen"
+    },
+    {
+      "id": 69,
+      "restaurantName": "Spice Garden",
+      "platform": "UberEats",
+      "rating": 4.5,
+      "reviewText": "Best in town!",
+      "reviewerName": "Sarah M.",
+      "date": "2025-09-19",
+      "cuisine": "Japanese"
+    },
+    {
+      "id": 70,
+      "restaurantName": "Noodle Bar",
+      "platform": "Restaurant Website",
+      "rating": 3.8,
+      "reviewText": "Quick service, hot food",
+      "reviewerName": "Carlos V.",
+      "date": "2025-10-01",
+      "cuisine": "Indian"
+    },
+    {
+      "id": 71,
+      "restaurantName": "Steakhouse Prime",
+      "platform": "UberEats",
+      "rating": 4.7,
+      "reviewText": "Great atmosphere and tasty food",
+      "reviewerName": "Chris B.",
+      "date": "2025-10-15",
+      "cuisine": "Japanese"
+    },
+    {
+      "id": 72,
+      "restaurantName": "BBQ Masters",
+      "platform": "DoorDash",
+      "rating": 4.6,
+      "reviewText": "Quick service, hot food",
+      "reviewerName": "Emma T.",
+      "date": "2025-11-02",
+      "cuisine": "American"
+    },
+    {
+      "id": 73,
+      "restaurantName": "Mario's Italian Bistro",
+      "platform": "Restaurant Website",
+      "rating": 4.6,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "John D.",
+      "date": "2025-09-11",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 74,
+      "restaurantName": "Grill Station",
+      "platform": "Zomato",
+      "rating": 3.1,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "David L.",
+      "date": "2025-09-25",
+      "cuisine": "Seafood"
+    },
+    {
+      "id": 75,
+      "restaurantName": "Curry Palace",
+      "platform": "Restaurant Website",
+      "rating": 2.6,
+      "reviewText": "Exceeded expectations",
+      "reviewerName": "Emma T.",
+      "date": "2025-10-08",
+      "cuisine": "Steakhouse"
+    },
+    {
+      "id": 76,
+      "restaurantName": "Noodle Bar",
+      "platform": "Zomato",
+      "rating": 3.7,
+      "reviewText": "Good food but slow delivery",
+      "reviewerName": "Ryan H.",
+      "date": "2025-09-29",
+      "cuisine": "BBQ"
+    },
+    {
+      "id": 77,
+      "restaurantName": "Taco Fiesta",
+      "platform": "Grubhub",
+      "rating": 3.6,
+      "reviewText": "Will definitely order again",
+      "reviewerName": "Anna P.",
+      "date": "2025-08-29",
+      "cuisine": "American"
+    },
+    {
+      "id": 78,
+      "restaurantName": "Sushi Zen",
+      "platform": "UberEats",
+      "rating": 4.3,
+      "reviewText": "Will definitely order again",
+      "reviewerName": "Maya J.",
+      "date": "2025-11-21",
+      "cuisine": "Diner"
+    },
+    {
+      "id": 79,
+      "restaurantName": "Taco Fiesta",
+      "platform": "Restaurant Website",
+      "rating": 3.3,
+      "reviewText": "Exceeded expectations",
+      "reviewerName": "John D.",
+      "date": "2025-11-07",
+      "cuisine": "Japanese"
+    },
+    {
+      "id": 80,
+      "restaurantName": "Diner Classic",
+      "platform": "Yelp",
+      "rating": 4.9,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "Tom W.",
+      "date": "2025-10-17",
+      "cuisine": "Asian"
+    },
+    {
+      "id": 81,
+      "restaurantName": "Grill Station",
+      "platform": "Google Reviews",
+      "rating": 3.5,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Nina C.",
+      "date": "2025-09-18",
+      "cuisine": "Seafood"
+    },
+    {
+      "id": 82,
+      "restaurantName": "Mario's Italian Bistro",
+      "platform": "Google Reviews",
+      "rating": 3.4,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "John D.",
+      "date": "2025-09-14",
+      "cuisine": "Indian"
+    },
+    {
+      "id": 83,
+      "restaurantName": "Pizza Corner",
+      "platform": "DoorDash",
+      "rating": 3.7,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Lisa K.",
+      "date": "2025-11-21",
+      "cuisine": "BBQ"
+    },
+    {
+      "id": 84,
+      "restaurantName": "Sushi Zen",
+      "platform": "Restaurant Website",
+      "rating": 4.7,
+      "reviewText": "Will definitely order again",
+      "reviewerName": "Mike R.",
+      "date": "2025-11-12",
+      "cuisine": "Chinese"
+    },
+    {
+      "id": 85,
+      "restaurantName": "Spice Garden",
+      "platform": "Grubhub",
+      "rating": 2.7,
+      "reviewText": "Exceeded expectations",
+      "reviewerName": "David L.",
+      "date": "2025-08-31",
+      "cuisine": "Diner"
+    },
+    {
+      "id": 86,
+      "restaurantName": "Grill Station",
+      "platform": "Google Reviews",
+      "rating": 4.8,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "Maya J.",
+      "date": "2025-11-18",
+      "cuisine": "French"
+    },
+    {
+      "id": 87,
+      "restaurantName": "Cafe Mocha",
+      "platform": "DoorDash",
+      "rating": 3.7,
+      "reviewText": "Best in town!",
+      "reviewerName": "John D.",
+      "date": "2025-09-05",
+      "cuisine": "Vegan"
+    },
+    {
+      "id": 88,
+      "restaurantName": "Curry Palace",
+      "platform": "Grubhub",
+      "rating": 3.7,
+      "reviewText": "Authentic flavors",
+      "reviewerName": "Mike R.",
+      "date": "2025-08-26",
+      "cuisine": "Cafe"
+    },
+    {
+      "id": 89,
+      "restaurantName": "French Bistro",
+      "platform": "Grubhub",
+      "rating": 2.7,
+      "reviewText": "Quick service, hot food",
+      "reviewerName": "John D.",
+      "date": "2025-09-20",
+      "cuisine": "BBQ"
+    },
+    {
+      "id": 90,
+      "restaurantName": "Thai Orchid",
+      "platform": "Google Reviews",
+      "rating": 4.3,
+      "reviewText": "Authentic flavors",
+      "reviewerName": "Anna P.",
+      "date": "2025-10-27",
+      "cuisine": "Curry"
+    },
+    {
+      "id": 91,
+      "restaurantName": "Spice Garden",
+      "platform": "UberEats",
+      "rating": 3.5,
+      "reviewText": "Will definitely order again",
+      "reviewerName": "Maya J.",
+      "date": "2025-08-30",
+      "cuisine": "French"
+    },
+    {
+      "id": 92,
+      "restaurantName": "Spice Garden",
+      "platform": "Zomato",
+      "rating": 4.1,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Maya J.",
+      "date": "2025-11-08",
+      "cuisine": "Mediterranean"
+    },
+    {
+      "id": 93,
+      "restaurantName": "Thai Orchid",
+      "platform": "UberEats",
+      "rating": 3.8,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "John D.",
+      "date": "2025-09-15",
+      "cuisine": "Indian"
+    },
+    {
+      "id": 94,
+      "restaurantName": "BBQ Masters",
+      "platform": "Zomato",
+      "rating": 4.7,
+      "reviewText": "Will definitely order again",
+      "reviewerName": "Rachel S.",
+      "date": "2025-09-02",
+      "cuisine": "Asian"
+    },
+    {
+      "id": 95,
+      "restaurantName": "French Bistro",
+      "platform": "UberEats",
+      "rating": 3.5,
+      "reviewText": "Excellent quality",
+      "reviewerName": "Sarah M.",
+      "date": "2025-10-15",
+      "cuisine": "BBQ"
+    },
+    {
+      "id": 96,
+      "restaurantName": "Taco Fiesta",
+      "platform": "Yelp",
+      "rating": 4.4,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Nina C.",
+      "date": "2025-10-14",
+      "cuisine": "Grill"
+    },
+    {
+      "id": 97,
+      "restaurantName": "Spice Garden",
+      "platform": "DoorDash",
+      "rating": 4.0,
+      "reviewText": "Not impressed this time",
+      "reviewerName": "Mike R.",
+      "date": "2025-10-01",
+      "cuisine": "American"
+    },
+    {
+      "id": 98,
+      "restaurantName": "Curry Palace",
+      "platform": "Grubhub",
+      "rating": 4.1,
+      "reviewText": "Best in town!",
+      "reviewerName": "Carlos V.",
+      "date": "2025-10-10",
+      "cuisine": "Chinese"
+    },
+    {
+      "id": 99,
+      "restaurantName": "Seafood Shack",
+      "platform": "UberEats",
+      "rating": 4.3,
+      "reviewText": "Quick service, hot food",
+      "reviewerName": "Chris B.",
+      "date": "2025-09-16",
+      "cuisine": "Curry"
+    },
+    {
+      "id": 100,
+      "restaurantName": "Mediterranean Delight",
+      "platform": "Grubhub",
+      "rating": 3.0,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Lisa K.",
+      "date": "2025-11-04",
+      "cuisine": "Mediterranean"
+    },
+    {
+      "id": 101,
+      "restaurantName": "Burger Palace",
+      "platform": "Restaurant Website",
+      "rating": 4.9,
+      "reviewText": "Decent food, could be better",
+      "reviewerName": "Ryan H.",
+      "date": "2025-11-07",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 102,
+      "restaurantName": "French Bistro",
+      "platform": "Zomato",
+      "rating": 4.8,
+      "reviewText": "Quick service, hot food",
+      "reviewerName": "Sarah M.",
+      "date": "2025-10-15",
+      "cuisine": "Mexican"
+    },
+    {
+      "id": 103,
+      "restaurantName": "Vegan Vibes",
+      "platform": "Zomato",
+      "rating": 2.8,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Alex F.",
+      "date": "2025-09-13",
+      "cuisine": "Mexican"
+    },
+    {
+      "id": 104,
+      "restaurantName": "Golden Dragon",
+      "platform": "Yelp",
+      "rating": 3.5,
+      "reviewText": "Not impressed this time",
+      "reviewerName": "Sarah M.",
+      "date": "2025-11-21",
+      "cuisine": "Ramen"
+    },
+    {
+      "id": 105,
+      "restaurantName": "Burger Palace",
+      "platform": "Grubhub",
+      "rating": 4.0,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Nina C.",
+      "date": "2025-10-01",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 106,
+      "restaurantName": "Curry Palace",
+      "platform": "Grubhub",
+      "rating": 3.4,
+      "reviewText": "Quick service, hot food",
+      "reviewerName": "Maya J.",
+      "date": "2025-09-25",
+      "cuisine": "Vegan"
+    },
+    {
+      "id": 107,
+      "restaurantName": "Curry Palace",
+      "platform": "Restaurant Website",
+      "rating": 3.8,
+      "reviewText": "Great atmosphere and tasty food",
+      "reviewerName": "David L.",
+      "date": "2025-10-26",
+      "cuisine": "Cafe"
+    },
+    {
+      "id": 108,
+      "restaurantName": "Ramen House",
+      "platform": "Restaurant Website",
+      "rating": 4.7,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Anna P.",
+      "date": "2025-09-17",
+      "cuisine": "Steakhouse"
+    },
+    {
+      "id": 109,
+      "restaurantName": "Mario's Italian Bistro",
+      "platform": "UberEats",
+      "rating": 3.1,
+      "reviewText": "Best in town!",
+      "reviewerName": "John D.",
+      "date": "2025-08-27",
+      "cuisine": "Diner"
+    },
+    {
+      "id": 110,
+      "restaurantName": "Seafood Shack",
+      "platform": "Grubhub",
+      "rating": 3.3,
+      "reviewText": "Quick service, hot food",
+      "reviewerName": "Rachel S.",
+      "date": "2025-09-20",
+      "cuisine": "Seafood"
+    },
+    {
+      "id": 111,
+      "restaurantName": "Ramen House",
+      "platform": "UberEats",
+      "rating": 4.6,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Nina C.",
+      "date": "2025-09-25",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 112,
+      "restaurantName": "Golden Dragon",
+      "platform": "Yelp",
+      "rating": 4.9,
+      "reviewText": "Good food but slow delivery",
+      "reviewerName": "Emma T.",
+      "date": "2025-09-12",
+      "cuisine": "Diner"
+    },
+    {
+      "id": 113,
+      "restaurantName": "Mediterranean Delight",
+      "platform": "Restaurant Website",
+      "rating": 4.8,
+      "reviewText": "Excellent quality",
+      "reviewerName": "Maya J.",
+      "date": "2025-10-09",
+      "cuisine": "French"
+    },
+    {
+      "id": 114,
+      "restaurantName": "French Bistro",
+      "platform": "Yelp",
+      "rating": 3.8,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "Maya J.",
+      "date": "2025-10-22",
+      "cuisine": "Diner"
+    },
+    {
+      "id": 115,
+      "restaurantName": "Spice Garden",
+      "platform": "Google Reviews",
+      "rating": 4.3,
+      "reviewText": "Excellent quality",
+      "reviewerName": "John D.",
+      "date": "2025-10-30",
+      "cuisine": "Cafe"
+    },
+    {
+      "id": 116,
+      "restaurantName": "Pizza Corner",
+      "platform": "Yelp",
+      "rating": 4.3,
+      "reviewText": "Not impressed this time",
+      "reviewerName": "Ryan H.",
+      "date": "2025-10-12",
+      "cuisine": "French"
+    },
+    {
+      "id": 117,
+      "restaurantName": "Spice Garden",
+      "platform": "Zomato",
+      "rating": 4.6,
+      "reviewText": "Not impressed this time",
+      "reviewerName": "Chris B.",
+      "date": "2025-08-25",
+      "cuisine": "French"
+    },
+    {
+      "id": 118,
+      "restaurantName": "Sushi Zen",
+      "platform": "DoorDash",
+      "rating": 2.9,
+      "reviewText": "Great atmosphere and tasty food",
+      "reviewerName": "David L.",
+      "date": "2025-09-25",
+      "cuisine": "Chinese"
+    },
+    {
+      "id": 119,
+      "restaurantName": "Mediterranean Delight",
+      "platform": "Zomato",
+      "rating": 3.3,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "John D.",
+      "date": "2025-09-27",
+      "cuisine": "Cafe"
+    },
+    {
+      "id": 120,
+      "restaurantName": "Golden Dragon",
+      "platform": "Google Reviews",
+      "rating": 3.3,
+      "reviewText": "Best in town!",
+      "reviewerName": "Sarah M.",
+      "date": "2025-11-08",
+      "cuisine": "Mediterranean"
+    },
+    {
+      "id": 121,
+      "restaurantName": "Curry Palace",
+      "platform": "Google Reviews",
+      "rating": 2.8,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Chris B.",
+      "date": "2025-09-26",
+      "cuisine": "Chinese"
+    },
+    {
+      "id": 122,
+      "restaurantName": "Pizza Corner",
+      "platform": "UberEats",
+      "rating": 4.4,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "John D.",
+      "date": "2025-09-02",
+      "cuisine": "Chinese"
+    },
+    {
+      "id": 123,
+      "restaurantName": "Golden Dragon",
+      "platform": "Grubhub",
+      "rating": 4.8,
+      "reviewText": "Good food but slow delivery",
+      "reviewerName": "Chris B.",
+      "date": "2025-10-19",
+      "cuisine": "Ramen"
+    },
+    {
+      "id": 124,
+      "restaurantName": "Noodle Bar",
+      "platform": "Restaurant Website",
+      "rating": 4.4,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "David L.",
+      "date": "2025-10-01",
+      "cuisine": "Diner"
+    },
+    {
+      "id": 125,
+      "restaurantName": "Ramen House",
+      "platform": "Restaurant Website",
+      "rating": 3.3,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Carlos V.",
+      "date": "2025-10-11",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 126,
+      "restaurantName": "Taco Fiesta",
+      "platform": "Restaurant Website",
+      "rating": 4.1,
+      "reviewText": "Not impressed this time",
+      "reviewerName": "Alex F.",
+      "date": "2025-09-05",
+      "cuisine": "Steakhouse"
+    },
+    {
+      "id": 127,
+      "restaurantName": "Seafood Shack",
+      "platform": "Zomato",
+      "rating": 4.5,
+      "reviewText": "Best in town!",
+      "reviewerName": "Anna P.",
+      "date": "2025-09-19",
+      "cuisine": "BBQ"
+    },
+    {
+      "id": 128,
+      "restaurantName": "Sushi Zen",
+      "platform": "UberEats",
+      "rating": 4.4,
+      "reviewText": "Excellent quality",
+      "reviewerName": "Emma T.",
+      "date": "2025-11-16",
+      "cuisine": "Japanese"
+    },
+    {
+      "id": 129,
+      "restaurantName": "BBQ Masters",
+      "platform": "Google Reviews",
+      "rating": 3.0,
+      "reviewText": "Authentic flavors",
+      "reviewerName": "Carlos V.",
+      "date": "2025-10-15",
+      "cuisine": "BBQ"
+    },
+    {
+      "id": 130,
+      "restaurantName": "French Bistro",
+      "platform": "Google Reviews",
+      "rating": 3.7,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Anna P.",
+      "date": "2025-10-21",
+      "cuisine": "Curry"
+    },
+    {
+      "id": 131,
+      "restaurantName": "Grill Station",
+      "platform": "Yelp",
+      "rating": 2.7,
+      "reviewText": "Quick service, hot food",
+      "reviewerName": "Maya J.",
+      "date": "2025-09-07",
+      "cuisine": "Cafe"
+    },
+    {
+      "id": 132,
+      "restaurantName": "Sushi Zen",
+      "platform": "UberEats",
+      "rating": 4.9,
+      "reviewText": "Exceeded expectations",
+      "reviewerName": "Carlos V.",
+      "date": "2025-09-02",
+      "cuisine": "American"
+    },
+    {
+      "id": 133,
+      "restaurantName": "Vegan Vibes",
+      "platform": "DoorDash",
+      "rating": 3.5,
+      "reviewText": "Not impressed this time",
+      "reviewerName": "Emma T.",
+      "date": "2025-11-13",
+      "cuisine": "Cafe"
+    },
+    {
+      "id": 134,
+      "restaurantName": "Spice Garden",
+      "platform": "UberEats",
+      "rating": 4.3,
+      "reviewText": "Exceeded expectations",
+      "reviewerName": "Chris B.",
+      "date": "2025-10-12",
+      "cuisine": "Japanese"
+    },
+    {
+      "id": 135,
+      "restaurantName": "Noodle Bar",
+      "platform": "Yelp",
+      "rating": 4.8,
+      "reviewText": "Quick service, hot food",
+      "reviewerName": "Anna P.",
+      "date": "2025-08-28",
+      "cuisine": "Japanese"
+    },
+    {
+      "id": 136,
+      "restaurantName": "Taco Fiesta",
+      "platform": "Zomato",
+      "rating": 4.6,
+      "reviewText": "Quick service, hot food",
+      "reviewerName": "Alex F.",
+      "date": "2025-10-26",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 137,
+      "restaurantName": "Taco Fiesta",
+      "platform": "Yelp",
+      "rating": 3.7,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Alex F.",
+      "date": "2025-10-24",
+      "cuisine": "Mediterranean"
+    },
+    {
+      "id": 138,
+      "restaurantName": "Pizza Corner",
+      "platform": "DoorDash",
+      "rating": 3.3,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "Maya J.",
+      "date": "2025-09-27",
+      "cuisine": "Cafe"
+    },
+    {
+      "id": 139,
+      "restaurantName": "Thai Orchid",
+      "platform": "UberEats",
+      "rating": 4.4,
+      "reviewText": "Decent food, could be better",
+      "reviewerName": "David L.",
+      "date": "2025-10-30",
+      "cuisine": "Ramen"
+    },
+    {
+      "id": 140,
+      "restaurantName": "Ramen House",
+      "platform": "Grubhub",
+      "rating": 4.0,
+      "reviewText": "Decent food, could be better",
+      "reviewerName": "Tom W.",
+      "date": "2025-08-28",
+      "cuisine": "Diner"
+    },
+    {
+      "id": 141,
+      "restaurantName": "Pizza Corner",
+      "platform": "Google Reviews",
+      "rating": 3.0,
+      "reviewText": "Authentic flavors",
+      "reviewerName": "Emma T.",
+      "date": "2025-09-02",
+      "cuisine": "Steakhouse"
+    },
+    {
+      "id": 142,
+      "restaurantName": "French Bistro",
+      "platform": "Google Reviews",
+      "rating": 3.1,
+      "reviewText": "Overpriced for the quality",
+      "reviewerName": "Alex F.",
+      "date": "2025-09-25",
+      "cuisine": "French"
+    },
+    {
+      "id": 143,
+      "restaurantName": "Mediterranean Delight",
+      "platform": "UberEats",
+      "rating": 4.9,
+      "reviewText": "Great atmosphere and tasty food",
+      "reviewerName": "Ryan H.",
+      "date": "2025-09-04",
+      "cuisine": "Italian"
+    },
+    {
+      "id": 144,
+      "restaurantName": "Noodle Bar",
+      "platform": "Google Reviews",
+      "rating": 4.3,
+      "reviewText": "Excellent quality",
+      "reviewerName": "David L.",
+      "date": "2025-09-25",
+      "cuisine": "Mexican"
+    },
+    {
+      "id": 145,
+      "restaurantName": "Burger Palace",
+      "platform": "Yelp",
+      "rating": 2.5,
+      "reviewText": "Best in town!",
+      "reviewerName": "Chris B.",
+      "date": "2025-09-16",
+      "cuisine": "Cafe"
+    },
+    {
+      "id": 146,
+      "restaurantName": "French Bistro",
+      "platform": "Grubhub",
+      "rating": 3.1,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "Chris B.",
+      "date": "2025-11-08",
+      "cuisine": "BBQ"
+    },
+    {
+      "id": 147,
+      "restaurantName": "Vegan Vibes",
+      "platform": "DoorDash",
+      "rating": 4.6,
+      "reviewText": "Excellent quality",
+      "reviewerName": "Lisa K.",
+      "date": "2025-08-25",
+      "cuisine": "Vegan"
+    },
+    {
+      "id": 148,
+      "restaurantName": "Vegan Vibes",
+      "platform": "Google Reviews",
+      "rating": 2.7,
+      "reviewText": "Authentic flavors",
+      "reviewerName": "Rachel S.",
+      "date": "2025-09-26",
+      "cuisine": "BBQ"
+    },
+    {
+      "id": 149,
+      "restaurantName": "Mediterranean Delight",
+      "platform": "Yelp",
+      "rating": 3.2,
+      "reviewText": "Great atmosphere and tasty food",
+      "reviewerName": "Lisa K.",
+      "date": "2025-11-10",
+      "cuisine": "Mexican"
+    },
+    {
+      "id": 150,
+      "restaurantName": "Sushi Zen",
+      "platform": "Google Reviews",
+      "rating": 3.9,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "Mike R.",
+      "date": "2025-11-17",
+      "cuisine": "Japanese"
+    },
+    {
+      "id": 151,
+      "restaurantName": "Mediterranean Delight",
+      "platform": "Yelp",
+      "rating": 3.1,
+      "reviewText": "Decent food, could be better",
+      "reviewerName": "Carlos V.",
+      "date": "2025-11-01",
+      "cuisine": "American"
+    },
+    {
+      "id": 152,
+      "restaurantName": "Thai Orchid",
+      "platform": "Grubhub",
+      "rating": 4.9,
+      "reviewText": "Overpriced for the quality",
+      "reviewerName": "John D.",
+      "date": "2025-09-13",
+      "cuisine": "Mediterranean"
+    },
+    {
+      "id": 153,
+      "restaurantName": "Sushi Zen",
+      "platform": "Restaurant Website",
+      "rating": 3.0,
+      "reviewText": "Good food but slow delivery",
+      "reviewerName": "Rachel S.",
+      "date": "2025-10-29",
+      "cuisine": "Mediterranean"
+    },
+    {
+      "id": 154,
+      "restaurantName": "Thai Orchid",
+      "platform": "Restaurant Website",
+      "rating": 2.5,
+      "reviewText": "Exceeded expectations",
+      "reviewerName": "Rachel S.",
+      "date": "2025-09-21",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 155,
+      "restaurantName": "Mario's Italian Bistro",
+      "platform": "Yelp",
+      "rating": 2.9,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Emma T.",
+      "date": "2025-09-24",
+      "cuisine": "American"
+    },
+    {
+      "id": 156,
+      "restaurantName": "Steakhouse Prime",
+      "platform": "Zomato",
+      "rating": 3.7,
+      "reviewText": "Exceeded expectations",
+      "reviewerName": "Emma T.",
+      "date": "2025-08-26",
+      "cuisine": "Chinese"
+    },
+    {
+      "id": 157,
+      "restaurantName": "Ramen House",
+      "platform": "Grubhub",
+      "rating": 3.0,
+      "reviewText": "Excellent quality",
+      "reviewerName": "Emma T.",
+      "date": "2025-10-25",
+      "cuisine": "Italian"
+    },
+    {
+      "id": 158,
+      "restaurantName": "French Bistro",
+      "platform": "Yelp",
+      "rating": 2.7,
+      "reviewText": "Best in town!",
+      "reviewerName": "Emma T.",
+      "date": "2025-10-05",
+      "cuisine": "Cafe"
+    },
+    {
+      "id": 159,
+      "restaurantName": "Taco Fiesta",
+      "platform": "Zomato",
+      "rating": 4.2,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Nina C.",
+      "date": "2025-10-29",
+      "cuisine": "Ramen"
+    },
+    {
+      "id": 160,
+      "restaurantName": "French Bistro",
+      "platform": "Yelp",
+      "rating": 3.4,
+      "reviewText": "Will definitely order again",
+      "reviewerName": "Maya J.",
+      "date": "2025-09-22",
+      "cuisine": "Curry"
+    },
+    {
+      "id": 161,
+      "restaurantName": "Sushi Zen",
+      "platform": "Restaurant Website",
+      "rating": 3.4,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Chris B.",
+      "date": "2025-09-16",
+      "cuisine": "American"
+    },
+    {
+      "id": 162,
+      "restaurantName": "Steakhouse Prime",
+      "platform": "Zomato",
+      "rating": 4.7,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "Anna P.",
+      "date": "2025-09-09",
+      "cuisine": "Chinese"
+    },
+    {
+      "id": 163,
+      "restaurantName": "Seafood Shack",
+      "platform": "Zomato",
+      "rating": 4.3,
+      "reviewText": "Will definitely order again",
+      "reviewerName": "Anna P.",
+      "date": "2025-10-13",
+      "cuisine": "Ramen"
+    },
+    {
+      "id": 164,
+      "restaurantName": "Cafe Mocha",
+      "platform": "Google Reviews",
+      "rating": 4.9,
+      "reviewText": "Excellent quality",
+      "reviewerName": "John D.",
+      "date": "2025-10-29",
+      "cuisine": "Steakhouse"
+    },
+    {
+      "id": 165,
+      "restaurantName": "Cafe Mocha",
+      "platform": "Restaurant Website",
+      "rating": 4.0,
+      "reviewText": "Exceeded expectations",
+      "reviewerName": "Sarah M.",
+      "date": "2025-10-14",
+      "cuisine": "Steakhouse"
+    },
+    {
+      "id": 166,
+      "restaurantName": "Steakhouse Prime",
+      "platform": "Restaurant Website",
+      "rating": 4.3,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "Anna P.",
+      "date": "2025-10-08",
+      "cuisine": "Mexican"
+    },
+    {
+      "id": 167,
+      "restaurantName": "Golden Dragon",
+      "platform": "Grubhub",
+      "rating": 4.3,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Rachel S.",
+      "date": "2025-08-25",
+      "cuisine": "Vegan"
+    },
+    {
+      "id": 168,
+      "restaurantName": "Taco Fiesta",
+      "platform": "Grubhub",
+      "rating": 4.5,
+      "reviewText": "Not impressed this time",
+      "reviewerName": "Mike R.",
+      "date": "2025-11-20",
+      "cuisine": "Mediterranean"
+    },
+    {
+      "id": 169,
+      "restaurantName": "Ramen House",
+      "platform": "UberEats",
+      "rating": 2.6,
+      "reviewText": "Quick service, hot food",
+      "reviewerName": "Mike R.",
+      "date": "2025-10-02",
+      "cuisine": "Ramen"
+    },
+    {
+      "id": 170,
+      "restaurantName": "Seafood Shack",
+      "platform": "DoorDash",
+      "rating": 3.9,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Carlos V.",
+      "date": "2025-10-02",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 171,
+      "restaurantName": "Spice Garden",
+      "platform": "Grubhub",
+      "rating": 4.3,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "John D.",
+      "date": "2025-10-10",
+      "cuisine": "Ramen"
+    },
+    {
+      "id": 172,
+      "restaurantName": "Cafe Mocha",
+      "platform": "Zomato",
+      "rating": 3.1,
+      "reviewText": "Best in town!",
+      "reviewerName": "Nina C.",
+      "date": "2025-09-05",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 173,
+      "restaurantName": "Golden Dragon",
+      "platform": "Zomato",
+      "rating": 4.4,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "Ryan H.",
+      "date": "2025-08-31",
+      "cuisine": "Chinese"
+    },
+    {
+      "id": 174,
+      "restaurantName": "Seafood Shack",
+      "platform": "Yelp",
+      "rating": 4.6,
+      "reviewText": "Decent food, could be better",
+      "reviewerName": "Ryan H.",
+      "date": "2025-10-16",
+      "cuisine": "Italian"
+    },
+    {
+      "id": 175,
+      "restaurantName": "BBQ Masters",
+      "platform": "UberEats",
+      "rating": 4.3,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "Anna P.",
+      "date": "2025-08-29",
+      "cuisine": "Seafood"
+    },
+    {
+      "id": 176,
+      "restaurantName": "Pizza Corner",
+      "platform": "Zomato",
+      "rating": 2.6,
+      "reviewText": "Excellent quality",
+      "reviewerName": "Rachel S.",
+      "date": "2025-11-20",
+      "cuisine": "Mexican"
+    },
+    {
+      "id": 177,
+      "restaurantName": "Diner Classic",
+      "platform": "Google Reviews",
+      "rating": 3.0,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Tom W.",
+      "date": "2025-10-05",
+      "cuisine": "American"
+    },
+    {
+      "id": 178,
+      "restaurantName": "Seafood Shack",
+      "platform": "Restaurant Website",
+      "rating": 3.8,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Sarah M.",
+      "date": "2025-09-02",
+      "cuisine": "Vegan"
+    },
+    {
+      "id": 179,
+      "restaurantName": "Spice Garden",
+      "platform": "Restaurant Website",
+      "rating": 4.8,
+      "reviewText": "Decent food, could be better",
+      "reviewerName": "Nina C.",
+      "date": "2025-11-07",
+      "cuisine": "French"
+    },
+    {
+      "id": 180,
+      "restaurantName": "Curry Palace",
+      "platform": "Yelp",
+      "rating": 3.3,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "Alex F.",
+      "date": "2025-08-30",
+      "cuisine": "French"
+    },
+    {
+      "id": 181,
+      "restaurantName": "Ramen House",
+      "platform": "UberEats",
+      "rating": 2.9,
+      "reviewText": "Good food but slow delivery",
+      "reviewerName": "Sarah M.",
+      "date": "2025-10-06",
+      "cuisine": "Mediterranean"
+    },
+    {
+      "id": 182,
+      "restaurantName": "Taco Fiesta",
+      "platform": "Yelp",
+      "rating": 2.7,
+      "reviewText": "Will definitely order again",
+      "reviewerName": "Emma T.",
+      "date": "2025-10-05",
+      "cuisine": "Seafood"
+    },
+    {
+      "id": 183,
+      "restaurantName": "Cafe Mocha",
+      "platform": "Grubhub",
+      "rating": 4.5,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Chris B.",
+      "date": "2025-11-16",
+      "cuisine": "Cafe"
+    },
+    {
+      "id": 184,
+      "restaurantName": "Noodle Bar",
+      "platform": "Google Reviews",
+      "rating": 4.6,
+      "reviewText": "Excellent quality",
+      "reviewerName": "Rachel S.",
+      "date": "2025-09-13",
+      "cuisine": "Ramen"
+    },
+    {
+      "id": 185,
+      "restaurantName": "Thai Orchid",
+      "platform": "Yelp",
+      "rating": 4.8,
+      "reviewText": "Fresh ingredients, excellent presentation",
+      "reviewerName": "Ryan H.",
+      "date": "2025-09-20",
+      "cuisine": "BBQ"
+    },
+    {
+      "id": 186,
+      "restaurantName": "French Bistro",
+      "platform": "Zomato",
+      "rating": 3.5,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "John D.",
+      "date": "2025-10-20",
+      "cuisine": "Italian"
+    },
+    {
+      "id": 187,
+      "restaurantName": "Vegan Vibes",
+      "platform": "Grubhub",
+      "rating": 2.6,
+      "reviewText": "Decent food, could be better",
+      "reviewerName": "Chris B.",
+      "date": "2025-11-13",
+      "cuisine": "American"
+    },
+    {
+      "id": 188,
+      "restaurantName": "Cafe Mocha",
+      "platform": "Yelp",
+      "rating": 3.1,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Ryan H.",
+      "date": "2025-09-10",
+      "cuisine": "Mexican"
+    },
+    {
+      "id": 189,
+      "restaurantName": "Sushi Zen",
+      "platform": "UberEats",
+      "rating": 4.1,
+      "reviewText": "Best in town!",
+      "reviewerName": "Lisa K.",
+      "date": "2025-09-14",
+      "cuisine": "Japanese"
+    },
+    {
+      "id": 190,
+      "restaurantName": "Sushi Zen",
+      "platform": "Grubhub",
+      "rating": 4.5,
+      "reviewText": "Authentic flavors",
+      "reviewerName": "Nina C.",
+      "date": "2025-10-31",
+      "cuisine": "Diner"
+    },
+    {
+      "id": 191,
+      "restaurantName": "Taco Fiesta",
+      "platform": "Yelp",
+      "rating": 4.8,
+      "reviewText": "Amazing food and great service!",
+      "reviewerName": "John D.",
+      "date": "2025-09-25",
+      "cuisine": "Curry"
+    },
+    {
+      "id": 192,
+      "restaurantName": "Mario's Italian Bistro",
+      "platform": "Zomato",
+      "rating": 3.1,
+      "reviewText": "Will definitely order again",
+      "reviewerName": "Emma T.",
+      "date": "2025-10-04",
+      "cuisine": "Japanese"
+    },
+    {
+      "id": 193,
+      "restaurantName": "Steakhouse Prime",
+      "platform": "Grubhub",
+      "rating": 3.1,
+      "reviewText": "Smoky flavors, tender meat",
+      "reviewerName": "Mike R.",
+      "date": "2025-10-21",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 194,
+      "restaurantName": "Golden Dragon",
+      "platform": "Google Reviews",
+      "rating": 4.6,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Nina C.",
+      "date": "2025-11-01",
+      "cuisine": "Chinese"
+    },
+    {
+      "id": 195,
+      "restaurantName": "Sushi Zen",
+      "platform": "DoorDash",
+      "rating": 4.3,
+      "reviewText": "Excellent quality",
+      "reviewerName": "Nina C.",
+      "date": "2025-09-21",
+      "cuisine": "Mediterranean"
+    },
+    {
+      "id": 196,
+      "restaurantName": "Noodle Bar",
+      "platform": "DoorDash",
+      "rating": 4.5,
+      "reviewText": "Not impressed this time",
+      "reviewerName": "Alex F.",
+      "date": "2025-11-18",
+      "cuisine": "American"
+    },
+    {
+      "id": 197,
+      "restaurantName": "Vegan Vibes",
+      "platform": "Zomato",
+      "rating": 2.8,
+      "reviewText": "Best in town!",
+      "reviewerName": "John D.",
+      "date": "2025-10-07",
+      "cuisine": "Thai"
+    },
+    {
+      "id": 198,
+      "restaurantName": "Vegan Vibes",
+      "platform": "DoorDash",
+      "rating": 2.9,
+      "reviewText": "Fresh ingredients, healthy options",
+      "reviewerName": "Rachel S.",
+      "date": "2025-11-22",
+      "cuisine": "Mexican"
+    },
+    {
+      "id": 199,
+      "restaurantName": "Curry Palace",
+      "platform": "Yelp",
+      "rating": 4.3,
+      "reviewText": "Good food but slow delivery",
+      "reviewerName": "Emma T.",
+      "date": "2025-11-02",
+      "cuisine": "Asian"
+    },
+    {
+      "id": 200,
+      "restaurantName": "Mediterranean Delight",
+      "platform": "Grubhub",
+      "rating": 4.5,
+      "reviewText": "Best in town!",
+      "reviewerName": "Anna P.",
+      "date": "2025-10-17",
+      "cuisine": "Vegan"
+    }
+  ],
+  "totalCount": 200,
+  "platforms": [
+    "UberEats",
+    "DoorDash",
+    "Grubhub",
+    "Google Reviews",
+    "Zomato",
+    "Restaurant Website",
+    "Yelp"
+  ],
+  "averageRating": 3.76
+}

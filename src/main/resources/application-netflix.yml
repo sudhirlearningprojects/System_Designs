@@ -1,0 +1,59 @@
+server:
+  port: 8098
+
+spring:
+  application:
+    name: netflix-streaming-service
+  
+  # Cassandra Configuration
+  data:
+    cassandra:
+      keyspace-name: netflix
+      contact-points: localhost
+      port: 9042
+      local-datacenter: datacenter1
+      
+  # Redis Configuration  
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+    
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+
+# Eureka Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+# Netflix Configuration
+netflix:
+  streaming:
+    chunk-size: 1MB
+    supported-qualities: 
+      - 360p
+      - 720p
+      - 1080p
+      - 4K
+  recommendation:
+    cache-ttl: 3600
+    max-recommendations: 20
+  analytics:
+    batch-size: 1000
+    flush-interval: 30s
+
+logging:
+  level:
+    org.sudhir512kj.netflix: DEBUG
+    org.springframework.data.cassandra: INFO
+    org.springframework.kafka: INFO
