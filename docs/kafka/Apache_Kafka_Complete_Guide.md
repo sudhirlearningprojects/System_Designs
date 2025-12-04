@@ -6,11 +6,13 @@
 3. [Core Concepts](#core-concepts)
 4. [Internal Working](#internal-working)
 5. [Kafka with Spring Boot](#kafka-with-spring-boot)
-6. [Advanced Topics](#advanced-topics)
-7. [Performance Tuning](#performance-tuning)
-8. [Monitoring and Operations](#monitoring-and-operations)
-9. [Interview Questions](#interview-questions)
-10. [Best Practices](#best-practices)
+6. [Error Handling Theory](#error-handling-theory)
+7. [Retry Mechanisms Theory](#retry-mechanisms-theory)
+8. [Advanced Topics](#advanced-topics)
+9. [Performance Tuning](#performance-tuning)
+10. [Monitoring and Operations](#monitoring-and-operations)
+11. [Interview Questions](#interview-questions)
+12. [Best Practices](#best-practices)
 
 ## Introduction to Apache Kafka
 
@@ -286,6 +288,642 @@ public class KafkaConfig {
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 500);
+        props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000);
+        
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+    
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory = 
+            new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory());
+        factory.setConcurrency(3);
+        
+        // Error handling configuration
+        factory.setCommonErrorHandler(new DefaultErrorHandler(
+            new FixedBackOff(1000L, 3L))); // 3 retries with 1s delay
+        
+        return factory;
+    }
+}
+```
+
+### Producer Implementation
+
+```java
+@Service
+@Slf4j
+public class PaymentEventProducer {
+    
+    @Autowired
+    private KafkaTemplate<String, Object> kafkaTemplate;
+    
+    public void publishPaymentEvent(PaymentEvent event) {
+        try {
+            ListenableFuture<SendResult<String, Object>> future = 
+                kafkaTemplate.send("payment-events", event.getPaymentId(), event);
+            
+            future.addCallback(
+                result -> log.info("Payment event sent successfully: {}", event.getPaymentId()),
+                failure -> log.error("Failed to send payment event: {}", event.getPaymentId(), failure)
+            );
+        } catch (Exception e) {
+            log.error("Error publishing payment event", e);
+            throw new PaymentEventPublishException("Failed to publish event", e);
+        }
+    }
+}
+```
+
+### Consumer Implementation
+
+```java
+@Component
+@Slf4j
+public class PaymentEventConsumer {
+    
+    @KafkaListener(topics = "payment-events", groupId = "payment-processor")
+    public void processPaymentEvent(
+            @Payload PaymentEvent event,
+            @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
+            @Header(KafkaHeaders.RECEIVED_PARTITION_ID) int partition,
+            @Header(KafkaHeaders.OFFSET) long offset) {
+        
+        log.info("Processing payment event: {} from partition: {}, offset: {}", 
+                event.getPaymentId(), partition, offset);
+        
+        try {
+            // Process the payment
+            processPayment(event);
+            log.info("Payment processed successfully: {}", event.getPaymentId());
+        } catch (Exception e) {
+            log.error("Error processing payment event: {}", event.getPaymentId(), e);
+            throw e; // Let error handler manage retries
+        }
+    }
+    
+    private void processPayment(PaymentEvent event) {
+        // Business logic here
+    }
+}
+```
+
+## Error Handling Theory
+
+### Understanding Kafka Error Types
+
+Kafka errors can be categorized into several types, each requiring different handling strategies:
+
+#### 1. **Retriable Errors**
+These are temporary failures that can be resolved by retrying the operation:
+
+```java
+// Network-related errors
+- TimeoutException: Network timeout during request
+- NetworkException: Network connectivity issues
+- NotLeaderForPartitionException: Partition leader changed
+- LeaderNotAvailableException: Leader election in progress
+
+// Resource-related errors
+- NotEnoughReplicasException: Insufficient replicas available
+- NotEnoughReplicasAfterAppendException: Replication failed
+```
+
+**Theory**: Retriable errors are typically caused by temporary network issues, broker failures, or cluster rebalancing. The system can recover from these errors automatically through retry mechanisms.
+
+#### 2. **Non-Retriable Errors**
+These are permanent failures that won't be resolved by retrying:
+
+```java
+// Data-related errors
+- SerializationException: Invalid message format
+- RecordTooLargeException: Message exceeds size limit
+- InvalidTopicException: Topic doesn't exist
+- OffsetOutOfRangeException: Requested offset doesn't exist
+
+// Security-related errors
+- TopicAuthorizationException: Insufficient permissions
+- SaslAuthenticationException: Authentication failed
+```
+
+**Theory**: Non-retriable errors indicate fundamental issues with the request, configuration, or permissions. Retrying these operations will not succeed and may waste resources.
+
+#### 3. **Fatal Errors**
+These errors indicate serious system issues:
+
+```java
+- OutOfMemoryError: JVM memory exhausted
+- CorruptRecordException: Data corruption detected
+- UnknownServerException: Unexpected server error
+```
+
+**Theory**: Fatal errors require immediate attention and may necessitate application restart or manual intervention.
+
+### Error Handling Patterns
+
+#### 1. **Circuit Breaker Pattern**
+
+```java
+@Component
+public class KafkaCircuitBreaker {
+    private final AtomicInteger failureCount = new AtomicInteger(0);
+    private final AtomicLong lastFailureTime = new AtomicLong(0);
+    private final int threshold = 5;
+    private final long timeout = 60000; // 1 minute
+    
+    public boolean isCircuitOpen() {
+        if (failureCount.get() >= threshold) {
+            if (System.currentTimeMillis() - lastFailureTime.get() > timeout) {
+                reset(); // Half-open state
+                return false;
+            }
+            return true; // Open state
+        }
+        return false; // Closed state
+    }
+    
+    public void recordFailure() {
+        failureCount.incrementAndGet();
+        lastFailureTime.set(System.currentTimeMillis());
+    }
+    
+    public void reset() {
+        failureCount.set(0);
+        lastFailureTime.set(0);
+    }
+}
+```
+
+**Theory**: The circuit breaker prevents cascading failures by temporarily stopping requests to a failing service. It has three states:
+- **Closed**: Normal operation, requests pass through
+- **Open**: Failure threshold exceeded, requests are blocked
+- **Half-Open**: Testing if service has recovered
+
+#### 2. **Dead Letter Queue (DLQ) Pattern**
+
+```java
+@Component
+public class DeadLetterQueueHandler {
+    
+    @Autowired
+    private KafkaTemplate<String, Object> kafkaTemplate;
+    
+    public void sendToDeadLetterQueue(ConsumerRecord<String, Object> record, Exception exception) {
+        DeadLetterRecord dlqRecord = DeadLetterRecord.builder()
+            .originalTopic(record.topic())
+            .originalPartition(record.partition())
+            .originalOffset(record.offset())
+            .originalKey(record.key())
+            .originalValue(record.value())
+            .errorMessage(exception.getMessage())
+            .errorClass(exception.getClass().getSimpleName())
+            .timestamp(Instant.now())
+            .retryCount(getRetryCount(record))
+            .build();
+            
+        kafkaTemplate.send("dead-letter-topic", dlqRecord);
+    }
+}
+```
+
+**Theory**: DLQ is a holding area for messages that cannot be processed successfully. It prevents message loss while allowing the main processing pipeline to continue. Messages in DLQ can be:
+- Analyzed for patterns
+- Manually corrected and reprocessed
+- Used for debugging and monitoring
+
+#### 3. **Idempotent Processing Pattern**
+
+```java
+@Service
+public class IdempotentPaymentProcessor {
+    
+    @Autowired
+    private PaymentRepository paymentRepository;
+    
+    @Transactional
+    public void processPayment(PaymentEvent event) {
+        String idempotencyKey = event.getIdempotencyKey();
+        
+        // Check if already processed
+        if (paymentRepository.existsByIdempotencyKey(idempotencyKey)) {
+            log.info("Payment already processed: {}", idempotencyKey);
+            return; // Idempotent - safe to ignore
+        }
+        
+        // Process payment
+        Payment payment = createPayment(event);
+        payment.setIdempotencyKey(idempotencyKey);
+        paymentRepository.save(payment);
+    }
+}
+```
+
+**Theory**: Idempotency ensures that processing the same message multiple times has the same effect as processing it once. This is crucial for:
+- Handling duplicate messages
+- Safe retries
+- At-least-once delivery semantics
+
+## Retry Mechanisms Theory
+
+### Retry Strategy Fundamentals
+
+Retry mechanisms are essential for building resilient distributed systems. Understanding the theory behind different retry strategies helps in choosing the right approach.
+
+#### 1. **Fixed Delay Retry**
+
+```java
+public class FixedDelayRetry {
+    private final long delay;
+    private final int maxAttempts;
+    
+    public void executeWithRetry(Runnable operation) {
+        int attempts = 0;
+        while (attempts < maxAttempts) {
+            try {
+                operation.run();
+                return; // Success
+            } catch (RetriableException e) {
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    throw new MaxRetriesExceededException(e);
+                }
+                sleep(delay);
+            }
+        }
+    }
+}
+```
+
+**Theory**: Fixed delay retry waits the same amount of time between each retry attempt.
+
+**Pros**:
+- Simple to implement and understand
+- Predictable timing
+- Good for temporary network glitches
+
+**Cons**:
+- May overwhelm recovering systems
+- Not optimal for varying failure types
+- Can cause thundering herd problems
+
+**Use Cases**: Short-term network issues, database connection timeouts
+
+#### 2. **Exponential Backoff**
+
+```java
+public class ExponentialBackoffRetry {
+    private final long initialDelay;
+    private final double multiplier;
+    private final long maxDelay;
+    private final int maxAttempts;
+    
+    public void executeWithRetry(Runnable operation) {
+        int attempts = 0;
+        long currentDelay = initialDelay;
+        
+        while (attempts < maxAttempts) {
+            try {
+                operation.run();
+                return;
+            } catch (RetriableException e) {
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    throw new MaxRetriesExceededException(e);
+                }
+                
+                sleep(currentDelay);
+                currentDelay = Math.min(currentDelay * multiplier, maxDelay);
+            }
+        }
+    }
+}
+```
+
+**Mathematical Formula**:
+```
+delay = min(initialDelay × multiplier^(attempt-1), maxDelay)
+
+Example:
+initialDelay = 1000ms, multiplier = 2, maxDelay = 30000ms
+Attempt 1: 1000ms
+Attempt 2: 2000ms
+Attempt 3: 4000ms
+Attempt 4: 8000ms
+Attempt 5: 16000ms
+Attempt 6: 30000ms (capped)
+```
+
+**Theory**: Exponential backoff increases the delay between retries exponentially, giving the system more time to recover.
+
+**Pros**:
+- Reduces load on recovering systems
+- Adapts to different failure scenarios
+- Widely adopted industry standard
+
+**Cons**:
+- Can lead to very long delays
+- May delay recovery unnecessarily
+- Complex to tune parameters
+
+**Use Cases**: API rate limiting, server overload, distributed system failures
+
+#### 3. **Jittered Exponential Backoff**
+
+```java
+public class JitteredExponentialBackoff {
+    private final Random random = new Random();
+    
+    public long calculateDelay(int attempt, long baseDelay, double multiplier, long maxDelay) {
+        // Full jitter: random between 0 and exponential delay
+        long exponentialDelay = Math.min(baseDelay * (long)Math.pow(multiplier, attempt), maxDelay);
+        return random.nextLong(exponentialDelay + 1);
+    }
+    
+    // Alternative: Equal jitter (50% base + 50% random)
+    public long calculateEqualJitter(int attempt, long baseDelay, double multiplier, long maxDelay) {
+        long exponentialDelay = Math.min(baseDelay * (long)Math.pow(multiplier, attempt), maxDelay);
+        return exponentialDelay / 2 + random.nextLong(exponentialDelay / 2 + 1);
+    }
+}
+```
+
+**Theory**: Jitter adds randomness to retry delays to prevent the "thundering herd" problem where multiple clients retry simultaneously.
+
+**Types of Jitter**:
+1. **Full Jitter**: `delay = random(0, exponential_delay)`
+2. **Equal Jitter**: `delay = exponential_delay/2 + random(0, exponential_delay/2)`
+3. **Decorrelated Jitter**: `delay = random(base_delay, previous_delay * 3)`
+
+**Benefits**:
+- Prevents synchronized retries
+- Spreads load over time
+- Reduces peak traffic spikes
+- Improves overall system stability
+
+#### 4. **Adaptive Retry Strategies**
+
+```java
+@Component
+public class AdaptiveRetryStrategy {
+    private final Map<String, RetryMetrics> errorMetrics = new ConcurrentHashMap<>();
+    
+    public RetryConfig getRetryConfig(String errorType) {
+        RetryMetrics metrics = errorMetrics.get(errorType);
+        
+        if (metrics == null) {
+            return getDefaultConfig();
+        }
+        
+        // Adapt based on success rate
+        double successRate = metrics.getSuccessRate();
+        if (successRate > 0.8) {
+            // High success rate - be more aggressive
+            return RetryConfig.builder()
+                .maxAttempts(5)
+                .baseDelay(500)
+                .multiplier(1.5)
+                .build();
+        } else if (successRate > 0.5) {
+            // Medium success rate - standard approach
+            return getDefaultConfig();
+        } else {
+            // Low success rate - be more conservative
+            return RetryConfig.builder()
+                .maxAttempts(3)
+                .baseDelay(2000)
+                .multiplier(3.0)
+                .build();
+        }
+    }
+}
+```
+
+**Theory**: Adaptive strategies adjust retry behavior based on historical success rates and system conditions.
+
+### Kafka-Specific Retry Patterns
+
+#### 1. **Producer Retry Configuration**
+
+```java
+@Configuration
+public class KafkaProducerRetryConfig {
+    
+    @Bean
+    public ProducerFactory<String, Object> producerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        
+        // Basic retry configuration
+        props.put(ProducerConfig.RETRIES_CONFIG, Integer.MAX_VALUE);
+        props.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, 1000);
+        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 30000);
+        props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 120000);
+        
+        // Idempotence for safe retries
+        props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+        props.put(ProducerConfig.ACKS_CONFIG, "all");
+        props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 5);
+        
+        return new DefaultKafkaProducerFactory<>(props);
+    }
+}
+```
+
+**Theory**: Kafka producer retries are handled at multiple levels:
+
+1. **Network Level**: TCP retries for connection issues
+2. **Protocol Level**: Kafka protocol retries for retriable errors
+3. **Application Level**: Custom retry logic for business errors
+
+**Key Parameters**:
+- `retries`: Maximum number of retry attempts
+- `retry.backoff.ms`: Delay between retries
+- `delivery.timeout.ms`: Total time for delivery including retries
+- `request.timeout.ms`: Timeout for individual requests
+
+#### 2. **Consumer Retry with Error Handler**
+
+```java
+@Configuration
+public class KafkaConsumerRetryConfig {
+    
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory = 
+            new ConcurrentKafkaListenerContainerFactory<>();
+        
+        // Exponential backoff error handler
+        ExponentialBackOff backOff = new ExponentialBackOff();
+        backOff.setInitialInterval(1000L);    // 1 second
+        backOff.setMultiplier(2.0);           // Double each time
+        backOff.setMaxInterval(30000L);       // Max 30 seconds
+        backOff.setMaxElapsedTime(300000L);   // Max 5 minutes total
+        
+        DefaultErrorHandler errorHandler = new DefaultErrorHandler(
+            new DeadLetterPublishingRecoverer(kafkaTemplate()), 
+            backOff
+        );
+        
+        // Configure which exceptions to retry
+        errorHandler.addRetryableExceptions(TransientDataAccessException.class);
+        errorHandler.addNotRetryableExceptions(SerializationException.class);
+        
+        factory.setCommonErrorHandler(errorHandler);
+        return factory;
+    }
+}
+```
+
+**Theory**: Consumer retry strategies must consider:
+
+1. **Message Ordering**: Retries can affect message order within partitions
+2. **Offset Management**: Failed messages shouldn't block subsequent messages
+3. **Consumer Group Rebalancing**: Long retries can trigger rebalancing
+4. **Backpressure**: Slow consumers can cause lag
+
+#### 3. **Retry Topic Pattern**
+
+```java
+@Component
+public class RetryTopicHandler {
+    
+    @RetryableTopic(
+        attempts = "3",
+        backoff = @Backoff(delay = 1000, multiplier = 2.0),
+        retryTopicSuffix = "-retry",
+        dltTopicSuffix = "-dlt",
+        include = {TransientException.class}
+    )
+    @KafkaListener(topics = "payment-events")
+    public void processPayment(PaymentEvent event) {
+        // Process payment
+        if (shouldFail()) {
+            throw new TransientException("Temporary failure");
+        }
+    }
+    
+    @DltHandler
+    public void handleDlt(PaymentEvent event, Exception exception) {
+        log.error("Message sent to DLT: {}", event, exception);
+        // Handle permanently failed messages
+    }
+}
+```
+
+**Theory**: The retry topic pattern creates separate topics for retries:
+
+```
+Original Topic: payment-events
+Retry Topics: payment-events-retry-0, payment-events-retry-1, payment-events-retry-2
+DLT Topic: payment-events-dlt
+```
+
+**Benefits**:
+- Maintains message ordering in original topic
+- Allows different retry delays
+- Provides visibility into retry attempts
+- Enables monitoring and alerting
+
+### Retry Best Practices Theory
+
+#### 1. **Categorize Errors Properly**
+
+```java
+public class ErrorClassifier {
+    
+    public boolean isRetriable(Exception exception) {
+        // Network and timeout errors - retriable
+        if (exception instanceof TimeoutException ||
+            exception instanceof ConnectException ||
+            exception instanceof SocketTimeoutException) {
+            return true;
+        }
+        
+        // Data validation errors - not retriable
+        if (exception instanceof ValidationException ||
+            exception instanceof SerializationException ||
+            exception instanceof IllegalArgumentException) {
+            return false;
+        }
+        
+        // Database errors - depends on type
+        if (exception instanceof DataAccessException) {
+            return isTransientDatabaseError((DataAccessException) exception);
+        }
+        
+        // Default to not retriable for safety
+        return false;
+    }
+}
+```
+
+**Theory**: Proper error classification is crucial because:
+- Retrying non-retriable errors wastes resources
+- Not retrying retriable errors causes unnecessary failures
+- Different error types may need different retry strategies
+
+#### 2. **Implement Circuit Breaker with Retries**
+
+```java
+@Component
+public class ResilientKafkaProducer {
+    
+    private final CircuitBreaker circuitBreaker;
+    private final RetryTemplate retryTemplate;
+    
+    public void sendMessage(String topic, Object message) {
+        circuitBreaker.executeSupplier(() -> {
+            return retryTemplate.execute(context -> {
+                kafkaTemplate.send(topic, message).get();
+                return null;
+            });
+        });
+    }
+}
+```
+
+**Theory**: Combining circuit breaker with retries provides multiple layers of protection:
+- Retries handle transient failures
+- Circuit breaker prevents cascading failures
+- Together they provide optimal resilience
+
+#### 3. **Monitor Retry Metrics**
+
+```java
+@Component
+public class RetryMetricsCollector {
+    
+    private final MeterRegistry meterRegistry;
+    private final Counter retryCounter;
+    private final Timer retryTimer;
+    
+    public void recordRetryAttempt(String operation, int attempt, long duration) {
+        retryCounter.increment(
+            Tags.of(
+                "operation", operation,
+                "attempt", String.valueOf(attempt)
+            )
+        );
+        
+        retryTimer.record(duration, TimeUnit.MILLISECONDS);
+    }
+}
+```
+
+**Theory**: Monitoring retry behavior helps:
+- Identify patterns in failures
+- Tune retry parameters
+- Detect system degradation
+- Optimize performance
+
+**Key Metrics**:
+- Retry attempt count by operation
+- Retry success rate
+- Time spent in retries
+- Circuit breaker state changes
+- Dead letter queue size
+
+This comprehensive understanding of error handling and retry theory provides the foundation for implementing robust, resilient Kafka-based systems that can handle failures gracefully and recover automatically._RECORDS_CONFIG, 500);
         props.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 1024);
         props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 500);
         

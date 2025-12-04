@@ -24,6 +24,8 @@ if [ -z "$SYSTEM" ]; then
     echo "  cloudflare      - Port 8094"
     echo "  tiktok          - Port 8095"
     echo "  cloudinfra      - Port 8096"
+    echo "  distributeddb   - Port 8097"
+    echo "  spotify         - Port 8098"
     exit 1
 fi
 
@@ -92,6 +94,14 @@ case $SYSTEM in
         echo "Starting Cloud Infrastructure Platform on port 8096..."
         mvn spring-boot:run -Dspring-boot.run.profiles=cloudinfra
         ;;
+    "distributeddb")
+        echo "Starting Distributed Database System on port 8097..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=distributeddb
+        ;;
+    "spotify")
+        echo "Starting Spotify Clone on port 8098..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=spotify
+        ;;
     *)
         echo "Unknown system: $SYSTEM"
         echo "Run '$0' without arguments to see available systems"
@@ -119,11 +129,12 @@ PORT_MAP=(
     ["tiktok"]=8095
     ["cloudinfra"]=8096
     ["distributeddb"]=8097
+    ["spotify"]=8098
 )
 
 if [ -z "$SYSTEM" ]; then
     echo "Usage: ./run-systems.sh <system-name>"
-    echo "Available systems: parkinglot, dropbox, payment, jobscheduler, digitalpayment, ticketbooking, instagram, ratelimiter, notification, uber, googledocs, urlshortener, whatsapp, cloudflare, tiktok, cloudinfra, distributeddb"
+    echo "Available systems: parkinglot, dropbox, payment, jobscheduler, digitalpayment, ticketbooking, instagram, ratelimiter, notification, uber, googledocs, urlshortener, whatsapp, cloudflare, tiktok, cloudinfra, distributeddb, spotify"
     exit 1
 fi
 

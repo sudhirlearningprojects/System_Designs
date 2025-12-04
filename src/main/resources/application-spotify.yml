@@ -1,0 +1,63 @@
+server:
+  port: 8098
+
+spring:
+  application:
+    name: spotify-service
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/spotify
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  data:
+    redis:
+      host: localhost
+      port: 6379
+    
+    cassandra:
+      keyspace-name: spotify
+      contact-points: localhost
+      port: 9042
+      local-datacenter: datacenter1
+      schema-action: create_if_not_exists
+  
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: spotify-group
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+elasticsearch:
+  host: localhost
+  port: 9200
+
+spotify:
+  storage:
+    path: /tmp/spotify
+  streaming:
+    chunk-size: 1048576  # 1MB chunks
+  audio:
+    qualities:
+      low: 96
+      medium: 160
+      high: 320
+      lossless: flac
+
+logging:
+  level:
+    org.sudhir512kj.spotify: INFO
+    org.springframework.data.cassandra: WARN

@@ -659,6 +659,7 @@ mvn clean install
 ./run-systems.sh tiktok          # Port 8095
 ./run-systems.sh cloudinfra      # Port 8096
 ./run-systems.sh distributeddb   # Port 8097
+./run-systems.sh spotify         # Port 8098
 ```
 
 **Alternative: Run directly with Maven profiles**
@@ -680,6 +681,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=cloudflare
 mvn spring-boot:run -Dspring-boot.run.profiles=tiktok
 mvn spring-boot:run -Dspring-boot.run.profiles=cloudinfra
 mvn spring-boot:run -Dspring-boot.run.profiles=distributeddb
+mvn spring-boot:run -Dspring-boot.run.profiles=spotify
 ```
 
 ## 🏗️ Project Structure
@@ -939,6 +941,12 @@ docs/
 │   ├── API_Documentation.md    # Distributed DB API reference
 │   └── README.md               # Distributed DB overview
 │
+├── spotify/                    # Spotify Clone documentation
+│   ├── System_Design.md        # Spotify system HLD/LLD with streaming
+│   ├── API_Documentation.md    # Spotify API reference
+│   ├── Scale_Calculations.md   # Spotify performance analysis
+│   └── README.md               # Spotify overview
+│
 └── [future-system]/            # Future system docs
 ```
 
@@ -1083,3 +1091,44 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 🌟 **Enterprise-Grade System Designs** | 🚀 **Production-Ready Architecture** | 📚 **Comprehensive Documentation**
 
 For questions or support, please open an issue or visit my [portfolio website](https://sudhirmeenaswe.netlify.app/) and contact via [contact form](https://sudhirmeenaswe.netlify.app/#contact).
+### 18. Spotify Clone - Music Streaming Platform
+**Location**: `org.sudhir512kj.spotify` package
+
+A production-ready music streaming platform similar to Spotify supporting millions of users:
+- Music streaming in multiple qualities (96kbps to lossless FLAC)
+- Full-text search with Elasticsearch
+- Playlist creation and management
+- Offline downloads for premium users
+- Artist dashboard for music uploads
+- User library for favorites
+- Listening history analytics
+- High availability (99.99% uptime)
+
+**Documentation**: [docs/spotify/](docs/spotify/)
+
+**Key Features**:
+- **Multi-Quality Streaming**: 96/160/320 kbps, FLAC for different tiers
+- **Search Engine**: Elasticsearch for full-text search with fuzzy matching
+- **Playlist Management**: Create, edit, share playlists
+- **Offline Mode**: Download tracks for offline listening (Premium)
+- **Artist Dashboard**: Upload tracks, manage catalog, view analytics
+- **User Library**: Save favorite tracks, albums, artists
+- **Listening History**: Cassandra for billions of listening events
+- **Multi-Database**: PostgreSQL (metadata), Cassandra (history), Redis (cache)
+
+**Scale**: 500M users, 100M DAU, 100M+ tracks, 13.4 PB storage, 3 Tbps bandwidth
+
+**Quick Example**:
+```bash
+# Upload track
+curl -X POST http://localhost:8098/api/v1/tracks/upload \
+  -F "metadata={\"title\":\"Song\",\"artistId\":\"artist-123\"}" \
+  -F "audioFile=@song.mp3"
+
+# Stream track
+curl -X POST http://localhost:8098/api/v1/stream \
+  -d '{"trackId":"track-123","userId":"user-456","audioQuality":"HIGH"}'
+```
+
+---
+
