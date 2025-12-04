@@ -60,33 +60,163 @@ public class TopKFrequentSorting {
 
 ### Solution 2: HashMap + Min Heap (Optimal)
 
+## 🎯 Core Theory
+
+### Why Min Heap Instead of Max Heap?
+
+**Key Insight**: We want the **top K most frequent** elements, so we maintain a **min heap of size K**.
+
+**The Strategy**:
+1. Keep only K elements in the heap at any time
+2. The **minimum** element in the heap is at the root
+3. When heap size exceeds K, remove the **smallest** (least frequent)
+4. After processing all elements, the heap contains the K **largest** (most frequent)
+
+**Why This Works**:
+- Min heap ensures the **least frequent** element among the top K is always at the root
+- When a new element comes, if it's more frequent than the root, we remove the root
+- This way, we "filter out" less frequent elements and keep only the top K
+
+### Visual Example
+
+```
+Input: [1,1,1,2,2,3,4,4,4,4], k=2
+Frequencies: {1:3, 2:2, 3:1, 4:4}
+
+Goal: Find top 2 most frequent → Answer: [4, 1]
+
+Min Heap Process (size limited to k=2):
+
+Step 1: Add (1, freq=3)
+   Heap: [1:3]
+   Size: 1 ≤ k, keep it
+
+Step 2: Add (2, freq=2)
+   Heap: [2:2, 1:3]  ← Min heap: root has smallest frequency
+          2:2 (root)
+           /
+         1:3
+   Size: 2 ≤ k, keep it
+
+Step 3: Add (3, freq=1)
+   Heap: [3:1, 1:3, 2:2]
+          3:1 (root) ← Smallest frequency at top
+          / \
+        1:3  2:2
+   Size: 3 > k, REMOVE ROOT (3:1) ← Remove least frequent
+   Heap: [2:2, 1:3]
+          2:2
+           /
+         1:3
+
+Step 4: Add (4, freq=4)
+   Heap: [2:2, 1:3, 4:4]
+          2:2 (root) ← Smallest among {2,1,4}
+          / \
+        1:3  4:4
+   Size: 3 > k, REMOVE ROOT (2:2) ← Remove least frequent
+   Heap: [1:3, 4:4]
+          1:3
+           /
+         4:4
+
+Final Heap: [1:3, 4:4] → Top 2 most frequent! ✓
+```
+
+### Comparison: Min Heap vs Max Heap
+
+| Approach | Heap Type | Heap Size | Time Complexity | Why? |
+|----------|-----------|-----------|-----------------|------|
+| **Min Heap** | Min | K | O(n log k) | Keep K largest, remove smallest |
+| **Max Heap** | Max | N | O(n log n) | Add all, extract K largest |
+
+**Min Heap Advantage**:
+- Only stores K elements → Memory efficient
+- Each operation is O(log k) instead of O(log n)
+- When k << n (k much smaller than n), this is significantly faster
+
+**Example**: n=1,000,000, k=10
+- Min Heap: O(1,000,000 × log 10) ≈ O(3.3M) operations
+- Max Heap: O(1,000,000 × log 1,000,000) ≈ O(20M) operations
+- **Min Heap is 6x faster!**
+
+---
+
+## 📊 Heap Operations Deep Dive
+
+### Min Heap Structure
+
+```
+Min Heap Property: Parent ≤ Children
+
+Example: Frequencies [3, 2, 5, 1, 4]
+
+        1 (root - minimum)
+       / \
+      2   3
+     / \
+    4   5
+
+Operations:
+- peek(): O(1) - get minimum (root)
+- poll(): O(log k) - remove minimum, reheapify
+- offer(): O(log k) - add element, reheapify
+```
+
+### Why O(log k) for Heap Operations?
+
+**Heap Height**: log₂(k)
+- k=2 → height=1
+- k=4 → height=2
+- k=8 → height=3
+- k=1024 → height=10
+
+**Reheapify Process**: Bubble up/down through height
+- Insert: Bubble up from leaf to root → O(log k)
+- Delete: Bubble down from root to leaf → O(log k)
+
+---
+
+## 💻 Implementation with Detailed Comments
+
 ```java
 import java.util.*;
 
 public class TopKFrequentHeap {
     
     public static int[] topKFrequent(int[] nums, int k) {
-        // Count frequencies
+        // STEP 1: Count frequencies using HashMap
+        // Time: O(n), Space: O(n)
         Map<Integer, Integer> freqMap = new HashMap<>();
         for (int num : nums) {
             freqMap.put(num, freqMap.getOrDefault(num, 0) + 1);
         }
+        // Example: [1,1,1,2,2,3] → {1:3, 2:2, 3:1}
         
-        // Min heap of size k (keep k most frequent)
+        // STEP 2: Create Min Heap (ordered by frequency)
+        // Comparator: (a, b) -> a.getValue() - b.getValue()
+        //   - Returns negative if a < b → a has higher priority (min heap)
+        //   - Returns positive if a > b → b has higher priority
         PriorityQueue<Map.Entry<Integer, Integer>> minHeap = 
             new PriorityQueue<>((a, b) -> a.getValue() - b.getValue());
         
+        // STEP 3: Process each unique element
+        // Time: O(n log k) where n = unique elements
         for (Map.Entry<Integer, Integer> entry : freqMap.entrySet()) {
-            minHeap.offer(entry);
+            minHeap.offer(entry);  // O(log k) - add to heap
+            
+            // KEY LOGIC: Maintain heap size = k
             if (minHeap.size() > k) {
-                minHeap.poll(); // Remove least frequent
+                minHeap.poll();  // O(log k) - remove minimum (least frequent)
             }
+            // After this, heap contains k most frequent elements seen so far
         }
         
-        // Extract elements from heap
+        // STEP 4: Extract elements from heap
+        // Time: O(k log k)
         int[] result = new int[k];
         for (int i = 0; i < k; i++) {
-            result[i] = minHeap.poll().getKey();
+            result[i] = minHeap.poll().getKey();  // O(log k)
         }
         
         return result;
@@ -99,6 +229,102 @@ public class TopKFrequentHeap {
     }
 }
 ```
+
+---
+
+## 🔍 Complexity Analysis
+
+### Time Complexity: **O(n log k)**
+
+**Breakdown**:
+1. **Build frequency map**: O(n)
+   - Iterate through all n elements
+   - HashMap operations (put, get) are O(1) average
+
+2. **Process unique elements**: O(u log k)
+   - u = number of unique elements (u ≤ n)
+   - For each unique element:
+     - offer(): O(log k)
+     - poll() if size > k: O(log k)
+   - Total: O(u log k)
+
+3. **Extract result**: O(k log k)
+   - Poll k elements from heap
+   - Each poll: O(log k)
+
+**Total**: O(n) + O(u log k) + O(k log k)
+- Since u ≤ n and k ≤ n
+- Dominated by O(n log k) when k is small
+- **Best case**: k=1 → O(n)
+- **Worst case**: k=n → O(n log n)
+
+### Space Complexity: **O(n + k)**
+
+**Breakdown**:
+1. **Frequency map**: O(n)
+   - Stores all unique elements
+   - Worst case: all elements unique → n entries
+
+2. **Min heap**: O(k)
+   - Stores at most k elements
+
+3. **Result array**: O(k)
+   - Stores k elements
+
+**Total**: O(n + k)
+- Typically written as O(n) since k ≤ n
+
+---
+
+## 🎓 When to Use This Approach?
+
+### ✅ Use Min Heap When:
+1. **k << n** (k much smaller than n)
+   - Example: Find top 10 from 1 million elements
+   - Min heap: O(1M × log 10) ≈ 3.3M operations
+   - Sorting: O(1M × log 1M) ≈ 20M operations
+
+2. **Memory constrained**
+   - Heap size limited to k elements
+   - Don't need to store all n elements
+
+3. **Streaming data**
+   - Process elements one by one
+   - Maintain top k in real-time
+
+### ❌ Don't Use When:
+1. **k ≈ n** (k close to n)
+   - Example: Find top 900 from 1000 elements
+   - Better to use bucket sort: O(n)
+
+2. **Need sorted output**
+   - Heap doesn't guarantee sorted order
+   - Would need additional O(k log k) to sort
+
+3. **Very small datasets**
+   - Overhead of heap operations not worth it
+   - Simple sorting might be faster
+
+---
+
+## 🧠 Key Takeaways
+
+1. **Min Heap for Top K**: Counter-intuitive but efficient
+   - Keep k largest by removing smallest
+
+2. **Size Constraint**: Heap size never exceeds k
+   - Memory efficient: O(k) vs O(n)
+
+3. **Logarithmic Operations**: O(log k) per element
+   - Much better than O(log n) when k << n
+
+4. **Trade-off**: Slightly more complex than sorting
+   - But significantly faster for small k
+
+5. **Real-world Use Cases**:
+   - Top 10 trending hashtags from millions of tweets
+   - Top 100 products from millions of items
+   - Top 5 search queries from billions of searches
 
 **Time Complexity**: O(n log k) - heap operations  
 **Space Complexity**: O(n) - HashMap + O(k) heap
