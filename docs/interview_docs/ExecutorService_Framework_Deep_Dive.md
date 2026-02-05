@@ -93,6 +93,57 @@ public interface ExecutorService extends Executor {
 
 **Fixed number of threads, unbounded queue**
 
+#### Theory & Internal Mechanics
+
+**Implementation**:
+```java
+public static ExecutorService newFixedThreadPool(int nThreads) {
+    return new ThreadPoolExecutor(
+        nThreads,                      // corePoolSize = nThreads
+        nThreads,                      // maximumPoolSize = nThreads
+        0L,                            // keepAliveTime = 0 (threads never timeout)
+        TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue<Runnable>()  // Unbounded queue
+    );
+}
+```
+
+**Key Characteristics**:
+1. **Fixed Thread Count**: Creates exactly `n` threads at startup and maintains them throughout lifecycle
+2. **Thread Reuse**: Threads are never destroyed (keepAliveTime = 0), always available for reuse
+3. **Unbounded Queue**: Uses `LinkedBlockingQueue` with no capacity limit
+4. **Blocking Behavior**: When all threads are busy, new tasks wait in queue indefinitely
+5. **No Thread Creation Overhead**: After initial creation, no new threads are spawned
+
+**Execution Flow**:
+```
+Task Submission → Check Active Threads
+                     ↓
+              [Threads < n?]
+                     ↓
+            Yes ─→ Create New Thread
+                     ↓
+            No ─→ Add to Queue
+                     ↓
+              Wait for Available Thread
+                     ↓
+              Thread Picks Task from Queue
+                     ↓
+              Execute Task
+                     ↓
+              Thread Returns to Pool (never dies)
+```
+
+**Memory Implications**:
+- **Thread Stack**: Each thread consumes ~1MB stack memory
+- **Queue Growth**: Unbounded queue can grow indefinitely → OutOfMemoryError risk
+- **Example**: 10 threads = 10MB + queue memory
+
+**Performance Characteristics**:
+- **Throughput**: Constant after warmup (no thread creation overhead)
+- **Latency**: Predictable for tasks within thread capacity
+- **Queue Latency**: Tasks wait in queue when threads are saturated
+
 ```java
 ExecutorService executor = Executors.newFixedThreadPool(5);
 
@@ -115,17 +166,85 @@ Task 2 by pool-1-thread-2
 Task 3 by pool-1-thread-3
 Task 4 by pool-1-thread-4
 Task 5 by pool-1-thread-5
-Task 6 by pool-1-thread-1 (reused)
+Task 6 by pool-1-thread-1 (reused after 2s)
+Task 7 by pool-1-thread-2 (reused after 2s)
 ...
 ```
 
-**Use Case**: Web server handling fixed concurrent requests
+**Use Cases**:
+- Web servers with predictable concurrent request load
+- Database connection pools
+- Fixed resource constraints (e.g., 10 concurrent API calls)
+
+**Pitfalls**:
+- **Queue Overflow**: Unbounded queue can consume all heap memory
+- **Thread Starvation**: Long-running tasks block other tasks
+- **No Elasticity**: Cannot scale beyond fixed thread count
 
 ---
 
 ### 3.2 CachedThreadPool
 
 **Creates threads on demand, reuses idle threads**
+
+#### Theory & Internal Mechanics
+
+**Implementation**:
+```java
+public static ExecutorService newCachedThreadPool() {
+    return new ThreadPoolExecutor(
+        0,                             // corePoolSize = 0 (no core threads)
+        Integer.MAX_VALUE,             // maximumPoolSize = ~2 billion
+        60L,                           // keepAliveTime = 60 seconds
+        TimeUnit.SECONDS,
+        new SynchronousQueue<Runnable>()  // Zero-capacity queue
+    );
+}
+```
+
+**Key Characteristics**:
+1. **Zero Core Threads**: No threads exist initially, all created on-demand
+2. **Unbounded Thread Creation**: Can create up to 2,147,483,647 threads (practically unlimited)
+3. **SynchronousQueue**: Direct handoff, no buffering (queue size = 0)
+4. **60-Second Timeout**: Idle threads terminate after 60 seconds of inactivity
+5. **Elastic Scaling**: Grows and shrinks based on workload
+
+**Execution Flow**:
+```
+Task Submission → Try Direct Handoff to Idle Thread
+                     ↓
+              [Idle Thread Available?]
+                     ↓
+            Yes ─→ Handoff Task Immediately
+                     ↓
+            No ─→ Create New Thread
+                     ↓
+              Execute Task
+                     ↓
+              [Idle for 60s?]
+                     ↓
+            Yes ─→ Terminate Thread
+                     ↓
+            No ─→ Wait for Next Task
+```
+
+**SynchronousQueue Behavior**:
+- **No Storage**: Cannot hold tasks, must immediately transfer to thread
+- **Blocking**: Producer blocks until consumer (thread) takes the task
+- **Direct Handoff**: Zero-copy transfer from submitter to worker thread
+
+**Memory & Performance**:
+- **Thread Explosion Risk**: 10,000 concurrent tasks = 10,000 threads = 10GB+ memory
+- **Context Switching**: Too many threads → CPU thrashing
+- **Optimal for**: Burst workloads with short task duration
+
+**Thread Lifecycle**:
+```
+Time 0s:   Submit 100 tasks → Create 100 threads
+Time 1s:   Tasks complete → 100 idle threads
+Time 61s:  All threads terminated (60s timeout)
+Time 62s:  Submit 1 task → Create 1 new thread
+```
 
 ```java
 ExecutorService executor = Executors.newCachedThreadPool();
@@ -141,21 +260,105 @@ for (int i = 1; i <= 100; i++) {
 executor.shutdown();
 ```
 
-**Characteristics**:
-- Thread idle timeout: 60 seconds
-- No core threads
-- Max threads: Integer.MAX_VALUE
-- Queue: SynchronousQueue (no storage)
+**Output** (100 threads created):
+```
+Task 1 by pool-1-thread-1
+Task 2 by pool-1-thread-2
+...
+Task 100 by pool-1-thread-100
+```
 
-**Use Case**: Many short-lived async tasks
+**Use Cases**:
+- Async I/O operations (network calls, file operations)
+- Short-lived tasks with unpredictable arrival rate
+- Microservices with bursty traffic
 
-**Warning**: Can create thousands of threads → OutOfMemoryError
+**Pitfalls**:
+- **OutOfMemoryError**: Too many threads exhaust heap/stack memory
+- **CPU Thrashing**: Context switching overhead with 1000+ threads
+- **No Backpressure**: No queue means no buffering during spikes
 
 ---
 
 ### 3.3 SingleThreadExecutor
 
 **Single worker thread, sequential execution**
+
+#### Theory & Internal Mechanics
+
+**Implementation**:
+```java
+public static ExecutorService newSingleThreadExecutor() {
+    return new FinalizableDelegatedExecutorService(
+        new ThreadPoolExecutor(
+            1,                         // corePoolSize = 1
+            1,                         // maximumPoolSize = 1
+            0L,                        // keepAliveTime = 0
+            TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>()  // Unbounded queue
+        )
+    );
+}
+```
+
+**Key Characteristics**:
+1. **Single Thread Guarantee**: Only one thread ever exists, never replaced
+2. **Sequential Execution**: Tasks execute in submission order (FIFO)
+3. **Unbounded Queue**: Tasks wait in queue if thread is busy
+4. **Thread Resurrection**: If thread dies (exception), new thread is created
+5. **Non-Reconfigurable**: Wrapped in `DelegatedExecutorService` to prevent reconfiguration
+
+**Execution Flow**:
+```
+Task 1 Submitted → Queue: [Task1]
+                     ↓
+              Thread Executes Task1
+                     ↓
+Task 2 Submitted → Queue: [Task2]
+                     ↓
+Task 3 Submitted → Queue: [Task2, Task3]
+                     ↓
+              Task1 Completes
+                     ↓
+              Thread Executes Task2
+                     ↓
+              Task2 Completes
+                     ↓
+              Thread Executes Task3
+```
+
+**Ordering Guarantees**:
+- **Happens-Before**: Task N+1 sees all effects of Task N
+- **Memory Visibility**: No need for synchronization between tasks
+- **Atomic Operations**: Each task is atomic unit of execution
+
+**Thread Safety**:
+```java
+// No synchronization needed - single thread guarantees visibility
+class Counter {
+    private int count = 0;  // No volatile needed
+    
+    void increment() {
+        count++;  // Thread-safe in SingleThreadExecutor
+    }
+}
+```
+
+**Fault Tolerance**:
+```java
+executor.submit(() -> {
+    System.out.println("Task 1");
+    throw new RuntimeException("Task 1 failed");
+});
+
+executor.submit(() -> {
+    System.out.println("Task 2");  // Still executes!
+});
+
+// Output:
+// Task 1
+// Task 2  (new thread created after Task 1 exception)
+```
 
 ```java
 ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -174,13 +377,139 @@ Task 2
 Task 3
 ```
 
-**Use Case**: Event processing, logging, sequential operations
+**Use Cases**:
+- Event loop processing (UI events, message queue)
+- Audit logging (sequential writes)
+- Database migrations (ordered schema changes)
+- State machines (sequential state transitions)
+
+**Pitfalls**:
+- **No Parallelism**: Cannot utilize multiple CPU cores
+- **Head-of-Line Blocking**: Slow task blocks all subsequent tasks
+- **Queue Overflow**: Unbounded queue can exhaust memory
 
 ---
 
 ### 3.4 ScheduledThreadPoolExecutor
 
 **Schedule tasks with delay or periodic execution**
+
+#### Theory & Internal Mechanics
+
+**Implementation**:
+```java
+public static ScheduledExecutorService newScheduledThreadPool(int corePoolSize) {
+    return new ScheduledThreadPoolExecutor(corePoolSize);
+}
+
+// ScheduledThreadPoolExecutor extends ThreadPoolExecutor
+public ScheduledThreadPoolExecutor(int corePoolSize) {
+    super(
+        corePoolSize,                  // corePoolSize
+        Integer.MAX_VALUE,             // maximumPoolSize
+        0L,                            // keepAliveTime
+        TimeUnit.NANOSECONDS,
+        new DelayedWorkQueue()         // Priority queue sorted by delay
+    );
+}
+```
+
+**Key Characteristics**:
+1. **DelayedWorkQueue**: Priority queue ordered by execution time (earliest first)
+2. **Nanosecond Precision**: Uses `System.nanoTime()` for accurate scheduling
+3. **Fixed Core Threads**: Core threads never timeout
+4. **Unbounded Max Threads**: Can create additional threads if needed
+5. **Task Wrapping**: Tasks wrapped in `ScheduledFutureTask` with delay metadata
+
+**DelayedWorkQueue Internals**:
+```
+Heap Structure (Min-Heap by execution time):
+
+         [Task A: 10:00:05]
+              /           \
+    [Task B: 10:00:10]  [Task C: 10:00:15]
+         /
+[Task D: 10:00:20]
+
+Poll() → Returns Task A (earliest)
+```
+
+**Scheduling Modes**:
+
+**1. One-Time Delay** (`schedule`):
+```java
+scheduler.schedule(() -> {
+    System.out.println("Executed after 5 seconds");
+}, 5, TimeUnit.SECONDS);
+
+// Timeline:
+// T=0s:  Task scheduled
+// T=5s:  Task executes once
+// T=6s:  Task complete, never runs again
+```
+
+**2. Fixed Rate** (`scheduleAtFixedRate`):
+```java
+scheduler.scheduleAtFixedRate(() -> {
+    System.out.println("Periodic: " + System.currentTimeMillis());
+    Thread.sleep(3000);  // Task takes 3 seconds
+}, 0, 2, TimeUnit.SECONDS);
+
+// Timeline:
+// T=0s:  Execution 1 starts
+// T=2s:  Execution 2 scheduled (but waits for Execution 1)
+// T=3s:  Execution 1 completes, Execution 2 starts immediately
+// T=4s:  Execution 3 scheduled
+// T=6s:  Execution 2 completes, Execution 3 starts immediately
+
+// Note: If task takes longer than period, executions run back-to-back
+```
+
+**3. Fixed Delay** (`scheduleWithFixedDelay`):
+```java
+scheduler.scheduleWithFixedDelay(() -> {
+    System.out.println("Task with delay");
+    Thread.sleep(3000);  // Task takes 3 seconds
+}, 0, 2, TimeUnit.SECONDS);
+
+// Timeline:
+// T=0s:  Execution 1 starts
+// T=3s:  Execution 1 completes
+// T=5s:  Execution 2 starts (3s + 2s delay)
+// T=8s:  Execution 2 completes
+// T=10s: Execution 3 starts (8s + 2s delay)
+
+// Note: Delay always measured from completion time
+```
+
+**Comparison Table**:
+
+| Aspect | scheduleAtFixedRate | scheduleWithFixedDelay |
+|--------|---------------------|------------------------|
+| **Interval** | From start time | From completion time |
+| **Drift** | Can drift if task > period | No drift |
+| **Overlap** | Tasks can queue up | Never overlaps |
+| **Use Case** | Fixed frequency (heartbeat) | Rate limiting |
+
+**Exception Handling**:
+```java
+scheduler.scheduleAtFixedRate(() -> {
+    System.out.println("Task running");
+    if (Math.random() > 0.5) {
+        throw new RuntimeException("Random failure");
+    }
+}, 0, 1, TimeUnit.SECONDS);
+
+// Behavior: Exception STOPS future executions!
+// Solution: Wrap in try-catch
+scheduler.scheduleAtFixedRate(() -> {
+    try {
+        // Task logic
+    } catch (Exception e) {
+        log.error("Task failed", e);
+    }
+}, 0, 1, TimeUnit.SECONDS);
+```
 
 ```java
 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(3);
@@ -202,17 +531,132 @@ scheduler.scheduleWithFixedDelay(() -> {
 }, 0, 2, TimeUnit.SECONDS);
 ```
 
-**Difference**:
-- **scheduleAtFixedRate**: Fixed interval (ignores execution time)
-- **scheduleWithFixedDelay**: Fixed delay after completion
+**Use Cases**:
+- **scheduleAtFixedRate**: Heartbeats, metrics collection, health checks
+- **scheduleWithFixedDelay**: Rate-limited API calls, cache refresh, cleanup tasks
+- **schedule**: One-time delayed operations, timeout handlers
 
-**Use Case**: Cron jobs, health checks, cache refresh
+**Pitfalls**:
+- **Silent Failures**: Uncaught exceptions stop periodic tasks
+- **Queue Overflow**: DelayedWorkQueue can grow unbounded
+- **Time Drift**: Fixed rate can accumulate delays if tasks are slow
 
 ---
 
 ### 3.5 WorkStealingPool (Java 8+)
 
 **ForkJoinPool-based, work-stealing algorithm**
+
+#### Theory & Internal Mechanics
+
+**Implementation**:
+```java
+public static ExecutorService newWorkStealingPool() {
+    return new ForkJoinPool(
+        Runtime.getRuntime().availableProcessors(),  // Parallelism = CPU cores
+        ForkJoinPool.defaultForkJoinWorkerThreadFactory,
+        null,
+        true  // asyncMode = true (FIFO for async tasks)
+    );
+}
+```
+
+**Key Characteristics**:
+1. **Work-Stealing Algorithm**: Idle threads steal tasks from busy threads' queues
+2. **Deque Per Thread**: Each worker thread has its own double-ended queue
+3. **Fork/Join Framework**: Optimized for recursive divide-and-conquer algorithms
+4. **CPU-Bound Optimization**: Parallelism matches CPU core count
+5. **LIFO for Owner, FIFO for Stealers**: Owner pops from head, stealers take from tail
+
+**Work-Stealing Architecture**:
+```
+Thread 1 Deque:  [T1] [T2] [T3] [T4] [T5]
+                  ↑                    ↑
+                Owner                Stealer
+                (LIFO)              (FIFO)
+
+Thread 2 Deque:  [T6] [T7]
+                  ↑
+                Owner
+
+Thread 3 Deque:  [] (idle)
+                  ↓
+            Steals T5 from Thread 1
+```
+
+**Execution Flow**:
+```
+1. Task Submission → Random thread's deque
+2. Thread executes own tasks (LIFO - cache locality)
+3. Thread finishes → Check own deque
+4. Own deque empty → Steal from random thread (FIFO - reduce contention)
+5. All deques empty → Thread parks (waits)
+6. New task arrives → Wake up parked thread
+```
+
+**Work-Stealing Benefits**:
+- **Load Balancing**: Automatic distribution of work
+- **Cache Locality**: Owner uses LIFO (recent tasks in cache)
+- **Low Contention**: Stealer uses FIFO (opposite end of deque)
+- **No Central Queue**: Eliminates bottleneck
+
+**Fork/Join Pattern**:
+```java
+class SumTask extends RecursiveTask<Long> {
+    private final long[] array;
+    private final int start, end;
+    private static final int THRESHOLD = 1000;
+    
+    @Override
+    protected Long compute() {
+        if (end - start <= THRESHOLD) {
+            // Base case: compute directly
+            long sum = 0;
+            for (int i = start; i < end; i++) {
+                sum += array[i];
+            }
+            return sum;
+        } else {
+            // Recursive case: split and fork
+            int mid = (start + end) / 2;
+            SumTask left = new SumTask(array, start, mid);
+            SumTask right = new SumTask(array, mid, end);
+            
+            left.fork();  // Async execution
+            long rightResult = right.compute();  // Sync execution
+            long leftResult = left.join();  // Wait for result
+            
+            return leftResult + rightResult;
+        }
+    }
+}
+
+// Usage
+ForkJoinPool pool = new ForkJoinPool();
+long result = pool.invoke(new SumTask(array, 0, array.length));
+```
+
+**Parallelism vs Thread Count**:
+```java
+// Parallelism = 4 (4 CPU cores)
+ForkJoinPool pool = new ForkJoinPool(4);
+
+// Actual thread count can be higher:
+// - 4 worker threads (parallelism)
+// - Additional threads for blocking tasks
+// - Compensation threads when workers block
+```
+
+**Async Mode**:
+```java
+// asyncMode = true (WorkStealingPool default)
+// - FIFO for all tasks
+// - Better for event-driven async tasks
+
+// asyncMode = false (ForkJoinPool default)
+// - LIFO for owner, FIFO for stealers
+// - Better for recursive divide-and-conquer
+```
 
 ```java
 ExecutorService executor = Executors.newWorkStealingPool();
@@ -227,12 +671,22 @@ List<Future<Integer>> results = executor.invokeAll(tasks);
 executor.shutdown();
 ```
 
-**Characteristics**:
-- Parallelism = CPU cores
-- Each thread has own deque
-- Idle threads steal work from busy threads
+**Performance Characteristics**:
+- **Throughput**: Excellent for CPU-bound tasks (near-linear scaling)
+- **Latency**: Low for parallel computations
+- **Overhead**: Higher than ThreadPoolExecutor (work-stealing complexity)
 
-**Use Case**: CPU-intensive parallel computations
+**Use Cases**:
+- Parallel stream operations (`parallelStream()`)
+- Recursive algorithms (merge sort, quicksort)
+- Matrix operations, image processing
+- MapReduce-style computations
+
+**Pitfalls**:
+- **Not for I/O**: Blocking I/O wastes worker threads
+- **Compensation Threads**: Blocking creates extra threads → overhead
+- **Complex Debugging**: Work-stealing makes stack traces harder to follow
+- **Overkill for Simple Tasks**: Higher overhead than FixedThreadPool
 
 ---
 

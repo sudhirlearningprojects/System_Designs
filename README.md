@@ -660,6 +660,7 @@ mvn clean install
 ./run-systems.sh cloudinfra      # Port 8096
 ./run-systems.sh distributeddb   # Port 8097
 ./run-systems.sh spotify         # Port 8098
+./run-systems.sh probability     # Port 8099
 ```
 
 **Alternative: Run directly with Maven profiles**
@@ -682,6 +683,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=tiktok
 mvn spring-boot:run -Dspring-boot.run.profiles=cloudinfra
 mvn spring-boot:run -Dspring-boot.run.profiles=distributeddb
 mvn spring-boot:run -Dspring-boot.run.profiles=spotify
+mvn spring-boot:run -Dspring-boot.run.profiles=probability
 ```
 
 ## 🏗️ Project Structure
@@ -947,6 +949,11 @@ docs/
 │   ├── Scale_Calculations.md   # Spotify performance analysis
 │   └── README.md               # Spotify overview
 │
+├── probability/                # Probability Management System documentation
+│   ├── System_Design.md        # Prediction market HLD/LLD with LMSR
+│   ├── API_Documentation.md    # Prediction market API reference
+│   └── README.md               # Prediction market overview
+│
 └── [future-system]/            # Future system docs
 ```
 
@@ -1128,6 +1135,46 @@ curl -X POST http://localhost:8098/api/v1/tracks/upload \
 # Stream track
 curl -X POST http://localhost:8098/api/v1/stream \
   -d '{"trackId":"track-123","userId":"user-456","audioQuality":"HIGH"}'
+```
+
+---
+
+### 19. Probability Management System - Prediction Market Platform
+**Location**: `org.sudhir512kj.probability` package
+
+A production-ready prediction market platform similar to Polymarket, Kalshi, and PredictIt:
+- Binary (YES/NO) and categorical markets
+- Order book trading with price-time priority matching
+- Automated Market Maker (AMM) using LMSR algorithm
+- Real-time position tracking and P&L calculation
+- Oracle-based settlement with automatic payouts
+- High availability (99.99% uptime)
+
+**Documentation**: [docs/probability/](docs/probability/)
+
+**Key Features**:
+- **LMSR Algorithm**: Logarithmic Market Scoring Rule for dynamic pricing
+- **Order Book Trading**: Limit and market orders with instant matching
+- **In-Memory Matching**: Redis-based order book for <10ms execution
+- **Position Management**: Real-time unrealized/realized P&L tracking
+- **Oracle Integration**: Chainlink, UMA, manual resolution
+- **Strong Consistency**: Pessimistic locking for financial operations
+- **Event-Driven**: Kafka for async processing and audit logs
+- **WebSocket Updates**: Real-time price and order status updates
+
+**Scale**: 10M users, 1M DAU, 1B orders/day, 11.5K orders/sec, <100ms latency
+
+**Quick Example**:
+```bash
+# Create market
+curl -X POST http://localhost:8099/api/v1/markets \
+  -H "X-User-Id: user-123" \
+  -d '{"question":"Will Bitcoin reach $100K by 2025?","marketType":"BINARY","outcomes":["YES","NO"],"endDate":"2025-12-31T23:59:59","liquidityParameter":100.0}'
+
+# Place order
+curl -X POST http://localhost:8099/api/v1/orders \
+  -H "X-User-Id: user-123" \
+  -d '{"marketId":"market-uuid","outcomeId":"outcome-uuid","orderType":"LIMIT","side":"BUY","price":0.65,"quantity":100}'
 ```
 
 ---
