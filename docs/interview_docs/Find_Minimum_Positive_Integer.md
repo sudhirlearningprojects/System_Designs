@@ -102,31 +102,58 @@ public int findMinPositivePQ(int[] arr) {
 
 ## Related Problems
 
-### Problem 1: First Missing Positive (LeetCode 41)
+### Problem 1: First Missing Positive (LeetCode 41) ⭐ OPTIMAL
 
 Find the smallest missing positive integer (1, 2, 3, ...).
 
-**Time**: O(n) | **Space**: O(1)
+**Time**: O(n) | **Space**: O(1) | **Best Solution**
 
 ```java
 public int firstMissingPositive(int[] arr) {
     int n = arr.length;
     
-    // Step 1: Place each positive integer at correct index (value-1)
+    // Step 1: Mark negatives/zeros/out-of-range as n+1
+    for (int i = 0; i < n; i++) {
+        if (arr[i] <= 0 || arr[i] > n) {
+            arr[i] = n + 1;
+        }
+    }
+    
+    // Step 2: Mark presence using index as hash (negate value)
+    for (int i = 0; i < n; i++) {
+        int val = Math.abs(arr[i]);
+        if (val <= n) {
+            arr[val - 1] = -Math.abs(arr[val - 1]);
+        }
+    }
+    
+    // Step 3: First positive index is missing number
+    for (int i = 0; i < n; i++) {
+        if (arr[i] > 0) {
+            return i + 1;
+        }
+    }
+    
+    return n + 1;
+}
+
+// Alternative: Cyclic Sort (also O(n) time, O(1) space)
+public int firstMissingPositiveCyclicSort(int[] arr) {
+    int n = arr.length;
+    
+    // Place each number at its correct position
     for (int i = 0; i < n; i++) {
         while (arr[i] > 0 && arr[i] <= n && arr[i] != arr[arr[i] - 1]) {
-            // Swap arr[i] to its correct position
-            int temp = arr[arr[i] - 1];
-            arr[arr[i] - 1] = arr[i];
+            int correctIdx = arr[i] - 1;
+            int temp = arr[correctIdx];
+            arr[correctIdx] = arr[i];
             arr[i] = temp;
         }
     }
     
-    // Step 2: Find first missing positive
+    // Find first missing
     for (int i = 0; i < n; i++) {
-        if (arr[i] != i + 1) {
-            return i + 1;
-        }
+        if (arr[i] != i + 1) return i + 1;
     }
     
     return n + 1;
@@ -136,34 +163,171 @@ public int firstMissingPositive(int[] arr) {
 **Example**:
 ```
 Input: [3, 4, -1, 1]
-After placement: [1, -1, 3, 4]
-Output: 2 (missing)
+Output: 2
 
 Input: [1, 2, 0]
-After placement: [1, 2, 0]
-Output: 3 (missing)
+Output: 3
+
+Input: [7, 8, 9, 11, 12]
+Output: 1
 ```
 
-**Step-by-Step**:
+**Step-by-Step (Index as Hash Method)**:
 ```
 Array: [3, 4, -1, 1]
 
-Step 1: Place at correct positions
-i=0: arr[0]=3 → place at index 2
-     [3, 4, -1, 1] → [-1, 4, 3, 1]
-     arr[0]=-1 → skip
+Step 1: Clean array (mark invalid as n+1)
+[3, 4, -1, 1] → [3, 4, 5, 1]  (n=4, so -1 becomes 5)
 
-i=1: arr[1]=4 → place at index 3
-     [-1, 4, 3, 1] → [-1, 1, 3, 4]
-     arr[1]=1 → place at index 0
-     [-1, 1, 3, 4] → [1, -1, 3, 4]
+Step 2: Mark presence using negation
+i=0: arr[0]=3 → mark index 2: [3, 4, -5, 1]
+i=1: arr[1]=4 → mark index 3: [3, 4, -5, -1]
+i=2: arr[2]=-5 (abs=5>n) → skip
+i=3: arr[3]=-1 (abs=1) → mark index 0: [-3, 4, -5, -1]
 
-i=2: arr[2]=3 → already at correct position
-i=3: arr[3]=4 → already at correct position
+Step 3: Find first positive index
+i=0: arr[0]=-3 (negative) ✓
+i=1: arr[1]=4 (positive) → return i+1 = 2 ✗
 
-Step 2: Find first missing
-i=0: arr[0]=1 ✓
-i=1: arr[1]=-1 ≠ 2 → return 2
+Result: 2 is missing
+```
+
+**Why This is Optimal**:
+- ✅ O(n) time - single pass for each step
+- ✅ O(1) space - in-place modification
+- ✅ No swapping overhead - just negation
+- ✅ Handles all edge cases: negatives, zeros, duplicates, out-of-range
+- ✅ Cleaner than cyclic sort - fewer operations
+
+---
+
+### Cyclic Sort Time Complexity Analysis: Why O(n)?
+
+**Key Insight**: Each element is swapped AT MOST ONCE to its correct position.
+
+**Proof**:
+1. Outer loop runs `n` times: O(n)
+2. Inner while loop seems like O(n), making it O(n²)?
+3. **BUT**: Each swap places one element at its FINAL correct position
+4. Once placed correctly, that element is NEVER moved again
+5. Maximum total swaps = n (one per element)
+6. **Total operations = O(n) outer + O(n) swaps = O(n)**
+
+**Amortized Analysis**:
+```
+Worst case: [n, n-1, n-2, ..., 2, 1]
+- Element at index 0 needs 1 swap
+- Element at index 1 needs 1 swap
+- ...
+- Element at index n-1 needs 1 swap
+Total swaps = n (not n²)
+```
+
+---
+
+### Cyclic Sort Dry Run Example
+
+**Test Case**: `[3, 4, -1, 1]` → Expected Output: `2`
+
+```java
+Array: [3, 4, -1, 1]  (n = 4)
+Goal: Place 1 at index 0, 2 at index 1, 3 at index 2, 4 at index 3
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1: Cyclic Sort Phase
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+i = 0:
+  arr[0] = 3
+  Check: 3 > 0 ✓, 3 <= 4 ✓, 3 != arr[2] ✓ → SWAP
+  
+  Iteration 1:
+    correctIdx = 3 - 1 = 2
+    Swap arr[0] with arr[2]: [3, 4, -1, 1] → [-1, 4, 3, 1]
+    
+  arr[0] = -1
+  Check: -1 > 0 ✗ → STOP while loop
+  
+  Array: [-1, 4, 3, 1]
+  Swaps so far: 1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+i = 1:
+  arr[1] = 4
+  Check: 4 > 0 ✓, 4 <= 4 ✓, 4 != arr[3] ✓ → SWAP
+  
+  Iteration 1:
+    correctIdx = 4 - 1 = 3
+    Swap arr[1] with arr[3]: [-1, 4, 3, 1] → [-1, 1, 3, 4]
+    
+  arr[1] = 1
+  Check: 1 > 0 ✓, 1 <= 4 ✓, 1 != arr[0] ✓ → SWAP
+  
+  Iteration 2:
+    correctIdx = 1 - 1 = 0
+    Swap arr[1] with arr[0]: [-1, 1, 3, 4] → [1, -1, 3, 4]
+    
+  arr[1] = -1
+  Check: -1 > 0 ✗ → STOP while loop
+  
+  Array: [1, -1, 3, 4]
+  Swaps so far: 3
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+i = 2:
+  arr[2] = 3
+  Check: 3 > 0 ✓, 3 <= 4 ✓, 3 == arr[2] ✓ → ALREADY CORRECT
+  
+  Array: [1, -1, 3, 4]
+  Swaps so far: 3
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+i = 3:
+  arr[3] = 4
+  Check: 4 > 0 ✓, 4 <= 4 ✓, 4 == arr[3] ✓ → ALREADY CORRECT
+  
+  Array: [1, -1, 3, 4]
+  Swaps so far: 3
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2: Find First Missing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Final Array: [1, -1, 3, 4]
+
+i = 0: arr[0] = 1, expected = 1 ✓
+i = 1: arr[1] = -1, expected = 2 ✗ → RETURN 2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RESULT: 2 (first missing positive)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Total Operations:
+- Outer loop iterations: 4
+- Total swaps: 3
+- Time Complexity: O(n) ✓
+```
+
+**Another Example**: `[7, 8, 9, 11, 12]` → Expected Output: `1`
+
+```java
+Array: [7, 8, 9, 11, 12]  (n = 5)
+
+i = 0: arr[0] = 7 > 5 → skip (out of range)
+i = 1: arr[1] = 8 > 5 → skip
+i = 2: arr[2] = 9 > 5 → skip
+i = 3: arr[3] = 11 > 5 → skip
+i = 4: arr[4] = 12 > 5 → skip
+
+Final Array: [7, 8, 9, 11, 12] (unchanged)
+
+Find first missing:
+i = 0: arr[0] = 7 ≠ 1 → RETURN 1
+
+Result: 1
 ```
 
 ---

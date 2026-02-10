@@ -32,10 +32,37 @@ Result: 13 units
 
 ## Solution Approaches
 
-### Approach 1: Two-Pass with Arrays
+### Approach 1: Two-Pass with Arrays (Precomputation)
 
 **Time Complexity:** O(n)  
 **Space Complexity:** O(n)
+
+#### Theory
+
+The key insight is that water trapped at any position depends on:
+1. **Highest bar to the left** (including current position)
+2. **Highest bar to the right** (including current position)
+
+Water at position `i` = `min(leftMax[i], rightMax[i]) - height[i]`
+
+**Why this works:**
+- Water level is limited by the shorter of the two boundaries
+- If current height is already at or above water level, no water can be trapped
+- We precompute left and right maximums to avoid redundant calculations
+
+**Visual Intuition:**
+```
+For position i:
+        leftMax[i]              rightMax[i]
+            ↓                        ↓
+    |       |                        |
+    |   |   |       i                |   |
+    | | | | |   | | * |          | | | | |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+              ← → ← water level → ← →
+```
+
+#### Implementation
 
 ```java
 public static Integer computeSnowpack(Integer[] arr) {
@@ -45,19 +72,19 @@ public static Integer computeSnowpack(Integer[] arr) {
     Integer[] leftMax = new Integer[n];
     Integer[] rightMax = new Integer[n];
     
-    // Fill leftMax
+    // Fill leftMax: maximum height from left up to index i
     leftMax[0] = arr[0];
     for (int i = 1; i < n; i++) {
         leftMax[i] = Math.max(leftMax[i - 1], arr[i]);
     }
     
-    // Fill rightMax
+    // Fill rightMax: maximum height from right up to index i
     rightMax[n - 1] = arr[n - 1];
     for (int i = n - 2; i >= 0; i--) {
         rightMax[i] = Math.max(rightMax[i + 1], arr[i]);
     }
     
-    // Calculate water
+    // Calculate water at each position
     int water = 0;
     for (int i = 0; i < n; i++) {
         water += Math.min(leftMax[i], rightMax[i]) - arr[i];
@@ -67,12 +94,130 @@ public static Integer computeSnowpack(Integer[] arr) {
 }
 ```
 
+#### Detailed Dry Run
+
+**Input:** `{0, 1, 3, 0, 1, 2, 0, 4, 2, 0, 3, 0}`
+
+**Step 1: Build leftMax array (left to right scan)**
+```
+Iteration | i | arr[i] | leftMax[i-1] | leftMax[i] = max(leftMax[i-1], arr[i])
+----------|---|--------|--------------|------------------------------------
+Init      | 0 |   0    |      -       | 0
+   1      | 1 |   1    |      0       | max(0, 1) = 1
+   2      | 2 |   3    |      1       | max(1, 3) = 3
+   3      | 3 |   0    |      3       | max(3, 0) = 3
+   4      | 4 |   1    |      3       | max(3, 1) = 3
+   5      | 5 |   2    |      3       | max(3, 2) = 3
+   6      | 6 |   0    |      3       | max(3, 0) = 3
+   7      | 7 |   4    |      3       | max(3, 4) = 4
+   8      | 8 |   2    |      4       | max(4, 2) = 4
+   9      | 9 |   0    |      4       | max(4, 0) = 4
+  10      | 10|   3    |      4       | max(4, 3) = 4
+  11      | 11|   0    |      4       | max(4, 0) = 4
+
+Result: leftMax = {0, 1, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4}
+```
+
+**Step 2: Build rightMax array (right to left scan)**
+```
+Iteration | i | arr[i] | rightMax[i+1] | rightMax[i] = max(rightMax[i+1], arr[i])
+----------|---|--------|---------------|--------------------------------------
+Init      | 11|   0    |       -       | 0
+   1      | 10|   3    |       0       | max(0, 3) = 3
+   2      | 9 |   0    |       3       | max(3, 0) = 3
+   3      | 8 |   2    |       3       | max(3, 2) = 3
+   4      | 7 |   4    |       3       | max(3, 4) = 4
+   5      | 6 |   0    |       4       | max(4, 0) = 4
+   6      | 5 |   2    |       4       | max(4, 2) = 4
+   7      | 4 |   1    |       4       | max(4, 1) = 4
+   8      | 3 |   0    |       4       | max(4, 0) = 4
+   9      | 2 |   3    |       4       | max(4, 3) = 4
+  10      | 1 |   1    |       4       | max(4, 1) = 4
+  11      | 0 |   0    |       4       | max(4, 0) = 4
+
+Result: rightMax = {4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 0}
+```
+
+**Step 3: Calculate water at each position**
+```
+i  | arr[i] | leftMax[i] | rightMax[i] | min(L,R) | water = min-arr[i] | Visual
+---|--------|------------|-------------|----------|--------------------|---------
+0  |   0    |     0      |      4      |    0     |    0 - 0 = 0      | Ground
+1  |   1    |     1      |      4      |    1     |    1 - 1 = 0      | Bar
+2  |   3    |     3      |      4      |    3     |    3 - 3 = 0      | Bar
+3  |   0    |     3      |      4      |    3     |    3 - 0 = 3 ✓    | ***
+4  |   1    |     3      |      4      |    3     |    3 - 1 = 2 ✓    | _**
+5  |   2    |     3      |      4      |    3     |    3 - 2 = 1 ✓    | __*
+6  |   0    |     3      |      4      |    3     |    3 - 0 = 3 ✓    | ***
+7  |   4    |     4      |      4      |    4     |    4 - 4 = 0      | Bar
+8  |   2    |     4      |      3      |    3     |    3 - 2 = 1 ✓    | __*
+9  |   0    |     4      |      3      |    3     |    3 - 0 = 3 ✓    | ***
+10 |   3    |     4      |      3      |    3     |    3 - 3 = 0      | Bar
+11 |   0    |     4      |      0      |    0     |    0 - 0 = 0      | Ground
+
+Total water = 0+0+0+3+2+1+3+0+1+3+0+0 = 13 units
+```
+
+**Visual Representation:**
+```
+Index:  0  1  2  3  4  5  6  7  8  9  10 11
+Array:  0  1  3  0  1  2  0  4  2  0  3  0
+
+                                 4
+             3                   4        3
+          1  3     1  2          4  2     3
+       0  1  3  0  1  2  0       4  2  0  3  0
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+With water (*):
+                                 4
+             3  *  *  *  *       4  *  *  3
+          1  3  *  1  2  *       4  2  *  3
+       0  1  3  0  1  2  0       4  2  0  3  0
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       Water at: 3(3) 4(2) 5(1) 6(3) 8(1) 9(3)
+```
+
 ---
 
 ### Approach 2: Two Pointers (Optimal)
 
 **Time Complexity:** O(n)  
 **Space Complexity:** O(1)
+
+#### Theory
+
+This approach optimizes space by eliminating the need for leftMax and rightMax arrays. Instead, we use two pointers moving from both ends.
+
+**Key Insight:**
+- At any moment, we know the maximum height seen so far from left (leftMax) and right (rightMax)
+- If `arr[left] < arr[right]`, the water at left position is determined by leftMax (because we know there's a taller bar on the right)
+- If `arr[right] <= arr[left]`, the water at right position is determined by rightMax (because we know there's a taller bar on the left)
+
+**Why this works:**
+```
+Case 1: arr[left] < arr[right]
+    leftMax         ?????         rightMax
+       |                             |
+       |    left                     |    right
+       | |   *                        | |
+       +-+---+---...---...---...-----+-+
+              ^
+              Water here depends only on leftMax
+              (we know right side has taller bar)
+
+Case 2: arr[right] <= arr[left]
+    leftMax         ?????         rightMax
+       |                             |
+       |    left                     |    right
+       | |                        *  | |
+       +-+---...---...---...---+-----+-+
+                                ^
+                                Water here depends only on rightMax
+                                (we know left side has taller bar)
+```
+
+#### Implementation
 
 ```java
 public static Integer computeSnowpackOptimal(Integer[] arr) {
@@ -84,17 +229,19 @@ public static Integer computeSnowpackOptimal(Integer[] arr) {
     
     while (left < right) {
         if (arr[left] < arr[right]) {
+            // Process left side
             if (arr[left] >= leftMax) {
-                leftMax = arr[left];
+                leftMax = arr[left];  // Update max, no water
             } else {
-                water += leftMax - arr[left];
+                water += leftMax - arr[left];  // Trap water
             }
             left++;
         } else {
+            // Process right side
             if (arr[right] >= rightMax) {
-                rightMax = arr[right];
+                rightMax = arr[right];  // Update max, no water
             } else {
-                water += rightMax - arr[right];
+                water += rightMax - arr[right];  // Trap water
             }
             right--;
         }
@@ -104,12 +251,112 @@ public static Integer computeSnowpackOptimal(Integer[] arr) {
 }
 ```
 
+#### Detailed Dry Run
+
+**Input:** `{0, 1, 3, 0, 1, 2, 0, 4, 2, 0, 3, 0}`
+
+```
+Step | L | R | arr[L] | arr[R] | leftMax | rightMax | Action | Water Added | Total
+-----|---|---|--------|--------|---------|----------|--------|-------------|------
+Init | 0 | 11|   0    |   0    |    0    |    0     |   -    |      -      |  0
+  1  | 0 | 11|   0    |   0    |    0    |    0     | L>=lM  |      0      |  0
+     | 1 | 11|        |        |    0    |    0     | L++    |             |
+  2  | 1 | 11|   1    |   0    |    0    |    0     | L>=R   |             |
+     | 1 | 11|   1    |   0    |    0    |    0     | R>=rM  |      0      |  0
+     | 1 | 10|        |        |    0    |    0     | R--    |             |
+  3  | 1 | 10|   1    |   3    |    0    |    0     | L<R    |             |
+     | 1 | 10|   1    |   3    |    0    |    0     | L>=lM  |      0      |  0
+     | 2 | 10|        |        |    1    |    0     | L++    |             |
+  4  | 2 | 10|   3    |   3    |    1    |    0     | L>=R   |             |
+     | 2 | 10|   3    |   3    |    1    |    0     | R>=rM  |      0      |  0
+     | 2 | 9 |        |        |    1    |    3     | R--    |             |
+  5  | 2 | 9 |   3    |   0    |    1    |    3     | L>=R   |             |
+     | 2 | 9 |   3    |   0    |    1    |    3     | R<rM   |   3-0=3     |  3
+     | 2 | 8 |        |        |    1    |    3     | R--    |             |
+  6  | 2 | 8 |   3    |   2    |    1    |    3     | L>=R   |             |
+     | 2 | 8 |   3    |   2    |    1    |    3     | R<rM   |   3-2=1     |  4
+     | 2 | 7 |        |        |    1    |    3     | R--    |             |
+  7  | 2 | 7 |   3    |   4    |    1    |    3     | L<R    |             |
+     | 2 | 7 |   3    |   4    |    1    |    3     | L>=lM  |      0      |  4
+     | 3 | 7 |        |        |    3    |    3     | L++    |             |
+  8  | 3 | 7 |   0    |   4    |    3    |    3     | L<R    |             |
+     | 3 | 7 |   0    |   4    |    3    |    3     | L<lM   |   3-0=3     |  7
+     | 4 | 7 |        |        |    3    |    3     | L++    |             |
+  9  | 4 | 7 |   1    |   4    |    3    |    3     | L<R    |             |
+     | 4 | 7 |   1    |   4    |    3    |    3     | L<lM   |   3-1=2     |  9
+     | 5 | 7 |        |        |    3    |    3     | L++    |             |
+ 10  | 5 | 7 |   2    |   4    |    3    |    3     | L<R    |             |
+     | 5 | 7 |   2    |   4    |    3    |    3     | L<lM   |   3-2=1     | 10
+     | 6 | 7 |        |        |    3    |    3     | L++    |             |
+ 11  | 6 | 7 |   0    |   4    |    3    |    3     | L<R    |             |
+     | 6 | 7 |   0    |   4    |    3    |    3     | L<lM   |   3-0=3     | 13
+     | 7 | 7 |        |        |    3    |    3     | L++    |             |
+
+Loop ends: left (7) >= right (7)
+Final water = 13 units
+```
+
+**Pointer Movement Visualization:**
+```
+Array: {0, 1, 3, 0, 1, 2, 0, 4, 2, 0, 3, 0}
+
+Step 1-2:   L→              ←R
+            0  1  3  0  1  2  0  4  2  0  3  0
+
+Step 3-4:      L→           ←R
+            0  1  3  0  1  2  0  4  2  0  3  0
+
+Step 5-6:         L→     ←R
+            0  1  3  0  1  2  0  4  2  0  3  0
+                      (collecting water from right)
+
+Step 7-11:        L→→→→→
+            0  1  3  0  1  2  0  4  2  0  3  0
+                      (collecting water from left)
+```
+
 ---
 
-### Approach 3: Stack-Based
+### Approach 3: Stack-Based (Layer by Layer)
 
 **Time Complexity:** O(n)  
 **Space Complexity:** O(n)
+
+#### Theory
+
+This approach calculates water layer by layer (horizontally) rather than column by column (vertically).
+
+**Key Insight:**
+- Use a monotonic decreasing stack to track potential water containers
+- When we find a bar taller than the stack top, we can calculate water trapped between the current bar and the bar at the bottom of the stack
+- Water forms rectangular layers between boundaries
+
+**Visual Intuition:**
+```
+Stack approach fills water horizontally:
+
+        |               |           |               |
+        |       |       |           |   [Layer 2]   |
+        |   |   |   |   |           |   |===|===|   |
+    |   |   |   |   |   |   |   =>  |   |   |   |   |
+    |   |   |   |   |   |   |       |   |   |   |   |
+    +---+---+---+---+---+---+       +---+---+---+---+
+    ←left    top    right→         ← distance →
+    
+    Water = distance × height
+    distance = right - left - 1
+    height = min(arr[left], arr[right]) - arr[top]
+```
+
+**How it works:**
+1. Maintain a stack of indices with decreasing heights
+2. When current bar is taller than stack top:
+   - Pop the top (this is the bottom of water container)
+   - The new top is the left boundary
+   - Current position is the right boundary
+   - Calculate water between these boundaries
+
+#### Implementation
 
 ```java
 public static Integer computeSnowpackStack(Integer[] arr) {
@@ -119,13 +366,14 @@ public static Integer computeSnowpackStack(Integer[] arr) {
     int water = 0;
     
     for (int i = 0; i < arr.length; i++) {
+        // While current bar is taller than stack top
         while (!stack.isEmpty() && arr[i] > arr[stack.peek()]) {
-            int top = stack.pop();
+            int top = stack.pop();  // Bottom of water container
             
-            if (stack.isEmpty()) break;
+            if (stack.isEmpty()) break;  // No left boundary
             
-            int distance = i - stack.peek() - 1;
-            int height = Math.min(arr[i], arr[stack.peek()]) - arr[top];
+            int distance = i - stack.peek() - 1;  // Width
+            int height = Math.min(arr[i], arr[stack.peek()]) - arr[top];  // Height
             water += distance * height;
         }
         stack.push(i);
@@ -135,97 +383,265 @@ public static Integer computeSnowpackStack(Integer[] arr) {
 }
 ```
 
+#### Detailed Dry Run
+
+**Input:** `{0, 1, 3, 0, 1, 2, 0, 4, 2, 0, 3, 0}`
+
+```
+Step | i | arr[i] | Stack (indices) | Action | Calculation | Water | Total
+-----|---|--------|-----------------|--------|-------------|-------|------
+  1  | 0 |   0    |      []         | Push 0 |      -      |   -   |  0
+     |   |        |      [0]        |        |             |       |
+  2  | 1 |   1    |      [0]        | 1>0    |             |       |
+     |   |        |                 | Pop 0  | No left     |   0   |  0
+     |   |        |      []         | Push 1 |             |       |
+     |   |        |      [1]        |        |             |       |
+  3  | 2 |   3    |      [1]        | 3>1    |             |       |
+     |   |        |                 | Pop 1  | No left     |   0   |  0
+     |   |        |      []         | Push 2 |             |       |
+     |   |        |      [2]        |        |             |       |
+  4  | 3 |   0    |      [2]        | 0<3    | Push 3     |   -   |  0
+     |   |        |      [2,3]      |        |             |       |
+  5  | 4 |   1    |      [2,3]      | 1>0    |             |       |
+     |   |        |                 | Pop 3  | top=3       |       |
+     |   |        |      [2]        | left=2, right=4     |       |
+     |   |        |                 | dist=4-2-1=1        |       |
+     |   |        |                 | h=min(1,3)-0=1      | 1×1=1 |  1
+     |   |        |      [2]        | 1<3    | Push 4     |       |
+     |   |        |      [2,4]      |        |             |       |
+  6  | 5 |   2    |      [2,4]      | 2>1    |             |       |
+     |   |        |                 | Pop 4  | top=4       |       |
+     |   |        |      [2]        | left=2, right=5     |       |
+     |   |        |                 | dist=5-2-1=2        |       |
+     |   |        |                 | h=min(2,3)-1=1      | 2×1=2 |  3
+     |   |        |      [2]        | 2<3    | Push 5     |       |
+     |   |        |      [2,5]      |        |             |       |
+  7  | 6 |   0    |      [2,5]      | 0<2    | Push 6     |   -   |  3
+     |   |        |      [2,5,6]    |        |             |       |
+  8  | 7 |   4    |      [2,5,6]    | 4>0    |             |       |
+     |   |        |                 | Pop 6  | top=6       |       |
+     |   |        |      [2,5]      | left=5, right=7     |       |
+     |   |        |                 | dist=7-5-1=1        |       |
+     |   |        |                 | h=min(4,2)-0=2      | 1×2=2 |  5
+     |   |        |      [2,5]      | 4>2    |             |       |
+     |   |        |                 | Pop 5  | top=5       |       |
+     |   |        |      [2]        | left=2, right=7     |       |
+     |   |        |                 | dist=7-2-1=4        |       |
+     |   |        |                 | h=min(4,3)-2=1      | 4×1=4 |  9
+     |   |        |      [2]        | 4>3    |             |       |
+     |   |        |                 | Pop 2  | No left     |   0   |  9
+     |   |        |      []         | Push 7 |             |       |
+     |   |        |      [7]        |        |             |       |
+  9  | 8 |   2    |      [7]        | 2<4    | Push 8     |   -   |  9
+     |   |        |      [7,8]      |        |             |       |
+ 10  | 9 |   0    |      [7,8]      | 0<2    | Push 9     |   -   |  9
+     |   |        |      [7,8,9]    |        |             |       |
+ 11  | 10|   3    |      [7,8,9]    | 3>0    |             |       |
+     |   |        |                 | Pop 9  | top=9       |       |
+     |   |        |      [7,8]      | left=8, right=10    |       |
+     |   |        |                 | dist=10-8-1=1       |       |
+     |   |        |                 | h=min(3,2)-0=2      | 1×2=2 | 11
+     |   |        |      [7,8]      | 3>2    |             |       |
+     |   |        |                 | Pop 8  | top=8       |       |
+     |   |        |      [7]        | left=7, right=10    |       |
+     |   |        |                 | dist=10-7-1=2       |       |
+     |   |        |                 | h=min(3,4)-2=1      | 2×1=2 | 13
+     |   |        |      [7]        | 3<4    | Push 10    |       |
+     |   |        |      [7,10]     |        |             |       |
+ 12  | 11|   0    |      [7,10]     | 0<3    | Push 11    |   -   | 13
+     |   |        |      [7,10,11]  |        |             |       |
+
+Loop ends
+Final water = 13 units
+```
+
+**Layer-by-Layer Visualization:**
+```
+Array: {0, 1, 3, 0, 1, 2, 0, 4, 2, 0, 3, 0}
+
+Step 5 (i=4): Fill between indices 2 and 4
+        3
+        3  *  1
+        ━━━━━━━  (1 unit)
+
+Step 6 (i=5): Fill between indices 2 and 5
+        3
+        3  *  1  2
+        ━━━━━━━━━━  (2 units)
+
+Step 8 (i=7): Fill between indices 5 and 7
+                    4
+              2  *  4
+              ━━━━━━  (2 units)
+
+Step 8 (i=7): Fill between indices 2 and 7
+        3           4
+        3  *  *  *  4
+        ━━━━━━━━━━━━━  (4 units)
+
+Step 11 (i=10): Fill between indices 8 and 10
+                    4     3
+                    4  2  3
+                    ━━━━━━  (2 units)
+
+Step 11 (i=10): Fill between indices 7 and 10
+                    4  *  3
+                    4  2  3
+                    ━━━━━━━━  (2 units)
+```
+
 ---
 
-## Algorithm Walkthrough
+## Comparison of Approaches
 
-### Example: {0, 1, 3, 0, 1, 2, 0, 4, 2, 0, 3, 0}
+| Approach | Time | Space | Pros | Cons | Best For |
+|----------|------|-------|------|------|----------|
+| Two-Pass Arrays | O(n) | O(n) | Simple to understand, easy to debug | Extra space for arrays | Learning, interviews |
+| Two Pointers | O(n) | O(1) | Optimal space, single pass | Slightly harder to understand | Production code |
+| Stack-Based | O(n) | O(n) | Calculates layer by layer, elegant | Most complex logic | Advanced interviews |
 
-**Two-Pass Approach:**
+---
 
+## Algorithm Walkthrough - Simplified Example
+
+### Example: {4, 2, 0, 3, 2, 5}
+
+**Visual:**
 ```
-Step 1: Build leftMax array
-Index:    0  1  2  3  4  5  6  7  8  9  10 11
-arr:      0  1  3  0  1  2  0  4  2  0  3  0
-leftMax:  0  1  3  3  3  3  3  4  4  4  4  4
+                        5
+    4           3       5
+    4   2       3   2   5
+    4   2   0   3   2   5
+    ━━━━━━━━━━━━━━━━━━
+    0   1   2   3   4   5
 
-Step 2: Build rightMax array
-Index:    0  1  2  3  4  5  6  7  8  9  10 11
-arr:      0  1  3  0  1  2  0  4  2  0  3  0
-rightMax: 4  4  4  4  4  4  4  4  3  3  3  0
-
-Step 3: Calculate water at each position
-water[i] = min(leftMax[i], rightMax[i]) - arr[i]
-
-i=0:  min(0, 4) - 0 = 0
-i=1:  min(1, 4) - 1 = 0
-i=2:  min(3, 4) - 3 = 0
-i=3:  min(3, 4) - 0 = 3  ✓
-i=4:  min(3, 4) - 1 = 2  ✓
-i=5:  min(3, 4) - 2 = 1  ✓
-i=6:  min(3, 4) - 0 = 3  ✓
-i=7:  min(4, 4) - 4 = 0
-i=8:  min(4, 3) - 2 = 1  ✓
-i=9:  min(4, 3) - 0 = 3  ✓
-i=10: min(4, 3) - 3 = 0
-i=11: min(4, 0) - 0 = 0
-
-Total: 0+0+0+3+2+1+3+0+1+3+0+0 = 13
+With water:
+                        5
+    4   *   *   3   *   5
+    4   2   *   3   2   5
+    4   2   0   3   2   5
+    ━━━━━━━━━━━━━━━━━━
+    Water: 0+2+4+1+3+0 = 9 units
 ```
 
-**Two-Pointer Approach:**
-
+**Approach 1: Two-Pass**
 ```
-Initial: left=0, right=11, leftMax=0, rightMax=0, water=0
-
-Step 1: arr[0]=0 < arr[11]=0 (equal, go left)
-  arr[0]=0 >= leftMax=0 → leftMax=0
-  left=1
-
-Step 2: arr[1]=1 > arr[11]=0
-  arr[11]=0 >= rightMax=0 → rightMax=0
-  right=10
-
-Step 3: arr[1]=1 < arr[10]=3
-  arr[1]=1 >= leftMax=0 → leftMax=1
-  left=2
-
-Step 4: arr[2]=3 >= arr[10]=3
-  arr[10]=3 >= rightMax=0 → rightMax=3
-  right=9
-
-Step 5: arr[2]=3 >= arr[9]=0
-  arr[9]=0 < rightMax=3 → water += 3-0 = 3
-  right=8
-
-Step 6: arr[2]=3 > arr[8]=2
-  arr[8]=2 < rightMax=3 → water += 3-2 = 1
-  water=4, right=7
-
-Step 7: arr[2]=3 < arr[7]=4
-  arr[2]=3 >= leftMax=1 → leftMax=3
-  left=3
-
-Step 8: arr[3]=0 < arr[7]=4
-  arr[3]=0 < leftMax=3 → water += 3-0 = 3
-  water=7, left=4
-
-Step 9: arr[4]=1 < arr[7]=4
-  arr[4]=1 < leftMax=3 → water += 3-1 = 2
-  water=9, left=5
-
-Step 10: arr[5]=2 < arr[7]=4
-  arr[5]=2 < leftMax=3 → water += 3-2 = 1
-  water=10, left=6
-
-Step 11: arr[6]=0 < arr[7]=4
-  arr[6]=0 < leftMax=3 → water += 3-0 = 3
-  water=13, left=7
-
-left=7, right=7 → Stop
-
-Total: 13
+Step 1: leftMax  = {4, 4, 4, 4, 4, 5}
+Step 2: rightMax = {5, 5, 5, 5, 5, 5}
+Step 3: Water calculation
+  i=0: min(4,5)-4 = 0
+  i=1: min(4,5)-2 = 2 ✓
+  i=2: min(4,5)-0 = 4 ✓
+  i=3: min(4,5)-3 = 1 ✓
+  i=4: min(4,5)-2 = 2 ✓
+  i=5: min(5,5)-5 = 0
+  Total = 9
 ```
+
+**Approach 2: Two Pointers**
+```
+L=0, R=5: arr[0]=4, arr[5]=5, 4<5 → leftMax=4, L++
+L=1, R=5: arr[1]=2, arr[5]=5, 2<5 → water+=4-2=2, L++
+L=2, R=5: arr[2]=0, arr[5]=5, 0<5 → water+=4-0=4, L++
+L=3, R=5: arr[3]=3, arr[5]=5, 3<5 → water+=4-3=1, L++
+L=4, R=5: arr[4]=2, arr[5]=5, 2<5 → water+=4-2=2, L++
+L=5, R=5: Stop
+Total = 2+4+1+2 = 9
+```
+
+**Approach 3: Stack**
+```
+i=0: Push 0, stack=[0]
+i=1: 2<4, Push 1, stack=[0,1]
+i=2: 0<2, Push 2, stack=[0,1,2]
+i=3: 3>0, Pop 2
+     left=1, right=3, dist=1, h=min(3,2)-0=2, water=2
+     3>2, Pop 1
+     left=0, right=3, dist=2, h=min(3,4)-2=1, water=2+2=4
+     3<4, Push 3, stack=[0,3]
+i=4: 2<3, Push 4, stack=[0,3,4]
+i=5: 5>2, Pop 4
+     left=3, right=5, dist=1, h=min(5,3)-2=1, water=4+1=5
+     5>3, Pop 3
+     left=0, right=5, dist=4, h=min(5,4)-3=1, water=5+4=9
+     5>4, Pop 0, no left
+     Push 5, stack=[5]
+Total = 9
+```
+
+---
+
+## Key Insights and Patterns
+
+### 1. Water Level Principle
+```
+Water at position i = min(max_left, max_right) - height[i]
+```
+The water level is always limited by the shorter boundary.
+
+### 2. Monotonic Stack Pattern
+The stack-based approach uses a **monotonic decreasing stack**:
+- Maintains indices in decreasing order of heights
+- When a taller bar appears, it triggers water calculation
+- Common in problems involving "next greater element"
+
+### 3. Two Pointer Optimization
+When you need both left and right information:
+- If you can determine the answer using only one side, use two pointers
+- Move the pointer with the smaller value
+- Eliminates need for preprocessing arrays
+
+### 4. Edge Cases
+```java
+// No water possible
+{1, 2, 3, 4, 5}  // Strictly increasing
+{5, 4, 3, 2, 1}  // Strictly decreasing
+{3, 3, 3, 3}     // All same height
+{5}              // Single element
+{5, 3}           // Two elements
+
+// Water trapped
+{3, 0, 2}        // Simple valley = 2
+{3, 0, 0, 2}     // Wide valley = 4
+{5, 2, 1, 2, 1, 5}  // Multiple valleys = 14
+```
+
+### 5. Common Mistakes
+```java
+// ❌ Wrong: Using current height as boundary
+water += arr[i] - arr[i];  // Always 0!
+
+// ✓ Correct: Using max boundaries
+water += Math.min(leftMax, rightMax) - arr[i];
+
+// ❌ Wrong: Not checking if water is negative
+water += leftMax - arr[i];  // Could be negative!
+
+// ✓ Correct: Water is always non-negative
+if (arr[i] < leftMax) {
+    water += leftMax - arr[i];
+}
+```
+
+---
+
+## Related Problems
+
+1. **Container With Most Water** (LeetCode 11)
+   - Similar two-pointer approach
+   - Find maximum area, not total water
+
+2. **Largest Rectangle in Histogram** (LeetCode 84)
+   - Uses similar stack-based approach
+   - Monotonic stack pattern
+
+3. **Maximal Rectangle** (LeetCode 85)
+   - Extension of histogram problem
+   - 2D version of water trapping
+
+4. **Pour Water** (LeetCode 755)
+   - Simulation of water pouring
+   - Uses similar water level concepts
 
 ---
 
