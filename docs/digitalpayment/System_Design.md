@@ -205,10 +205,21 @@ public boolean transferMoney(Long fromUserId, Long toUserId, BigDecimal amount) 
 ```
 User clicks "Pay" button → Network timeout → User clicks again
 Result: Two identical payment requests
-Solution: Idempotency keys
+Solution: Idempotency keys with atomic locking
 ```
 
-#### Idempotency Implementation
+#### The Race Condition in Naive Idempotency
+```
+Scenario: Two duplicate requests arrive simultaneously
+
+Request 1: Check Redis (key not found) → Start processing payment
+Request 2: Check Redis (key not found) → Start processing payment
+
+Result: Both requests process payment → Duplicate charge!
+Problem: Gap between check and set allows race condition
+```
+
+#### Two-Phase Idempotency Implementation (Production-Ready)
 ```java
 @Service
 public class PaymentService {
@@ -216,26 +227,74 @@ public class PaymentService {
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
     
+    private static final String PROCESSING = "PROCESSING";
+    
     public PaymentResult processPayment(PaymentRequest request) {
         String idempotencyKey = request.getIdempotencyKey();
         
-        // Check if we've seen this request before
-        String cachedResult = redisTemplate.opsForValue().get(idempotencyKey);
-        if (cachedResult != null) {
-            return deserialize(cachedResult); // Return cached result
+        // Phase 1: Atomic lock acquisition with SETNX (SET if Not eXists)
+        Boolean acquired = redisTemplate.opsForValue()
+            .setIfAbsent(idempotencyKey, PROCESSING, Duration.ofMinutes(10));
+        
+        if (Boolean.FALSE.equals(acquired)) {
+            // Key exists - either processing or completed
+            String cachedValue = redisTemplate.opsForValue().get(idempotencyKey);
+            
+            if (PROCESSING.equals(cachedValue)) {
+                // Payment is being processed by another request, wait for result
+                return pollForResult(idempotencyKey);
+            } else {
+                // Payment completed, return cached result
+                return deserialize(cachedValue);
+            }
         }
         
-        // Process payment for first time
-        PaymentResult result = executePayment(request);
-        
-        // Cache result for 24 hours
-        redisTemplate.opsForValue().set(idempotencyKey, serialize(result), 
-                                      Duration.ofHours(24));
-        
-        return result;
+        // Phase 2: We acquired the lock, process payment
+        try {
+            PaymentResult result = executePayment(request);
+            
+            // Replace PROCESSING marker with actual result
+            redisTemplate.opsForValue().set(idempotencyKey, 
+                serialize(result), Duration.ofHours(24));
+            
+            return result;
+        } catch (Exception e) {
+            // Clean up lock on failure to allow retry
+            redisTemplate.delete(idempotencyKey);
+            throw e;
+        }
+    }
+    
+    private PaymentResult pollForResult(String idempotencyKey) {
+        // Poll for up to 30 seconds for payment completion
+        for (int i = 0; i < 30; i++) {
+            try {
+                Thread.sleep(1000);
+                String value = redisTemplate.opsForValue().get(idempotencyKey);
+                
+                if (value == null) {
+                    throw new PaymentException("Payment processing failed");
+                }
+                
+                if (!PROCESSING.equals(value)) {
+                    return deserialize(value);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new PaymentException("Polling interrupted");
+            }
+        }
+        throw new TimeoutException("Payment processing timeout");
     }
 }
 ```
+
+#### Why This Approach Works
+1. **Atomic Lock**: `setIfAbsent()` (Redis SETNX) is atomic - only one request succeeds
+2. **Processing State**: Immediately marks request as in-progress
+3. **Duplicate Handling**: Other requests wait instead of failing or duplicating
+4. **Failure Recovery**: Removes lock on error to allow legitimate retries
+5. **TTL Safety**: 10-minute lock expiry prevents deadlocks if process crashes
 
 ### Fraud Detection Algorithms
 

@@ -16,6 +16,417 @@ Implement a double-ended queue (deque) that stores strings with operations at bo
 
 ---
 
+## How Each Operation Works (In-Depth)
+
+### 1. addFirst(String item) - Add Element at Front
+
+**Concept:** Insert a new element at the beginning of the deque, shifting the front pointer backward.
+
+**Algorithm Steps:**
+1. Check if deque is full → resize if needed
+2. Move front pointer backward (circularly)
+3. Place item at new front position
+4. Increment size
+
+**Circular Array Math:**
+```java
+front = (front - 1 + data.length) % data.length;
+```
+- Subtract 1 to move backward
+- Add `data.length` to handle negative wraparound
+- Modulo ensures circular behavior
+
+**Example Walkthrough:**
+```
+Initial State: capacity=5, size=0
+[_, _, _, _, _]
+ ^front=0, rear=0
+
+Step 1: addFirst("A")
+- front = (0 - 1 + 5) % 5 = 4
+- data[4] = "A"
+- size = 1
+
+[_, _, _, _, A]
+             ^front=4
+ ^rear=0
+
+Step 2: addFirst("B")
+- front = (4 - 1 + 5) % 5 = 3
+- data[3] = "B"
+- size = 2
+
+[_, _, _, B, A]
+          ^front=3
+ ^rear=0
+
+Step 3: addFirst("C")
+- front = (3 - 1 + 5) % 5 = 2
+- data[2] = "C"
+- size = 3
+
+[_, _, C, B, A]
+       ^front=2
+ ^rear=0
+```
+
+**Why Circular?** Without circular logic, we'd run out of space at index 0 even if indices 1-4 are empty.
+
+---
+
+### 2. addLast(String item) - Add Element at Rear
+
+**Concept:** Insert a new element at the end of the deque, moving the rear pointer forward.
+
+**Algorithm Steps:**
+1. Check if deque is full → resize if needed
+2. Place item at current rear position
+3. Move rear pointer forward (circularly)
+4. Increment size
+
+**Circular Array Math:**
+```java
+rear = (rear + 1) % data.length;
+```
+- Add 1 to move forward
+- Modulo wraps around to index 0 when reaching end
+
+**Example Walkthrough:**
+```
+Initial State: capacity=5, size=0
+[_, _, _, _, _]
+ ^front=0, rear=0
+
+Step 1: addLast("X")
+- data[0] = "X"
+- rear = (0 + 1) % 5 = 1
+- size = 1
+
+[X, _, _, _, _]
+ ^front=0
+    ^rear=1
+
+Step 2: addLast("Y")
+- data[1] = "Y"
+- rear = (1 + 1) % 5 = 2
+- size = 2
+
+[X, Y, _, _, _]
+ ^front=0
+       ^rear=2
+
+Step 3: addLast("Z")
+- data[2] = "Z"
+- rear = (2 + 1) % 5 = 3
+- size = 3
+
+[X, Y, Z, _, _]
+ ^front=0
+          ^rear=3
+```
+
+**Combined Example (addFirst + addLast):**
+```
+Start: [_, _, _, _, _] front=0, rear=0
+
+addLast("A"):  [A, _, _, _, _] front=0, rear=1
+addLast("B"):  [A, B, _, _, _] front=0, rear=2
+addFirst("Z"): [A, B, _, _, Z] front=4, rear=2
+addFirst("Y"): [A, B, _, Y, Z] front=3, rear=2
+addLast("C"):  [A, B, C, Y, Z] front=3, rear=3
+
+Logical Order: Y → Z → A → B → C
+Array Indices: [3] [4] [0] [1] [2]
+```
+
+---
+
+### 3. removeFirst() - Remove Element from Front
+
+**Concept:** Remove and return the front element, moving the front pointer forward.
+
+**Algorithm Steps:**
+1. Check if deque is empty → throw exception
+2. Retrieve item at front position
+3. Set front position to null (garbage collection)
+4. Move front pointer forward (circularly)
+5. Decrement size
+6. Return retrieved item
+
+**Circular Array Math:**
+```java
+front = (front + 1) % data.length;
+```
+
+**Example Walkthrough:**
+```
+Initial State: [A, B, C, Y, Z] front=3, rear=3, size=5
+Logical Order: Y → Z → A → B → C
+
+Step 1: removeFirst() → returns "Y"
+- item = data[3] = "Y"
+- data[3] = null
+- front = (3 + 1) % 5 = 4
+- size = 4
+
+[A, B, C, _, Z] front=4, rear=3
+Logical Order: Z → A → B → C
+
+Step 2: removeFirst() → returns "Z"
+- item = data[4] = "Z"
+- data[4] = null
+- front = (4 + 1) % 5 = 0
+- size = 3
+
+[A, B, C, _, _] front=0, rear=3
+Logical Order: A → B → C
+
+Step 3: removeFirst() → returns "A"
+- item = data[0] = "A"
+- data[0] = null
+- front = (0 + 1) % 5 = 1
+- size = 2
+
+[_, B, C, _, _] front=1, rear=3
+Logical Order: B → C
+```
+
+---
+
+### 4. removeLast() - Remove Element from Rear
+
+**Concept:** Remove and return the rear element, moving the rear pointer backward.
+
+**Algorithm Steps:**
+1. Check if deque is empty → throw exception
+2. Move rear pointer backward (circularly)
+3. Retrieve item at new rear position
+4. Set rear position to null
+5. Decrement size
+6. Return retrieved item
+
+**Circular Array Math:**
+```java
+rear = (rear - 1 + data.length) % data.length;
+```
+
+**Example Walkthrough:**
+```
+Initial State: [A, B, C, _, _] front=0, rear=3, size=3
+Logical Order: A → B → C
+
+Step 1: removeLast() → returns "C"
+- rear = (3 - 1 + 5) % 5 = 2
+- item = data[2] = "C"
+- data[2] = null
+- size = 2
+
+[A, B, _, _, _] front=0, rear=2
+Logical Order: A → B
+
+Step 2: removeLast() → returns "B"
+- rear = (2 - 1 + 5) % 5 = 1
+- item = data[1] = "B"
+- data[1] = null
+- size = 1
+
+[A, _, _, _, _] front=0, rear=1
+Logical Order: A
+
+Step 3: removeLast() → returns "A"
+- rear = (1 - 1 + 5) % 5 = 0
+- item = data[0] = "A"
+- data[0] = null
+- size = 0
+
+[_, _, _, _, _] front=0, rear=0
+Logical Order: (empty)
+```
+
+---
+
+### 5. peekFirst() - View Front Element
+
+**Concept:** Return the front element without removing it.
+
+**Algorithm Steps:**
+1. Check if deque is empty → throw exception
+2. Return item at front position
+3. No state changes (front, rear, size remain same)
+
+**Example:**
+```
+State: [_, _, C, B, A] front=2, rear=0, size=3
+Logical Order: C → B → A
+
+peekFirst() → returns "C"
+- Simply returns data[front] = data[2] = "C"
+- No changes to array or pointers
+
+State after: [_, _, C, B, A] front=2, rear=0, size=3 (unchanged)
+```
+
+---
+
+### 6. peekLast() - View Rear Element
+
+**Concept:** Return the rear element without removing it.
+
+**Algorithm Steps:**
+1. Check if deque is empty → throw exception
+2. Calculate last valid index (rear - 1, circularly)
+3. Return item at that position
+4. No state changes
+
+**Circular Array Math:**
+```java
+int lastIndex = (rear - 1 + data.length) % data.length;
+```
+
+**Why rear - 1?** The `rear` pointer always points to the NEXT empty position, not the last element.
+
+**Example:**
+```
+State: [_, _, C, B, A] front=2, rear=0, size=3
+Logical Order: C → B → A
+
+peekLast() → returns "A"
+- lastIndex = (0 - 1 + 5) % 5 = 4
+- Returns data[4] = "A"
+- No changes to array or pointers
+
+State after: [_, _, C, B, A] front=2, rear=0, size=3 (unchanged)
+```
+
+---
+
+### 7. isEmpty() - Check if Empty
+
+**Concept:** Determine if deque contains any elements.
+
+**Algorithm:**
+```java
+return size == 0;
+```
+
+**Example:**
+```
+Case 1: [_, _, _, _, _] front=0, rear=0, size=0
+isEmpty() → true
+
+Case 2: [A, _, _, _, _] front=0, rear=1, size=1
+isEmpty() → false
+
+Case 3: [A, B, C, D, E] front=0, rear=0, size=5 (full, wrapped)
+isEmpty() → false
+```
+
+**Why not use front == rear?** Because front == rear can mean both empty AND full in a circular buffer.
+
+---
+
+### 8. size() - Get Element Count
+
+**Concept:** Return the number of elements currently in the deque.
+
+**Algorithm:**
+```java
+return size;
+```
+
+**Example:**
+```
+State: [A, B, C, Y, Z] front=3, rear=3, size=5
+size() → 5
+
+After removeFirst():
+State: [A, B, C, _, Z] front=4, rear=3, size=4
+size() → 4
+```
+
+---
+
+### 9. resize() - Dynamic Array Expansion
+
+**Concept:** When the array is full, create a larger array and copy elements in logical order.
+
+**Algorithm Steps:**
+1. Create new array with double capacity
+2. Copy elements from old array in logical order (not physical order)
+3. Reset front to 0, rear to size
+4. Replace old array with new array
+
+**Example Walkthrough:**
+```
+Before Resize: capacity=5, size=5 (FULL)
+[A, B, C, Y, Z] front=3, rear=3
+Logical Order: Y → Z → A → B → C
+
+Resize Process:
+1. Create newData[10]
+2. Copy in logical order:
+   - i=0: newData[0] = data[(3+0)%5] = data[3] = "Y"
+   - i=1: newData[1] = data[(3+1)%5] = data[4] = "Z"
+   - i=2: newData[2] = data[(3+2)%5] = data[0] = "A"
+   - i=3: newData[3] = data[(3+3)%5] = data[1] = "B"
+   - i=4: newData[4] = data[(3+4)%5] = data[2] = "C"
+3. front = 0, rear = 5
+
+After Resize: capacity=10, size=5
+[Y, Z, A, B, C, _, _, _, _, _] front=0, rear=5
+Logical Order: Y → Z → A → B → C
+```
+
+**Why Copy in Logical Order?** To eliminate wraparound and simplify the new array layout.
+
+---
+
+## Complete Visual Example: All Operations
+
+```
+Initial: capacity=5
+[_, _, _, _, _] front=0, rear=0, size=0
+
+1. addLast("A"):
+   [A, _, _, _, _] front=0, rear=1, size=1
+   Order: A
+
+2. addLast("B"):
+   [A, B, _, _, _] front=0, rear=2, size=2
+   Order: A → B
+
+3. addFirst("Z"):
+   [A, B, _, _, Z] front=4, rear=2, size=3
+   Order: Z → A → B
+
+4. addFirst("Y"):
+   [A, B, _, Y, Z] front=3, rear=2, size=4
+   Order: Y → Z → A → B
+
+5. addLast("C"):
+   [A, B, C, Y, Z] front=3, rear=3, size=5 (FULL)
+   Order: Y → Z → A → B → C
+
+6. peekFirst() → "Y" (no change)
+   [A, B, C, Y, Z] front=3, rear=3, size=5
+
+7. peekLast() → "C" (no change)
+   [A, B, C, Y, Z] front=3, rear=3, size=5
+
+8. removeFirst() → "Y":
+   [A, B, C, _, Z] front=4, rear=3, size=4
+   Order: Z → A → B → C
+
+9. removeLast() → "C":
+   [A, B, _, _, Z] front=4, rear=2, size=3
+   Order: Z → A → B
+
+10. size() → 3
+    isEmpty() → false
+```
+
+---
+
 ## Solution Approaches
 
 ### Approach 1: Array-Based (Circular Buffer)

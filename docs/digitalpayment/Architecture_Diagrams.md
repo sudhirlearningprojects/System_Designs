@@ -168,62 +168,7 @@ This diagram shows the complete payment platform architecture with clear separat
 5. **Data Layer**: Persistent storage with different databases for different needs
 6. **Message Queue**: Asynchronous communication between services
 
-```mermaid
-graph TB
-    subgraph "Client Layer"
-        MA[Mobile App]
-        WA[Web App]
-    end
-    
-    subgraph "API Gateway Layer"
-        AG[API Gateway<br/>Authentication<br/>Rate Limiting<br/>Load Balancing]
-    end
-    
-    subgraph "Microservices Layer"
-        PS[Payment Service]
-        LS[Ledger Service]
-        FDS[Fraud Detection Service]
-        US[User Service]
-        THS[Transaction History Service]
-    end
-    
-    subgraph "External Services"
-        UPI[UPI Gateway]
-        CARD[Card Gateway]
-        NB[Net Banking Gateway]
-    end
-    
-    subgraph "Data Layer"
-        PG[(PostgreSQL<br/>Transactions)]
-        RD[(Redis<br/>Cache)]
-        CS[(Cassandra<br/>Logs)]
-    end
-    
-    subgraph "Message Queue"
-        KF[Apache Kafka]
-    end
-    
-    MA --> AG
-    WA --> AG
-    AG --> PS
-    AG --> US
-    AG --> THS
-    
-    PS --> LS
-    PS --> FDS
-    PS --> UPI
-    PS --> CARD
-    PS --> NB
-    
-    PS --> PG
-    LS --> PG
-    FDS --> RD
-    THS --> CS
-    
-    PS --> KF
-    KF --> FDS
-    KF --> THS
-```
+![High-Level System Architecture](images/High_Level_System_Architecture.png)
 
 ## Payment Flow Sequence Diagram
 
@@ -283,6 +228,16 @@ public FraudCheckResult validateTransaction(PaymentRequest request) {
         return FraudCheckResult.block("Too many transactions");
     }
     
+    // Check velocity (rapid successive transactions)
+    if (isVelocityAnomaly(request.getUserId())) {
+        return FraudCheckResult.review("Unusual transaction velocity");
+    }
+    
+    return FraudCheckResult.allow();
+}IONS) {
+        return FraudCheckResult.block("Too many transactions");
+    }
+    
     // Check amount threshold
     if (request.getAmount().compareTo(HIGH_VALUE_THRESHOLD) > 0) {
         score.addRisk("HIGH_AMOUNT", 30);
@@ -294,223 +249,285 @@ public FraudCheckResult validateTransaction(PaymentRequest request) {
 }
 ```
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant API_Gateway
-    participant Payment_Service
-    participant Fraud_Detection
-    participant Ledger_Service
-    participant PSP_Gateway
-    participant Database
-    participant Redis
-    
-    Client->>API_Gateway: Initiate Payment Request
-    API_Gateway->>Payment_Service: Route Request
-    
-    Payment_Service->>Redis: Check Idempotency Key
-    Redis-->>Payment_Service: Key Status
-    
-    Payment_Service->>Fraud_Detection: Validate Transaction
-    Fraud_Detection->>Redis: Check Limits & Patterns
-    Redis-->>Fraud_Detection: User Activity Data
-    Fraud_Detection-->>Payment_Service: Validation Result
-    
-    alt Fraud Check Passed
-        Payment_Service->>Database: Create Transaction Record
-        Database-->>Payment_Service: Transaction Created
-        
-        alt Wallet Payment
-            Payment_Service->>Ledger_Service: Transfer Funds
-            Ledger_Service->>Database: Atomic Balance Update
-            Database-->>Ledger_Service: Update Successful
-            Ledger_Service-->>Payment_Service: Transfer Complete
-        else External PSP
-            Payment_Service->>PSP_Gateway: Process Payment
-            PSP_Gateway-->>Payment_Service: PSP Response
-        end
-        
-        Payment_Service->>Database: Update Transaction Status
-        Payment_Service->>Redis: Cache Result (Idempotency)
-        Payment_Service-->>Client: Payment Response
-    else Fraud Check Failed
-        Payment_Service-->>Client: Transaction Blocked
-    end
-```
+![Payment Flow Sequence Diagram](images/Payment_Flow_Sequence_Diagram.png)
 
 ## Database Schema Design
 
-```mermaid
-erDiagram
-    USER {
-        string user_id PK
-        string name
-        string phone_number UK
-        string email UK
-        string pin
-        enum status
-        timestamp created_at
-    }
-    
-    ACCOUNT {
-        string account_id PK
-        string user_id FK
-        string bank_name
-        string account_number
-        string ifsc_code
-        decimal balance
-        enum type
-        enum status
-        long version
-        timestamp created_at
-    }
-    
-    WALLET {
-        string wallet_id PK
-        string user_id FK
-        decimal balance
-        long version
-        timestamp last_updated
-    }
-    
-    TRANSACTION {
-        string transaction_id PK
-        string sender_id
-        string receiver_id
-        decimal amount
-        string currency
-        enum type
-        enum status
-        enum payment_method
-        string psp_transaction_id
-        string description
-        string idempotency_key UK
-        timestamp created_at
-        timestamp updated_at
-    }
-    
-    USER ||--o{ ACCOUNT : has
-    USER ||--|| WALLET : owns
-    USER ||--o{ TRANSACTION : sends
-    USER ||--o{ TRANSACTION : receives
-```
+![Database Schema Design](images/Database_Schema.png)
 
 ## Concurrency Control Architecture
 
-```mermaid
-graph TB
-    subgraph "Concurrent Requests"
-        R1[Request 1<br/>Transfer ₹100]
-        R2[Request 2<br/>Transfer ₹200]
-        R3[Request 3<br/>Check Balance]
-    end
-    
-    subgraph "Ledger Service"
-        LS[Ledger Service<br/>@Transactional<br/>SERIALIZABLE]
-    end
-    
-    subgraph "Database Layer"
-        PL[Pessimistic Lock<br/>SELECT FOR UPDATE]
-        WR[Wallet Record<br/>Balance: ₹500<br/>Version: 1]
-    end
-    
-    R1 --> LS
-    R2 --> LS
-    R3 --> LS
-    
-    LS --> PL
-    PL --> WR
-    
-    note1[Request 1 acquires lock first]
-    note2[Request 2 waits for lock release]
-    note3[Request 3 reads after updates]
-```
+![Concurrency Control Architecture](images/Concurrency_Control_Architecture.png)
 
 ## Fraud Detection Flow
 
-```mermaid
-graph TD
-    TR[Transaction Request] --> FD[Fraud Detection Service]
-    
-    FD --> DL{Daily Limit<br/>Check}
-    FD --> FL{Frequency<br/>Check}
-    FD --> AL{Amount<br/>Threshold}
-    
-    DL -->|< ₹1,00,000| DL_OK[✓ Pass]
-    DL -->|≥ ₹1,00,000| DL_FAIL[✗ Block]
-    
-    FL -->|< 50/hour| FL_OK[✓ Pass]
-    FL -->|≥ 50/hour| FL_FAIL[✗ Block]
-    
-    AL -->|< ₹50,000| AL_OK[✓ Pass]
-    AL -->|≥ ₹50,000| AL_FLAG[⚠ Flag]
-    
-    DL_OK --> ALLOW[Allow Transaction]
-    FL_OK --> ALLOW
-    AL_OK --> ALLOW
-    AL_FLAG --> ALLOW
-    
-    DL_FAIL --> BLOCK[Block Transaction]
-    FL_FAIL --> BLOCK
-```
+![Fraud Detection Flow](images/Fraud_Detection_Flow.png)
 
 ## Deployment Architecture
 
-```mermaid
-graph TB
-    subgraph "Load Balancer"
-        LB[NGINX/AWS ALB]
-    end
-    
-    subgraph "Application Tier (Kubernetes)"
-        subgraph "Payment Service Pods"
-            PS1[Payment Service 1]
-            PS2[Payment Service 2]
-            PS3[Payment Service 3]
-        end
-        
-        subgraph "Ledger Service Pods"
-            LS1[Ledger Service 1]
-            LS2[Ledger Service 2]
-        end
-        
-        subgraph "Fraud Detection Pods"
-            FD1[Fraud Detection 1]
-            FD2[Fraud Detection 2]
-        end
-    end
-    
-    subgraph "Data Tier"
-        subgraph "PostgreSQL Cluster"
-            PG_M[(Primary)]
-            PG_R1[(Replica 1)]
-            PG_R2[(Replica 2)]
-        end
-        
-        subgraph "Redis Cluster"
-            RD_M[(Redis Master)]
-            RD_S1[(Redis Slave 1)]
-            RD_S2[(Redis Slave 2)]
-        end
-    end
-    
-    LB --> PS1
-    LB --> PS2
-    LB --> PS3
-    
-    PS1 --> LS1
-    PS2 --> LS2
-    PS3 --> FD1
-    
-    LS1 --> PG_M
-    LS2 --> PG_M
-    FD1 --> RD_M
-    FD2 --> RD_M
-    
-    PG_M --> PG_R1
-    PG_M --> PG_R2
-    RD_M --> RD_S1
-    RD_M --> RD_S2
-```
+![Deployment Architecture](images/Deployment_Architecture.png)
 
 These diagrams illustrate the comprehensive architecture of the digital payment platform, showing the flow of data, security measures, and scalability considerations.
+
+
+## P2P Transaction Flow Diagram
+
+### Complete P2P Money Transfer Flow
+
+This diagram shows the end-to-end flow for a Person-to-Person (P2P) money transfer, including all validation, fraud checks, and atomic balance updates.
+
+![P2P Transaction Flow](images/P2P_Transaction_Flow.png)
+
+### Key Components Explained
+
+#### 1. Idempotency Protection
+```java
+// Prevents duplicate transactions from network retries
+@PostMapping("/api/v1/payments/transfer")
+public ResponseEntity<PaymentResponse> transfer(
+    @RequestHeader("X-Idempotency-Key") String idempotencyKey,
+    @RequestBody TransferRequest request) {
+    
+    // Check cache first (fast path)
+    PaymentResponse cached = redisTemplate.opsForValue().get(idempotencyKey);
+    if (cached != null) {
+        return ResponseEntity.ok(cached); // Return immediately
+    }
+    
+    // Process new transaction
+    PaymentResponse response = paymentService.processTransfer(request, idempotencyKey);
+    
+    // Cache result for 24 hours
+    redisTemplate.opsForValue().set(idempotencyKey, response, Duration.ofHours(24));
+    
+    return ResponseEntity.ok(response);
+}
+```
+
+#### 2. Fraud Detection Logic
+```java
+public FraudCheckResult checkFraud(String userId, BigDecimal amount) {
+    int riskScore = 0;
+    
+    // Check 1: Daily transaction limit (₹50,000)
+    BigDecimal dailyTotal = getDailyTotal(userId);
+    if (dailyTotal.add(amount).compareTo(new BigDecimal("50000")) > 0) {
+        riskScore += 50;
+    }
+    
+    // Check 2: Transaction velocity (max 10 txns/hour)
+    int hourlyCount = getHourlyTransactionCount(userId);
+    if (hourlyCount >= 10) {
+        riskScore += 30;
+    }
+    
+    // Check 3: Unusual amount (>3x average)
+    BigDecimal avgAmount = getAverageTransactionAmount(userId);
+    if (amount.compareTo(avgAmount.multiply(new BigDecimal("3"))) > 0) {
+        riskScore += 20;
+    }
+    
+    // Decision
+    if (riskScore >= 80) {
+        return FraudCheckResult.BLOCKED;
+    } else if (riskScore >= 50) {
+        return FraudCheckResult.REVIEW_REQUIRED;
+    } else {
+        return FraudCheckResult.APPROVED;
+    }
+}
+```
+
+#### 3. Atomic Balance Transfer (Ledger Service)
+```java
+@Transactional(isolation = Isolation.SERIALIZABLE)
+public void atomicTransfer(String fromAccountId, String toAccountId, 
+                          BigDecimal amount, String transactionId) {
+    
+    // Acquire locks in consistent order (prevent deadlocks)
+    String firstLock = fromAccountId.compareTo(toAccountId) < 0 ? fromAccountId : toAccountId;
+    String secondLock = fromAccountId.compareTo(toAccountId) < 0 ? toAccountId : fromAccountId;
+    
+    // Pessimistic locking (FOR UPDATE)
+    Account firstAccount = accountRepo.findByIdForUpdate(firstLock);
+    Account secondAccount = accountRepo.findByIdForUpdate(secondLock);
+    
+    Account fromAccount = fromAccountId.equals(firstLock) ? firstAccount : secondAccount;
+    Account toAccount = toAccountId.equals(firstLock) ? firstAccount : secondAccount;
+    
+    // Validate sufficient balance
+    if (fromAccount.getBalance().compareTo(amount) < 0) {
+        throw new InsufficientFundsException("Balance: " + fromAccount.getBalance());
+    }
+    
+    // Atomic debit and credit
+    fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
+    toAccount.setBalance(toAccount.getBalance().add(amount));
+    
+    // Save both accounts (atomic within transaction)
+    accountRepo.saveAll(Arrays.asList(fromAccount, toAccount));
+    
+    // Create ledger entries for audit trail
+    ledgerEntryRepo.save(new LedgerEntry(transactionId, fromAccountId, "DEBIT", amount));
+    ledgerEntryRepo.save(new LedgerEntry(transactionId, toAccountId, "CREDIT", amount));
+    
+    // Transaction commits here (all or nothing)
+}
+```
+
+#### 4. Database Transaction Isolation
+```sql
+-- SERIALIZABLE isolation level prevents race conditions
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+
+-- Lock accounts in consistent order (alphabetically by ID)
+SELECT * FROM accounts 
+WHERE id IN ('sender_id', 'receiver_id')
+ORDER BY id
+FOR UPDATE;
+
+-- Validate balance
+SELECT balance FROM accounts WHERE id = 'sender_id';
+-- If balance < amount, ROLLBACK
+
+-- Atomic updates
+UPDATE accounts SET balance = balance - 1000 WHERE id = 'sender_id';
+UPDATE accounts SET balance = balance + 1000 WHERE id = 'receiver_id';
+
+-- Audit trail
+INSERT INTO ledger_entries (txn_id, account_id, type, amount) 
+VALUES ('txn_123', 'sender_id', 'DEBIT', 1000);
+
+INSERT INTO ledger_entries (txn_id, account_id, type, amount) 
+VALUES ('txn_123', 'receiver_id', 'CREDIT', 1000);
+
+COMMIT; -- All changes applied atomically
+```
+
+### Error Handling Scenarios
+
+#### Scenario 1: Network Timeout (Client Retry)
+```
+Request 1: Client sends transfer → Network timeout → No response
+Request 2: Client retries with SAME idempotency key
+Result: System returns cached result from Request 1 (no duplicate charge)
+```
+
+#### Scenario 2: Insufficient Balance
+```
+User Balance: ₹500
+Transfer Amount: ₹1000
+Result: Transaction fails at ledger service, status=FAILED, user notified
+```
+
+#### Scenario 3: Concurrent Transfers (Race Condition)
+```
+Thread 1: Transfer ₹500 from Account A
+Thread 2: Transfer ₹600 from Account A (simultaneously)
+Account A Balance: ₹800
+
+Solution: Pessimistic locking (FOR UPDATE)
+- Thread 1 acquires lock first, deducts ₹500 → Balance = ₹300
+- Thread 2 waits for lock, then checks balance → Insufficient funds → FAILED
+```
+
+#### Scenario 4: Database Failure Mid-Transaction
+```
+Step 1: Debit sender account ✓
+Step 2: Credit receiver account ✗ (Database crash)
+Result: Transaction ROLLBACK, no money lost (ACID properties)
+```
+
+### Performance Optimizations
+
+#### 1. Redis Caching Strategy
+```java
+// Cache hot data to reduce database load
+public Account getAccount(String accountId) {
+    // Check L1 cache (Redis)
+    Account cached = redisTemplate.opsForValue().get("account:" + accountId);
+    if (cached != null) {
+        return cached;
+    }
+    
+    // Cache miss - fetch from database
+    Account account = accountRepo.findById(accountId).orElseThrow();
+    
+    // Cache for 5 minutes
+    redisTemplate.opsForValue().set("account:" + accountId, account, Duration.ofMinutes(5));
+    
+    return account;
+}
+```
+
+#### 2. Async Notifications
+```java
+// Don't block payment response for notifications
+@Async
+public void sendTransactionNotifications(Transaction transaction) {
+    // Send push notification to sender
+    notificationService.sendPush(
+        transaction.getSenderId(),
+        "Payment sent successfully",
+        "₹" + transaction.getAmount() + " sent to " + transaction.getReceiverName()
+    );
+    
+    // Send push notification to receiver
+    notificationService.sendPush(
+        transaction.getReceiverId(),
+        "Payment received",
+        "₹" + transaction.getAmount() + " received from " + transaction.getSenderName()
+    );
+    
+    // Send SMS (optional)
+    smsService.sendTransactionSMS(transaction);
+}
+```
+
+#### 3. Database Connection Pooling
+```yaml
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 50        # Max connections
+      minimum-idle: 10             # Min idle connections
+      connection-timeout: 30000    # 30 seconds
+      idle-timeout: 600000         # 10 minutes
+      max-lifetime: 1800000        # 30 minutes
+```
+
+### Monitoring & Alerts
+
+#### Key Metrics to Track
+```java
+// Transaction success rate
+@Timed(value = "payment.transfer.duration", percentiles = {0.5, 0.95, 0.99})
+@Counted(value = "payment.transfer.total")
+public PaymentResponse processTransfer(TransferRequest request) {
+    try {
+        PaymentResponse response = executeTransfer(request);
+        meterRegistry.counter("payment.transfer.success").increment();
+        return response;
+    } catch (Exception e) {
+        meterRegistry.counter("payment.transfer.failed", "reason", e.getClass().getSimpleName()).increment();
+        throw e;
+    }
+}
+
+// Alert thresholds
+// - Transaction failure rate > 5%
+// - P95 latency > 2 seconds
+// - Fraud detection rate > 10%
+// - Database connection pool exhaustion
+```
+
+### Security Considerations
+
+1. **Authentication**: JWT tokens with 15-minute expiry
+2. **Authorization**: User can only transfer from their own account
+3. **Rate Limiting**: 100 requests/minute per user
+4. **Input Validation**: Amount > 0, valid account IDs
+5. **Encryption**: TLS 1.3 for data in transit
+6. **PCI Compliance**: No card data stored (tokenization)
+7. **Audit Logging**: All transactions logged to Cassandra
+
