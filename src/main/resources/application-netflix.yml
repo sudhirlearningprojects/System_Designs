@@ -5,7 +5,6 @@ spring:
   application:
     name: netflix-streaming-service
   
-  # Cassandra Configuration
   data:
     cassandra:
       keyspace-name: netflix
@@ -13,13 +12,11 @@ spring:
       port: 9042
       local-datacenter: datacenter1
       
-  # Redis Configuration  
   redis:
     host: localhost
     port: 6379
     timeout: 2000ms
     
-  # Kafka Configuration
   kafka:
     bootstrap-servers: localhost:9092
     producer:
@@ -28,29 +25,31 @@ spring:
       acks: all
       retries: 3
 
-# Eureka Configuration
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-
-# Netflix Configuration
 netflix:
   streaming:
     chunk-size: 1MB
     supported-qualities: 
-      - 360p
-      - 720p
-      - 1080p
-      - 4K
+      - SD_360
+      - SD_480
+      - HD_720
+      - HD_1080
+      - UHD_4K
   recommendation:
     cache-ttl: 3600
     max-recommendations: 20
   analytics:
     batch-size: 1000
     flush-interval: 30s
+  cdn:
+    regions:
+      - US-EAST
+      - US-WEST
+      - EU
+      - ASIA
+  chaos:
+    enabled: false
+    failure-rate: 0.01
+    latency-rate: 0.05
 
 logging:
   level:

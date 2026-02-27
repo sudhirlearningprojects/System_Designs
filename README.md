@@ -659,8 +659,10 @@ mvn clean install
 ./run-systems.sh tiktok          # Port 8095
 ./run-systems.sh cloudinfra      # Port 8096
 ./run-systems.sh distributeddb   # Port 8097
-./run-systems.sh spotify         # Port 8098
-./run-systems.sh probability     # Port 8099
+./run-systems.sh netflix          # Port 8098
+./run-systems.sh spotify         # Port 8099
+./run-systems.sh probability     # Port 8100
+./run-systems.sh alertmanager    # Port 8101
 ```
 
 **Alternative: Run directly with Maven profiles**
@@ -682,8 +684,10 @@ mvn spring-boot:run -Dspring-boot.run.profiles=cloudflare
 mvn spring-boot:run -Dspring-boot.run.profiles=tiktok
 mvn spring-boot:run -Dspring-boot.run.profiles=cloudinfra
 mvn spring-boot:run -Dspring-boot.run.profiles=distributeddb
+mvn spring-boot:run -Dspring-boot.run.profiles=netflix
 mvn spring-boot:run -Dspring-boot.run.profiles=spotify
 mvn spring-boot:run -Dspring-boot.run.profiles=probability
+mvn spring-boot:run -Dspring-boot.run.profiles=alertmanager
 ```
 
 ## 🏗️ Project Structure
@@ -822,6 +826,24 @@ src/main/java/org/sudhir512kj/
 │   ├── replication/            # Replication service
 │   └── config/                 # DB configuration
 │
+├── netflix/                    # Netflix Clone - Video Streaming Platform
+│   ├── model/                  # Streaming entities (User, Content, WatchHistory)
+│   ├── service/                # Streaming business logic
+│   ├── repository/             # Streaming data access
+│   ├── controller/             # Streaming APIs
+│   ├── dto/                    # Streaming DTOs
+│   └── config/                 # Netflix configuration
+│
+├── alertmanager/               # Alert Manager - Ticket Integration
+│   ├── model/                  # Alert entities (AlertRule, NotificationChannel, Alert)
+│   ├── service/                # Alert business logic
+│   ├── repository/             # Alert data access
+│   ├── controller/             # Alert APIs
+│   ├── dto/                    # Alert DTOs
+│   ├── integration/            # Jira/ServiceNow integration
+│   ├── webhook/                # Webhook controllers
+│   └── config/                 # Alert configuration
+│
 ├── [future-system]/            # Next system design
 │   └── ...
 │
@@ -943,6 +965,12 @@ docs/
 │   ├── API_Documentation.md    # Distributed DB API reference
 │   └── README.md               # Distributed DB overview
 │
+├── netflix/                     # Netflix Clone documentation
+│   ├── System_Design.md        # Netflix system HLD/LLD with streaming architecture
+│   ├── API_Documentation.md    # Netflix API reference
+│   ├── Scale_Calculations.md   # Netflix performance analysis
+│   └── README.md               # Netflix overview
+│
 ├── spotify/                    # Spotify Clone documentation
 │   ├── System_Design.md        # Spotify system HLD/LLD with streaming
 │   ├── API_Documentation.md    # Spotify API reference
@@ -953,6 +981,11 @@ docs/
 │   ├── System_Design.md        # Prediction market HLD/LLD with LMSR
 │   ├── API_Documentation.md    # Prediction market API reference
 │   └── README.md               # Prediction market overview
+│
+├── alertmanager/               # Alert Manager documentation
+│   ├── System_Design.md        # Alert Manager HLD/LLD with multi-channel integration
+│   ├── API_Documentation.md    # Alert Manager API reference
+│   └── README.md               # Alert Manager overview
 │
 └── [future-system]/            # Future system docs
 ```
@@ -1098,7 +1131,50 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 🌟 **Enterprise-Grade System Designs** | 🚀 **Production-Ready Architecture** | 📚 **Comprehensive Documentation**
 
 For questions or support, please open an issue or visit my [portfolio website](https://sudhirmeenaswe.netlify.app/) and contact via [contact form](https://sudhirmeenaswe.netlify.app/#contact).
-### 18. Spotify Clone - Music Streaming Platform
+### 18. Netflix Clone - Video Streaming Platform
+**Location**: `org.sudhir512kj.netflix` package
+
+A production-ready, highly scalable video streaming platform similar to Netflix supporting millions of concurrent users:
+- Personalized content recommendations with AI-powered algorithms
+- Adaptive bitrate streaming (360p to 4K) with bandwidth optimization
+- Global CDN with multi-region content delivery and failover
+- User management with subscription tiers and viewing history
+- Real-time watch progress tracking and resume functionality
+- High availability (99.99% uptime)
+
+**Documentation**: [docs/netflix/](docs/netflix/)
+
+**Key Features**:
+- **Hybrid Recommendation Engine**: Collaborative + Content-based + Trending algorithms
+- **Adaptive Streaming**: HLS protocol with automatic quality adjustment
+- **Global CDN**: Multi-region servers with intelligent load balancing
+- **Subscription Management**: Basic (1 stream), Standard (2 streams), Premium (4 streams)
+- **Multi-Device Support**: Web, Mobile, Smart TV with seamless experience
+- **Content Discovery**: Advanced search with genre, year, and rating filters
+- **Watch History**: Progress tracking with resume functionality
+- **Security**: JWT authentication, encrypted passwords, DRM protection
+
+**Scale**: 200M users, 50M DAU, 1M concurrent streams, 500PB storage, 9.2 Tbps bandwidth
+
+**Quick Example**:
+```bash
+# Register user
+curl -X POST http://localhost:8098/api/v1/netflix/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"pass123","name":"John","region":"US-EAST"}'
+
+# Get personalized recommendations
+curl -H "Authorization: Bearer <token>" \
+  http://localhost:8098/api/v1/netflix/content/recommendations/user-123
+
+# Start streaming
+curl -X POST "http://localhost:8098/api/v1/netflix/stream/start?userId=user-123&contentId=movie-456&deviceType=Web" \
+  -H "Authorization: Bearer <token>"
+```
+
+---
+
+### 19. Spotify Clone - Music Streaming Platform
 **Location**: `org.sudhir512kj.spotify` package
 
 A production-ready music streaming platform similar to Spotify supporting millions of users:
@@ -1139,7 +1215,7 @@ curl -X POST http://localhost:8098/api/v1/stream \
 
 ---
 
-### 19. Probability Management System - Prediction Market Platform
+### 20. Probability Management System - Prediction Market Platform
 **Location**: `org.sudhir512kj.probability` package
 
 A production-ready prediction market platform similar to Polymarket, Kalshi, and PredictIt:
@@ -1175,6 +1251,47 @@ curl -X POST http://localhost:8099/api/v1/markets \
 curl -X POST http://localhost:8099/api/v1/orders \
   -H "X-User-Id: user-123" \
   -d '{"marketId":"market-uuid","outcomeId":"outcome-uuid","orderType":"LIMIT","side":"BUY","price":0.65,"quantity":100}'
+```
+
+---
+
+### 21. Alert Manager - Ticket Management Integration & Multi-Channel Notifications
+**Location**: `org.sudhir512kj.alertmanager` package
+
+A highly scalable, extensible alert management system that integrates with ticket management platforms:
+- Jira, ServiceNow, GitHub Issues integration
+- Multi-channel notifications (Slack, MS Teams, Discord, Email, SMS, PagerDuty, OpsGenie)
+- Flexible rule engine for event-based alerting
+- Extensible plugin architecture for new channels
+- Reliable delivery with retry mechanism
+- High availability (99.9% uptime)
+
+**Documentation**: [docs/alertmanager/](docs/alertmanager/)
+
+**Key Features**:
+- **Ticket System Integration**: Native Jira webhook support, generic webhook API
+- **Multi-Channel Support**: Slack, MS Teams, Discord, Email, SMS, Webhook, PagerDuty, OpsGenie
+- **Rule Engine**: Configure alerts based on events, projects, priorities, custom filters
+- **Extensible Architecture**: Strategy pattern for easy channel addition
+- **Async Delivery**: Non-blocking parallel notification delivery
+- **Delivery Tracking**: Complete audit trail with retry mechanism
+- **Real-time Processing**: <500ms latency from event to notification
+- **Dynamic Configuration**: Add/remove channels and rules without restart
+
+**Scale**: 10K events/sec, 100+ channels per alert, 99.9% availability
+
+**Quick Example**:
+```bash
+# Create Slack channel
+curl -X POST http://localhost:8100/api/v1/channels \
+  -d '{"name":"Engineering Slack","type":"SLACK","configuration":{"webhookUrl":"https://hooks.slack.com/..."},"enabled":true}'
+
+# Create alert rule
+curl -X POST http://localhost:8100/api/v1/rules \
+  -d '{"name":"Critical Alerts","projectKey":"PROD","triggerEvents":["CREATED","PRIORITY_CHANGED"],"channelIds":["channel-123"],"enabled":true}'
+
+# Jira webhook (auto-configured)
+POST /api/v1/webhooks/jira
 ```
 
 ---

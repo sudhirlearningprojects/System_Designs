@@ -12,8 +12,8 @@
         <relativePath/>
     </parent>
     
-    <groupId>com.example</groupId>
-    <artifactId>restaurant-analyzer</artifactId>
+    <groupId>org.sudhir512kj</groupId>
+    <artifactId>netflix-system</artifactId>
     <version>1.0.0</version>
     
     <properties>
@@ -128,6 +128,31 @@
             <groupId>com.uber</groupId>
             <artifactId>h3</artifactId>
             <version>4.1.1</version>
+        </dependency>
+        
+        <!-- Micrometer for metrics -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+        </dependency>
+        
+        <!-- JWT -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.12.3</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.12.3</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.12.3</version>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
     

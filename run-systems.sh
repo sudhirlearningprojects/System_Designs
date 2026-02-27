@@ -25,7 +25,8 @@ if [ -z "$SYSTEM" ]; then
     echo "  tiktok          - Port 8095"
     echo "  cloudinfra      - Port 8096"
     echo "  distributeddb   - Port 8097"
-    echo "  spotify         - Port 8098"
+    echo "  netflix         - Port 8098"
+    echo "  spotify         - Port 8099"
     exit 1
 fi
 
@@ -98,8 +99,12 @@ case $SYSTEM in
         echo "Starting Distributed Database System on port 8097..."
         mvn spring-boot:run -Dspring-boot.run.profiles=distributeddb
         ;;
+    "netflix")
+        echo "Starting Netflix Clone on port 8098..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=netflix
+        ;;
     "spotify")
-        echo "Starting Spotify Clone on port 8098..."
+        echo "Starting Spotify Clone on port 8099..."
         mvn spring-boot:run -Dspring-boot.run.profiles=spotify
         ;;
     *)
@@ -108,42 +113,3 @@ case $SYSTEM in
         exit 1
         ;;
 esac
-#!/bin/bash
-
-SYSTEM=$1
-PORT_MAP=(
-    ["parkinglot"]=8080
-    ["dropbox"]=8081
-    ["payment"]=8082
-    ["jobscheduler"]=8083
-    ["digitalpayment"]=8084
-    ["ticketbooking"]=8086
-    ["instagram"]=8087
-    ["ratelimiter"]=8088
-    ["notification"]=8089
-    ["uber"]=8090
-    ["googledocs"]=8091
-    ["urlshortener"]=8092
-    ["whatsapp"]=8093
-    ["cloudflare"]=8094
-    ["tiktok"]=8095
-    ["cloudinfra"]=8096
-    ["distributeddb"]=8097
-    ["spotify"]=8098
-)
-
-if [ -z "$SYSTEM" ]; then
-    echo "Usage: ./run-systems.sh <system-name>"
-    echo "Available systems: parkinglot, dropbox, payment, jobscheduler, digitalpayment, ticketbooking, instagram, ratelimiter, notification, uber, googledocs, urlshortener, whatsapp, cloudflare, tiktok, cloudinfra, distributeddb, spotify"
-    exit 1
-fi
-
-PORT=${PORT_MAP[$SYSTEM]}
-
-if [ -z "$PORT" ]; then
-    echo "Unknown system: $SYSTEM"
-    exit 1
-fi
-
-echo "Starting $SYSTEM on port $PORT..."
-mvn spring-boot:run -Dspring-boot.run.profiles=$SYSTEM -Dserver.port=$PORT
