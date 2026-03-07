@@ -215,6 +215,27 @@ Consumer-3 consumed: 2
 
 ## Example 3: notify() Problem - Lost Wakeup
 
+### What is the Problem?
+
+When multiple threads are waiting on the same lock, `notify()` wakes up **only one** — chosen arbitrarily by the JVM. The other threads remain stuck in `WAITING` state **forever** unless someone calls `notify()` or `notifyAll()` again. This is called a **lost wakeup**.
+
+### Scenario: 3 threads waiting, only 1 signal sent
+
+```
+Wait Set (threads blocked on lock.wait())
+┌─────────────────────────────────────┐
+│  Thread-1 (WAITING)                 │
+│  Thread-2 (WAITING)                 │
+│  Thread-3 (WAITING)                 │
+└─────────────────────────────────────┘
+         ↓  notify() called
+┌─────────────────────────────────────┐
+│  Thread-2 → RUNNABLE (woke up) ✅   │
+│  Thread-1 → still WAITING ❌        │
+│  Thread-3 → still WAITING ❌        │
+└─────────────────────────────────────┘
+```
+
 ```java
 class NotifyProblem {
     private final Object lock = new Object();
@@ -231,23 +252,23 @@ class NotifyProblem {
         t2.start();
         t3.start();
         
-        Thread.sleep(1000);
+        Thread.sleep(1000); // Let all 3 threads reach wait()
         
-        // notify() wakes up only ONE thread
+        // notify() wakes up only ONE thread — JVM picks randomly
         synchronized (np.lock) {
             System.out.println("Calling notify() - only 1 thread will wake up");
-            np.lock.notify();
+            np.lock.notify(); // ← Only Thread-2 gets lucky
         }
         
         Thread.sleep(2000);
-        System.out.println("Other 2 threads still waiting!");
+        System.out.println("Other 2 threads still waiting!"); // ← Thread-1, Thread-3 stuck forever
     }
     
     public void waitForSignal(String threadName) {
         synchronized (lock) {
             try {
                 System.out.println(threadName + " is waiting...");
-                lock.wait();
+                lock.wait(); // Releases lock, enters wait set
                 System.out.println(threadName + " woke up!");
             } catch (InterruptedException e) {}
         }
@@ -264,6 +285,64 @@ Calling notify() - only 1 thread will wake up
 Thread-2 woke up!
 Other 2 threads still waiting!
 ```
+
+### Why is this dangerous?
+
+**Thread-1 and Thread-3 are now deadlocked** — they will wait forever because:
+- No more `notify()` calls are coming
+- They hold no resources, so no deadlock detection will catch them
+- The JVM will not automatically time them out (unlike `wait(timeout)`)
+- The program appears to "hang" silently with no error
+
+### Real-World Consequence: notify() in a Multi-Consumer Queue
+
+This becomes a critical bug when `notify()` is used with multiple consumers waiting on different conditions:
+
+```java
+// ❌ DANGEROUS: Two types of waiters on the same lock
+class BrokenQueue {
+    private Queue<Integer> queue = new LinkedList<>();
+    private final Object lock = new Object();
+
+    public void produce(int value) throws InterruptedException {
+        synchronized (lock) {
+            queue.add(value);
+            lock.notify(); // Intends to wake a CONSUMER
+                           // But might accidentally wake a PRODUCER instead!
+        }
+    }
+
+    public void consumeFast() throws InterruptedException {
+        synchronized (lock) {
+            while (queue.isEmpty()) lock.wait(); // Consumer waiting
+            System.out.println("Fast consumed: " + queue.poll());
+            lock.notify(); // Intends to wake a PRODUCER
+                           // But might wake the other consumer instead!
+        }
+    }
+
+    public void consumeSlow() throws InterruptedException {
+        synchronized (lock) {
+            while (queue.isEmpty()) lock.wait(); // Also a consumer waiting
+            System.out.println("Slow consumed: " + queue.poll());
+            lock.notify();
+        }
+    }
+}
+```
+
+**The bug**: When `consumeFast()` calls `notify()` after consuming, it wants to wake the producer. But `notify()` might wake `consumeSlow()` instead — which then finds an empty queue, goes back to `wait()`, and the producer is **never woken up**. System stalls.
+
+```
+Timeline of the bug:
+1. Producer adds item → notify() → wakes consumeFast ✅
+2. consumeFast consumes → notify() → should wake Producer
+                                    → accidentally wakes consumeSlow ❌
+3. consumeSlow: queue empty → wait() again
+4. Producer: still waiting... forever ❌
+```
+
+### Fix: Use notifyAll() — see Example 4 below
 
 **Problem**: Thread-1 and Thread-3 never wake up!
 
