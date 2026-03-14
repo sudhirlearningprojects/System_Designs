@@ -98,3 +98,77 @@ private boolean dfs(Map<Character, List<Character>> adj, Map<Character, Integer>
 ## Key Insight
 Compare adjacent words to extract ordering constraints (edges). Then topological sort gives the alphabet order.
 Cycle = invalid ordering. If `w1.startsWith(w2)` but `w1` comes first, it's immediately invalid.
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| `["z","z"]` | any valid order | Same word, no constraint derived |
+| `["abc","ab"]` | `""` | Longer word before its prefix → invalid |
+| `["a","b","a"]` | `""` | Cycle: a→b and b→a |
+| Single word `["abc"]` | `"abc"` or any permutation | No ordering constraints |
+| All same characters `["aa","bb"]` | `"ab"` | Only constraint: a before b |
+| Words with unique chars only | valid topo order | No ambiguity |
+| `["wrt","wrf"]` | `"tf"` or `"...t...f..."` | Only constraint: t before f |
+
+---
+
+## Dry Run
+
+**Input:** `words = ["wrt","wrf","er","ett","rftt"]`
+
+**Step 1: Extract edges from adjacent pairs**
+```
+"wrt" vs "wrf": first diff at index 2 → t < f  → edge t→f
+"wrf" vs "er":  first diff at index 0 → w < e  → edge w→e
+"er"  vs "ett": first diff at index 1 → r < t  → edge r→t
+"ett" vs "rftt": first diff at index 0 → e < r  → edge e→r
+```
+
+**Step 2: Build graph**
+```
+Nodes: {w, r, t, f, e}
+Edges: t→f, w→e, r→t, e→r
+InDegree: {w:0, r:1, t:1, f:1, e:1}
+```
+
+**Step 3: Kahn’s BFS**
+```
+Queue (in-degree 0): [w]
+
+Pop w: output="w", process w→e: inDegree[e]=0 → enqueue e
+Queue: [e]
+
+Pop e: output="we", process e→r: inDegree[r]=0 → enqueue r
+Queue: [r]
+
+Pop r: output="wer", process r→t: inDegree[t]=0 → enqueue t
+Queue: [t]
+
+Pop t: output="wert", process t→f: inDegree[f]=0 → enqueue f
+Queue: [f]
+
+Pop f: output="wertf"
+
+output.length(5) == nodes(5) → valid → return "wertf"
+```
+
+---
+
+## Follow-up Questions
+
+**Q: Can there be multiple valid orderings?**
+Yes. The problem says return any valid one. The BFS order depends on which zero-in-degree nodes are processed first (use a min-heap for lexicographically smallest).
+
+**Q: What if a character appears in words but has no ordering constraint?**
+It still gets initialized with in-degree 0 and will appear in the output — just at any valid position.
+
+**Q: How to detect if the input is completely invalid (not just cyclic)?**
+Two cases: (1) cycle detected → return `""`, (2) `w1.startsWith(w2)` with `w1` before `w2` → return `""`.
+
+**Q: What’s the time complexity in terms of input size?**
+O(C) where C = total number of characters across all words. Each character is processed once.
+
+**Related Problems:** LC 207 (Course Schedule), LC 210 (Course Schedule II), LC 310 (Minimum Height Trees), LC 1203 (Sort Items by Groups)

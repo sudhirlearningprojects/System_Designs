@@ -106,3 +106,67 @@ public double maxProbability(int n, int[][] edges, double[] succProb, int start,
 Same as Dijkstra for shortest path, but we maximize instead of minimize.
 Use a max-heap and multiply probabilities (instead of adding distances).
 Probabilities are always in [0,1], so no negative weight issues.
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| `start == end` | 1.0 | Already at destination, probability = 1 |
+| No path from start to end | 0.0 | Unreachable |
+| Single edge `start→end` | `succProb[0]` | Direct path |
+| Multiple paths, pick max product | Dijkstra finds it | Greedy max-heap |
+| All probabilities = 1.0 | 1.0 | Any path has probability 1 |
+| All probabilities = 0.0 | 0.0 | No path has positive probability |
+| Disconnected graph | 0.0 | end unreachable from start |
+
+---
+
+## Dry Run
+
+**Input:** `n=3, edges=[[0,1],[1,2],[0,2]], succProb=[0.5,0.5,0.2], start=0, end=2`
+
+**Dijkstra (max-heap) trace:**
+```
+Adj: {0:[(1,0.5),(2,0.2)], 1:[(0,0.5),(2,0.5)], 2:[(1,0.5),(0,0.2)]}
+prob = [1.0, 0.0, 0.0]
+pq (max-heap) = [(1.0, 0)]
+
+--- Pop (1.0, 0) ---
+p=1.0, node=0, not stale
+Neighbors:
+  (1, 0.5): newProb = 1.0*0.5 = 0.5 > prob[1]=0.0 → prob[1]=0.5, push (0.5,1)
+  (2, 0.2): newProb = 1.0*0.2 = 0.2 > prob[2]=0.0 → prob[2]=0.2, push (0.2,2)
+pq = [(0.5,1),(0.2,2)]
+
+--- Pop (0.5, 1) ---
+p=0.5, node=1, not stale
+Neighbors:
+  (0, 0.5): newProb = 0.5*0.5 = 0.25, prob[0]=1.0 → no update
+  (2, 0.5): newProb = 0.5*0.5 = 0.25 > prob[2]=0.2 → prob[2]=0.25, push (0.25,2)
+pq = [(0.25,2),(0.2,2)]
+
+--- Pop (0.25, 2) ---
+node=2 == end → return 0.25
+
+Answer: 0.25
+```
+
+---
+
+## Follow-up Questions
+
+**Q: Why multiply probabilities instead of adding?**
+Probabilities of independent events multiply. The probability of a path is the product of all edge probabilities along it.
+
+**Q: Can you take the log to convert multiplication to addition?**
+Yes! `log(p1 * p2) = log(p1) + log(p2)`. Maximize sum of `log(prob)` using standard Dijkstra (negate for min-heap). Careful with `log(0)`.
+
+**Q: What if probabilities can be > 1?**
+Not valid for probabilities. If weights represent something else (e.g., reliability scores), the same algorithm applies as long as maximizing product makes sense.
+
+**Q: Does Bellman-Ford work here?**
+Yes — relax edges n-1 times, maximizing probability. Useful if you need to handle all edge cases without a priority queue.
+
+**Related Problems:** LC 743 (Network Delay Time), LC 787 (Cheapest Flights K Stops), LC 1631 (Path with Minimum Effort)

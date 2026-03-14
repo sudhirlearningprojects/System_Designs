@@ -123,3 +123,77 @@ public int shortestPathBinaryMatrix(int[][] grid) {
 8-directional BFS on a grid. Mark cells as visited by setting them to `1` to avoid extra space.
 Edge case: check if start `(0,0)` or end `(n-1,n-1)` is blocked before BFS.
 Path length starts at 1 (the starting cell itself counts).
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| `grid[0][0] == 1` | -1 | Start is blocked |
+| `grid[n-1][n-1] == 1` | -1 | End is blocked |
+| `n=1, grid=[[0]]` | 1 | Start = end, path length = 1 |
+| `n=1, grid=[[1]]` | -1 | Start blocked |
+| All zeros | n (diagonal) | Diagonal path of length n |
+| Fully blocked except border | Longer path | Must go around |
+| `[[0,0],[0,0]]` | 2 | Diagonal: (0,0)→(1,1) |
+
+---
+
+## Dry Run
+
+**Input:** `grid = [[0,0,0],[1,1,0],[1,1,0]]`
+
+**BFS trace:**
+```
+n=3, grid[0][0]=0 ✓, grid[2][2]=0 ✓
+Queue: [(0,0,1)], grid[0][0]=1 (mark visited)
+
+--- Process (0,0,len=1) ---
+8 neighbors:
+  (-1,-1),(-1,0),(-1,1): out of bounds
+  (0,-1): out of bounds
+  (0,1): grid=0 ✓, not (2,2) → mark, enqueue (0,1,2)
+  (1,-1): out of bounds
+  (1,0): grid=1 ✗ (blocked)
+  (1,1): grid=1 ✗ (blocked)
+Queue: [(0,1,2)]
+
+--- Process (0,1,len=2) ---
+8 neighbors:
+  (-1,0),(-1,1),(-1,2): out of bounds
+  (0,0): grid=1 (visited)
+  (0,2): grid=0 ✓ → mark, enqueue (0,2,3)
+  (1,0): grid=1 ✗
+  (1,1): grid=1 ✗
+  (1,2): grid=0 ✓ → mark, enqueue (1,2,3)
+Queue: [(0,2,3),(1,2,3)]
+
+--- Process (0,2,len=3) ---
+  (1,2): already marked
+  (1,1): blocked
+Queue: [(1,2,3)]
+
+--- Process (1,2,len=3) ---
+  (2,2): grid=0, is (n-1,n-1)! → return len+1 = 4
+
+Answer: 4
+```
+
+---
+
+## Follow-up Questions
+
+**Q: Why does path length start at 1 (not 0)?**
+The starting cell `(0,0)` is part of the path. A path of length 1 means you’re already at the destination (only valid when n=1).
+
+**Q: What if the grid is not square (m×n)?**
+Replace `n` with `m` for rows and `n` for columns. The algorithm is identical.
+
+**Q: When would A* be significantly faster than BFS?**
+When the grid is large and the path is relatively direct. BFS explores all cells at equal distance; A* focuses toward the target using the Chebyshev heuristic.
+
+**Q: Can you solve this with DFS?**
+DFS finds a path but not necessarily the shortest. BFS is required for minimum path length.
+
+**Related Problems:** LC 200 (Number of Islands), LC 994 (Rotting Oranges), LC 909 (Snakes and Ladders), LC 1293 (Shortest Path in Grid with Obstacles Elimination)

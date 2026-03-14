@@ -110,3 +110,75 @@ private void dfs(Map<String, List<String>> adj, Set<String> visited, String emai
 Treat each account as a node. Two accounts should merge if they share an email.
 Union-Find elegantly handles transitive merging: if A shares email with B, and B shares email with C,
 all three merge into one group through path compression.
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| No shared emails | Each account separate | No merging needed |
+| All accounts share one email | One merged account | Transitive merging |
+| Same name, different emails | Separate accounts | Name alone doesn’t merge |
+| Different names, same email | Merged (same person) | Email is the identity |
+| Single account | Returned as-is | No merging |
+| Chain: A↔B↔C (B shares with both) | A+B+C merged | Transitive via B |
+
+---
+
+## Dry Run
+
+**Input:**
+```
+accounts = [
+  ["John", "a@x.com", "b@x.com"],   // account 0
+  ["John", "b@x.com", "c@x.com"],   // account 1
+  ["Mary", "d@x.com"]               // account 2
+]
+```
+
+**Union-Find trace:**
+```
+Initial: parent=[0,1,2]
+
+Process account 0:
+  "a@x.com" → not seen → emailToAccount["a@x.com"]=0
+  "b@x.com" → not seen → emailToAccount["b@x.com"]=0
+
+Process account 1:
+  "b@x.com" → already seen at account 0 → union(1, 0)
+    find(1)=1, find(0)=0 → different → parent[1]=0
+    parent=[0,0,2]
+  "c@x.com" → not seen → emailToAccount["c@x.com"]=1
+
+Process account 2:
+  "d@x.com" → not seen → emailToAccount["d@x.com"]=2
+
+Group emails by root:
+  "a@x.com" → account 0, find(0)=0 → group[0]
+  "b@x.com" → account 0, find(0)=0 → group[0]
+  "c@x.com" → account 1, find(1)=0 → group[0]  ← merged!
+  "d@x.com" → account 2, find(2)=2 → group[2]
+
+Result:
+  group[0]: name="John", emails=[a@x.com, b@x.com, c@x.com] (sorted)
+  group[2]: name="Mary", emails=[d@x.com]
+```
+
+---
+
+## Follow-up Questions
+
+**Q: Why use `TreeSet` for emails?**
+The problem requires emails to be sorted. `TreeSet` maintains sorted order automatically.
+
+**Q: What if two accounts have the same name but should NOT be merged?**
+Name is irrelevant for merging — only shared emails trigger a merge. Two "John" accounts with no shared emails remain separate.
+
+**Q: How to handle very large inputs efficiently?**
+Union-Find with path compression is O(α(n)) per operation — effectively O(1). The bottleneck is sorting emails: O(N·K·log(N·K)).
+
+**Q: What if an email appears in 3+ accounts?**
+Each occurrence unions the current account with the first account that had that email. Transitivity handles the rest.
+
+**Related Problems:** LC 323 (Number of Connected Components), LC 684 (Redundant Connection), LC 547 (Number of Provinces)

@@ -126,3 +126,72 @@ private void union(int[] p, int[] r, int x, int y) {
 ## Key Insight
 This is a "minimax path" problem — minimize the maximum value along the path.
 Dijkstra with `max(current_t, next_elevation)` as the edge weight solves it optimally.
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| `n=1` grid `[[0]]` | 0 | Already at destination |
+| `n=2` grid `[[0,2],[1,3]]` | 3 | Must pass through elevation 3 |
+| Monotonically increasing path | max elevation on path | No choice but to go through high cells |
+| Multiple equal-cost paths | Any minimum | Dijkstra finds one |
+| `grid[0][0]` is the max value | `grid[0][0]` | Must wait for start cell itself |
+| Spiral grid (LC example) | 16 | Must traverse the spiral |
+
+---
+
+## Dry Run
+
+**Input:** `grid = [[0,2],[1,3]]`
+
+**Dijkstra trace (minimax):**
+```
+dist = [[0,INF],[INF,INF]]
+pq = [(t=0, r=0, c=0)]
+
+--- Pop (0, 0, 0) ---
+t=0, not stale
+Neighbors:
+  (0,1): newT = max(0, grid[0][1]=2) = 2 < INF → dist[0][1]=2, push (2,0,1)
+  (1,0): newT = max(0, grid[1][0]=1) = 1 < INF → dist[1][0]=1, push (1,1,0)
+pq = [(1,1,0),(2,0,1)]
+
+--- Pop (1, 1, 0) ---
+t=1, not stale (dist[1][0]=1)
+Neighbors:
+  (0,0): newT = max(1, 0) = 1, dist[0][0]=0 → no update
+  (1,1): newT = max(1, grid[1][1]=3) = 3 < INF → dist[1][1]=3, push (3,1,1)
+pq = [(2,0,1),(3,1,1)]
+
+--- Pop (2, 0, 1) ---
+t=2, not stale (dist[0][1]=2)
+Neighbors:
+  (0,0): newT = max(2,0)=2, no update
+  (1,1): newT = max(2, grid[1][1]=3) = 3, dist[1][1]=3 → no update (equal)
+pq = [(3,1,1)]
+
+--- Pop (3, 1, 1) ---
+r=1, c=1 == n-1=1 → return t=3
+
+Answer: 3
+```
+
+---
+
+## Follow-up Questions
+
+**Q: What’s the difference between this and standard Dijkstra?**
+Standard Dijkstra minimizes the **sum** of edge weights. Here we minimize the **maximum** edge weight on the path. The relaxation changes from `dist[u] + w` to `max(dist[u], w)`.
+
+**Q: Why does Binary Search + BFS also work?**
+The answer is monotonic: if you can reach the destination at time `t`, you can also reach it at time `t+1`. Binary search on `t`, BFS checks feasibility.
+
+**Q: When would Union-Find be preferred?**
+When you need to process many queries offline — sort cells once, answer all queries by checking connectivity.
+
+**Q: What if movement is 8-directional?**
+Add diagonal directions to `dirs`. The algorithm remains the same.
+
+**Related Problems:** LC 1631 (Path with Minimum Effort), LC 1514 (Path with Max Probability), LC 787 (Cheapest Flights K Stops)

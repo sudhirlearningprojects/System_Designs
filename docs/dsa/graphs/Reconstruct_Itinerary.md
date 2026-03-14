@@ -73,3 +73,86 @@ Why post-order?
 If we hit a dead end, that airport must be the last in the itinerary (or a sub-path endpoint).
 By adding it first to the result after exhausting all its edges, we naturally handle branching.
 ```
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| Single ticket `[["JFK","ATL"]]` | `["JFK","ATL"]` | Trivial path |
+| All tickets from JFK | Sorted order | Lexicographically smallest |
+| Tickets form a cycle | Cycle starting at JFK | Eulerian circuit |
+| Multiple paths, pick lex smallest | Use min-heap | PriorityQueue ensures lex order |
+| Dead-end branch before longer path | Post-order handles it | Hierholzer’s backtracks correctly |
+| `[["JFK","KUL"],["JFK","NRT"],["NRT","JFK"]]` | `["JFK","NRT","JFK","KUL"]` | Must go NRT first, else KUL is dead end |
+
+---
+
+## Dry Run
+
+**Input:** `tickets = [["JFK","SFO"],["JFK","ATL"],["SFO","ATL"],["ATL","JFK"],["ATL","SFO"]]`
+
+**Build adjacency (min-heap):**
+```
+JFK: [ATL, SFO]
+SFO: [ATL]
+ATL: [JFK, SFO]
+```
+
+**Iterative Hierholzer’s trace:**
+```
+stack = [JFK], result = []
+
+Peek JFK, neighbors=[ATL,SFO] → push ATL
+stack = [JFK, ATL]
+
+Peek ATL, neighbors=[JFK,SFO] → push JFK
+stack = [JFK, ATL, JFK]
+
+Peek JFK, neighbors=[SFO] → push SFO
+stack = [JFK, ATL, JFK, SFO]
+
+Peek SFO, neighbors=[ATL] → push ATL
+stack = [JFK, ATL, JFK, SFO, ATL]
+
+Peek ATL, neighbors=[SFO] → push SFO
+stack = [JFK, ATL, JFK, SFO, ATL, SFO]
+
+Peek SFO, neighbors=[] → pop SFO, addFirst → result=[SFO]
+stack = [JFK, ATL, JFK, SFO, ATL]
+
+Peek ATL, neighbors=[] → pop ATL, addFirst → result=[ATL,SFO]
+stack = [JFK, ATL, JFK, SFO]
+
+Peek SFO, neighbors=[] → pop SFO, addFirst → result=[SFO,ATL,SFO]
+stack = [JFK, ATL, JFK]
+
+Peek JFK, neighbors=[] → pop JFK, addFirst → result=[JFK,SFO,ATL,SFO]
+stack = [JFK, ATL]
+
+Peek ATL, neighbors=[] → pop ATL, addFirst → result=[ATL,JFK,SFO,ATL,SFO]
+stack = [JFK]
+
+Peek JFK, neighbors=[] → pop JFK, addFirst → result=[JFK,ATL,JFK,SFO,ATL,SFO]
+
+Answer: ["JFK","ATL","JFK","SFO","ATL","SFO"]
+```
+
+---
+
+## Follow-up Questions
+
+**Q: When does an Eulerian path exist?**
+For directed graphs: exactly one node has `out-degree - in-degree = 1` (start), one has `in-degree - out-degree = 1` (end), all others are balanced. The problem guarantees a valid itinerary exists.
+
+**Q: What if no valid itinerary exists?**
+The problem guarantees one exists. In general, check Eulerian path conditions first.
+
+**Q: Why use `addFirst` instead of `add` + `reverse`?**
+Both work. `addFirst` on a LinkedList is O(1) and avoids the final reverse step.
+
+**Q: What if there are multiple airports with the same name?**
+Not possible — airport codes are unique strings.
+
+**Related Problems:** LC 753 (Cracking the Safe — Eulerian circuit on de Bruijn graph), LC 2097 (Valid Arrangement of Pairs)

@@ -87,3 +87,68 @@ private int[] dijkstra(Map<Integer, List<int[]>> adj, int n, int src) {
 ## Key Insight
 Floyd-Warshall is ideal here since n ≤ 100 (n³ = 10⁶ operations).
 Iterate cities in order 0..n-1 and use `<=` for tie-breaking — the last city with minimum count wins (largest index).
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| `n=2, threshold=0` | 1 (larger index) | No city reachable within 0 distance (self excluded) |
+| All cities connected with weight 1, threshold=1 | City n-1 | All have same count, pick largest index |
+| Disconnected graph | City with fewest reachable | Unreachable cities don’t count |
+| `threshold` very large | City with fewest total neighbors | All paths within threshold |
+| Single city `n=1` | 0 | Only one city, no neighbors |
+| Tie between two cities | Larger index wins | Problem constraint |
+
+---
+
+## Dry Run
+
+**Input:** `n=4, edges=[[0,1,3],[1,2,1],[1,3,4],[2,3,1]], distanceThreshold=4`
+
+**Floyd-Warshall:**
+```
+Initial dist (INF/2 for unreachable, 0 diagonal):
+     0    1    2    3
+0  [ 0,   3, INF, INF]
+1  [ 3,   0,   1,   4]
+2  [INF,  1,   0,   1]
+3  [INF,  4,   1,   0]
+
+After Floyd-Warshall (k=0,1,2,3):
+     0    1    2    3
+0  [ 0,   3,   4,   5]  ← 0→3 via 0→1→2→3 = 3+1+1=5
+1  [ 3,   0,   1,   2]  ← 1→3 via 1→2→3 = 1+1=2
+2  [ 4,   1,   0,   1]
+3  [ 5,   2,   1,   0]
+```
+
+**Count reachable within threshold=4:**
+```
+City 0: dist[0][1]=3≤4✓, dist[0][2]=4≤4✓, dist[0][3]=5>4✗ → count=2
+City 1: dist[1][0]=3≤4✓, dist[1][2]=1≤4✓, dist[1][3]=2≤4✓ → count=3
+City 2: dist[2][0]=4≤4✓, dist[2][1]=1≤4✓, dist[2][3]=1≤4✓ → count=3
+City 3: dist[3][0]=5>4✗, dist[3][1]=2≤4✓, dist[3][2]=1≤4✓ → count=2
+
+Min count=2, cities with count=2: {0, 3} → pick largest index = 3
+Answer: 3
+```
+
+---
+
+## Follow-up Questions
+
+**Q: Why Floyd-Warshall instead of running Dijkstra from each node?**
+For n≤100, Floyd-Warshall is simpler to implement and O(n³) = 10⁶ is fast enough. Dijkstra from each node is O(n² log n) — asymptotically better but more code.
+
+**Q: What if the graph is directed?**
+Floyd-Warshall handles directed graphs naturally — just don’t add the reverse edge when initializing.
+
+**Q: What if `distanceThreshold = 0`?**
+No city is reachable from any other (self-loops excluded). All cities have count=0, return city n-1.
+
+**Q: How to handle the tie-breaking correctly in code?**
+Iterate `i` from 0 to n-1 and use `count <= minNeighbors` (not `<`). The last city satisfying this condition has the largest index.
+
+**Related Problems:** LC 743 (Network Delay Time), LC 1514 (Path with Max Probability), LC 787 (Cheapest Flights K Stops)

@@ -118,3 +118,77 @@ private void union(int[] p, int[] r, int x, int y) {
 ## Key Insight
 Think in reverse: instead of finding surrounded regions, find the SAFE regions (border-connected).
 Everything else gets captured. The 3-pass approach (mark safe → flip captured → restore safe) is clean and O(M×N).
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| All `'X'` | No change | Nothing to capture |
+| All `'O'` | No change | All border-connected |
+| Single row/column | No change | All cells are on the border |
+| `'O'` only in corners | No change | Corners are on the border |
+| `'O'` completely surrounded | All flipped to `'X'` | No border connection |
+| 1×1 board `[['O']]` | `[['O']]` | Single cell is on the border |
+| 3×3 with center `'O'` | Center flipped | Center has no border connection |
+
+---
+
+## Dry Run
+
+**Input:**
+```
+X X X X
+X O O X
+X X O X
+X O X X
+```
+
+**Step 1: DFS from all border cells**
+```
+Border 'O' cells: (3,1) only
+
+dfs(3,1): board[3][1]='O' → mark 'S'
+  Up (2,1): board[2][1]='X' → stop
+  Down (4,1): out of bounds → stop
+  Left (3,0): board[3][0]='X' → stop
+  Right (3,2): board[3][2]='X' → stop
+
+After step 1:
+X X X X
+X O O X
+X X O X
+X S X X
+```
+
+**Step 2: Final pass**
+```
+'O' → 'X' (captured): (1,1),(1,2),(2,2)
+'S' → 'O' (safe restored): (3,1)
+'X' → 'X' (unchanged)
+
+Result:
+X X X X
+X X X X
+X X X X
+X O X X
+```
+
+---
+
+## Follow-up Questions
+
+**Q: Why not just DFS from every `'O'` and check if it reaches the border?**
+That’s O(M²×N²) in the worst case. The reverse approach (DFS from border) is O(M×N).
+
+**Q: What if the board has only one row or one column?**
+All cells are on the border, so nothing gets captured. The algorithm handles this correctly.
+
+**Q: What does the virtual node in Union-Find represent?**
+It’s a sentinel node that all border `'O'`s connect to. Any `'O'` in the same component as the virtual node is safe.
+
+**Q: Can you solve this in-place without the `'S'` marker?**
+Yes — use a separate `boolean[][] safe` array. But the in-place marker approach uses O(1) extra space.
+
+**Related Problems:** LC 200 (Number of Islands), LC 417 (Pacific Atlantic Water Flow), LC 1020 (Number of Enclaves), LC 1254 (Number of Closed Islands)

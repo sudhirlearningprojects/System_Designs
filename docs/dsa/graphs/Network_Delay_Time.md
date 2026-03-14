@@ -104,3 +104,74 @@ public int networkDelayTime(int[][] times, int n, int k) {
 The answer is the maximum shortest-path distance from `k` to any node.
 If any node is unreachable (dist = ∞), return -1.
 Dijkstra is optimal for non-negative weights — use it here.
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| `n=1, times=[], k=1` | 0 | Only source node, already reached |
+| Source can’t reach all nodes | -1 | Disconnected directed graph |
+| Multiple edges between same nodes | Use shortest | Dijkstra handles naturally |
+| Self-loop `[k,k,5]` | Valid | Ignored since dist[k]=0 already |
+| All edges point away from k | max weight | All reachable, answer = max dist |
+| `k` not in 1..n | Invalid | Problem guarantees valid k |
+
+---
+
+## Dry Run
+
+**Input:** `times=[[2,1,1],[2,3,1],[3,4,1]], n=4, k=2`
+
+**Dijkstra trace:**
+```
+Adj list: {2: [(1,1),(3,1)], 3: [(4,1)]}
+dist = [INF, INF, 0, INF, INF]  (1-indexed, dist[2]=0)
+pq = [(0,2)]
+
+--- Pop (0,2) ---
+d=0, node=2, not stale
+Neighbors: (1,w=1), (3,w=1)
+  dist[1] = min(INF, 0+1) = 1 → push (1,1)
+  dist[3] = min(INF, 0+1) = 1 → push (1,3)
+pq = [(1,1),(1,3)]
+
+--- Pop (1,1) ---
+d=1, node=1, not stale
+No outgoing edges from node 1
+pq = [(1,3)]
+
+--- Pop (1,3) ---
+d=1, node=3, not stale
+Neighbors: (4,w=1)
+  dist[4] = min(INF, 1+1) = 2 → push (2,4)
+pq = [(2,4)]
+
+--- Pop (2,4) ---
+d=2, node=4, not stale
+No outgoing edges
+pq = []
+
+dist = [INF, 1, 0, 1, 2]
+max(dist[1..4]) = max(1,0,1,2) = 2
+Answer: 2
+```
+
+---
+
+## Follow-up Questions
+
+**Q: What if the graph has negative weights?**
+Use Bellman-Ford instead. Dijkstra is incorrect with negative weights.
+
+**Q: What if you only need to reach a specific target node?**
+Stop Dijkstra as soon as the target is popped from the priority queue — that’s its shortest distance.
+
+**Q: Why does Dijkstra skip stale entries (`d > dist[node]`)?**
+A node can be pushed multiple times with different distances. When popped, if the stored distance is outdated (a shorter path was already found), skip it.
+
+**Q: Can you use BFS here?**
+Only if all edge weights are equal. For weighted graphs, BFS gives incorrect shortest paths.
+
+**Related Problems:** LC 787 (Cheapest Flights K Stops), LC 1514 (Path with Max Probability), LC 1334 (Find the City), LC 1631 (Path with Minimum Effort)

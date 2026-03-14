@@ -107,3 +107,66 @@ private List<String> getNeighbors(String s) {
 The lock combinations form an implicit graph with 10⁴ = 10,000 nodes.
 Each node has exactly 8 neighbors (4 dials × 2 directions).
 BFS finds the shortest path. Bidirectional BFS cuts the search space roughly in half.
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| `target = "0000"` | 0 | Already at target |
+| `"0000"` in deadends | -1 | Can’t even start |
+| `target` in deadends | -1 | Can never reach target |
+| No deadends | Minimum turns | Pure BFS |
+| Target surrounded by deadends | -1 | All neighbors of target are dead |
+| `deadends = ["0001","0010","0100","1000","9999","9990","9909","9099","0999"]`, `target="9999"` | -1 | All paths to 9999 blocked |
+
+---
+
+## Dry Run
+
+**Input:** `deadends=["0201","0101","0102","1212","2002"], target="0202"`
+
+**BFS trace (abbreviated):**
+```
+dead = {0201, 0101, 0102, 1212, 2002}
+Queue: ["0000"], visited={"0000"}, turns=0
+
+--- turns=1 ---
+Process "0000": 8 neighbors:
+  "1000","9000","0100","0900","0010","0090","0001","0009"
+  None are target, none in dead → all enqueued
+Queue: ["1000","9000","0100","0900","0010","0090","0001","0009"]
+
+--- turns=2 ---
+Process "0100": neighbors include "0200","0000"(visited),"0110",...
+  "0200" not dead, not target → enqueue
+  ...
+Process "0001": neighbors include "0002","0000"(visited),...
+  "0002" not dead → enqueue
+  ...
+
+[After several levels, BFS reaches "0202" at turns=6]
+
+Answer: 6
+```
+
+**Why 6 turns?** One valid path: `0000→0001→0002→0102`(dead!)→ must find alternate route around deadends.
+
+---
+
+## Follow-up Questions
+
+**Q: What if the lock has more than 4 dials?**
+The algorithm scales: state space = 10^k for k dials. BFS still works but may be slow for large k. Use A* with a heuristic.
+
+**Q: What if dials don’t wrap around (0 doesn’t connect to 9)?**
+Remove the modulo wrapping: `chars[i] = (char)(orig + 1)` only if `orig < '9'`, etc.
+
+**Q: How does bidirectional BFS help here?**
+Standard BFS explores O(8^d) states. Bidirectional explores O(8^(d/2)) from each end — much faster for large d.
+
+**Q: Can you use A* here?**
+Yes — heuristic = sum of min rotations per dial to match target. But BFS is simpler since all edges have weight 1.
+
+**Related Problems:** LC 127 (Word Ladder), LC 909 (Snakes and Ladders), LC 433 (Minimum Genetic Mutation)

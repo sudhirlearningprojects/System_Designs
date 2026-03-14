@@ -99,3 +99,68 @@ Two conditions for a valid tree:
 2. No cycle / fully connected (sufficient with condition 1)
 
 Check condition 1 upfront to short-circuit — saves traversal time.
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| `n=1, edges=[]` | true | Single node, no edges needed |
+| `n=2, edges=[[0,1]]` | true | Minimal valid tree |
+| `n=2, edges=[]` | false | Disconnected (missing edge) |
+| `n=2, edges=[[0,1],[0,1]]` | false | 2 edges for n=2 → fails n-1 check |
+| `n=4, edges=[[0,1],[1,2],[2,3],[3,0]]` | false | Cycle exists |
+| `n=4, edges=[[0,1],[2,3]]` | false | n-1=3 edges needed, only 2 given |
+| `n=3, edges=[[0,1],[1,2],[0,2]]` | false | 3 edges for n=3 → fails n-1 check |
+
+---
+
+## Dry Run
+
+**Input:** `n=5, edges=[[0,1],[0,2],[0,3],[1,4]]`
+
+**Union-Find trace:**
+```
+Pre-check: edges.length=4 == n-1=4 ✓
+
+Initial: parent=[0,1,2,3,4]
+
+Edge [0,1]: find(0)=0, find(1)=1 → different → union ✓
+  parent=[0,0,2,3,4]
+
+Edge [0,2]: find(0)=0, find(2)=2 → different → union ✓
+  parent=[0,0,0,3,4]
+
+Edge [0,3]: find(0)=0, find(3)=3 → different → union ✓
+  parent=[0,0,0,0,4]
+
+Edge [1,4]: find(1): parent[1]=0 → root=0
+            find(4)=4 → different → union ✓
+  parent=[0,0,0,0,0]
+
+All unions succeeded → return true
+```
+
+**Counter-example:** `n=5, edges=[[0,1],[1,2],[2,3],[1,3],[1,4]]`
+```
+Pre-check: edges.length=5 != n-1=4 → return false immediately
+```
+
+---
+
+## Follow-up Questions
+
+**Q: Can a valid tree have a self-loop?**
+No. A self-loop creates a cycle. The n-1 edge check would also fail since a self-loop wastes an edge.
+
+**Q: What if the graph is directed?**
+For a directed tree (rooted), check: exactly n-1 edges, exactly one node with in-degree 0 (root), all others in-degree 1, and no cycle.
+
+**Q: How to find the root of the tree?**
+The node with in-degree 0 in a directed tree, or any node in an undirected tree (since all are equivalent).
+
+**Q: What’s the difference between a tree and a forest?**
+A forest is a collection of trees (multiple components). A tree is a connected forest (exactly 1 component).
+
+**Related Problems:** LC 323 (Number of Connected Components), LC 684 (Redundant Connection), LC 1971 (Find if Path Exists in Graph)

@@ -76,3 +76,62 @@ private boolean dfs(Map<Integer, List<Integer>> adj, Set<Integer> visited, int s
 Union-Find is the cleanest solution: process edges sequentially, and the first edge where both endpoints
 already share the same root is the cycle-forming (redundant) edge.
 Since we process in order, the last such edge in the input is naturally returned.
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| `[[1,2],[2,3],[3,1]]` | `[3,1]` | Last edge forming the cycle |
+| `[[1,2],[1,3],[1,4],[3,4]]` | `[3,4]` | Last redundant edge |
+| Two redundant edges possible | Last one in input | Problem guarantees return last |
+| Self-loop `[[1,1]]` | `[1,1]` | find(1)==find(1) immediately |
+| Star graph + one extra edge | The extra edge | All spokes connect to center |
+| `n=3, [[1,2],[1,3],[2,3]]` | `[2,3]` | Triangle, last edge is redundant |
+
+---
+
+## Dry Run
+
+**Input:** `edges = [[1,2],[2,3],[3,4],[1,4],[1,5]]`
+
+**Union-Find trace:**
+```
+Initial: parent=[_,1,2,3,4,5] (1-indexed)
+
+Edge [1,2]: find(1)=1, find(2)=2 → different → union
+  parent=[_,1,1,3,4,5]
+
+Edge [2,3]: find(2): parent[2]=1 → root=1
+            find(3)=3 → different → union
+  parent=[_,1,1,1,4,5]
+
+Edge [3,4]: find(3): parent[3]=1 → root=1
+            find(4)=4 → different → union
+  parent=[_,1,1,1,1,5]
+
+Edge [1,4]: find(1)=1
+            find(4): parent[4]=1 → root=1
+            SAME ROOT! → return [1,4]
+
+Answer: [1,4]
+```
+
+---
+
+## Follow-up Questions
+
+**Q: What about Redundant Connection II (LC 685) for directed graphs?**
+More complex: a node can have in-degree 2 (two parents), or there’s a cycle. Handle both cases: find the node with in-degree 2 first, then check which of its two incoming edges causes the cycle.
+
+**Q: What if there are multiple redundant edges?**
+The problem guarantees exactly one extra edge. If there were multiple, you’d need to return the last one that forms a cycle.
+
+**Q: Can you solve this with DFS instead of Union-Find?**
+Yes (Approach 2), but it’s O(n²) vs O(nα(n)) for Union-Find. DFS checks if a path exists before adding each edge.
+
+**Q: Why does Union-Find return the correct “last” redundant edge?**
+Edges are processed in order. The first edge where `find(u) == find(v)` is the one that closes the cycle — which is the last redundant edge since there’s exactly one cycle.
+
+**Related Problems:** LC 685 (Redundant Connection II), LC 261 (Graph Valid Tree), LC 323 (Number of Connected Components)

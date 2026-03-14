@@ -91,3 +91,60 @@ public int countComponents(int n, int[][] edges) {
 
 ## Key Insight
 Union-Find is the most elegant: start with `n` components, decrement each time two different components merge.
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| `n=1, edges=[]` | 1 | Single isolated node |
+| `n=5, edges=[]` | 5 | No edges → all isolated |
+| `n=3, edges=[[0,1],[1,2],[0,2]]` | 1 | Triangle → one component |
+| Duplicate edges `[[0,1],[0,1]]` | n-1 | Second edge is redundant, same component |
+| Self-loop `[[0,0]]` | n | Self-loop doesn’t connect two different nodes |
+| `n=2, edges=[[0,1],[1,0]]` | 1 | Undirected duplicate → still one component |
+
+---
+
+## Dry Run
+
+**Input:** `n=5, edges=[[0,1],[1,2],[3,4]]`
+
+**Union-Find trace:**
+```
+Initial: parent=[0,1,2,3,4], components=5
+
+Edge [0,1]:
+  find(0)=0, find(1)=1 → different roots → union
+  parent=[0,0,2,3,4], components=4
+
+Edge [1,2]:
+  find(1): parent[1]=0 → root=0
+  find(2)=2 → different roots → union
+  parent=[0,0,0,3,4], components=3
+
+Edge [3,4]:
+  find(3)=3, find(4)=4 → different roots → union
+  parent=[0,0,0,3,3], components=2
+
+Final: 2 components → {0,1,2} and {3,4}
+```
+
+---
+
+## Follow-up Questions
+
+**Q: What if edges are directed?**
+Use DFS/BFS with a directed adjacency list. Union-Find only works for undirected graphs.
+
+**Q: How to also return which nodes are in each component?**
+After all unions, group nodes by their root: `Map<Integer, List<Integer>> groups`.
+
+**Q: What if new edges are added dynamically?**
+Union-Find handles dynamic edge additions in O(α(n)) per operation — ideal for online algorithms.
+
+**Q: What’s the difference between this and Graph Valid Tree (LC 261)?**
+This counts components. Valid Tree additionally requires exactly n-1 edges and no cycle (i.e., exactly 1 component).
+
+**Related Problems:** LC 261 (Graph Valid Tree), LC 684 (Redundant Connection), LC 547 (Number of Provinces), LC 721 (Accounts Merge)

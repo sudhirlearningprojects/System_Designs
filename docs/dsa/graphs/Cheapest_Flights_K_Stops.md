@@ -88,3 +88,70 @@ public int findCheapestPrice(int n, int[][] flights, int src, int dst, int k) {
 ## Key Insight
 Bellman-Ford naturally limits path length by controlling the number of relaxation rounds.
 The `temp` copy is critical — without it, a single iteration could chain multiple edges (violating the k-stop constraint).
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| `src == dst` | 0 | Already at destination |
+| `k=0` | direct flight price or -1 | Only direct flights allowed (0 stops) |
+| No path within k stops | -1 | All paths require more stops |
+| Cheaper path exists but needs k+1 stops | Use more expensive k-stop path | Constraint must be respected |
+| Multiple edges between same cities | Use cheapest | Bellman-Ford handles naturally |
+| Negative prices | Not in constraints | Problem guarantees non-negative prices |
+
+---
+
+## Dry Run
+
+**Input:** `n=3, flights=[[0,1,100],[1,2,100],[0,2,500]], src=0, dst=2, k=1`
+
+**Bellman-Ford trace (k+1=2 rounds):**
+```
+Initial: prices=[0, INF, INF]  (src=0)
+
+--- Round 1 (i=0, using 1 edge) ---
+temp = copy of prices = [0, INF, INF]
+
+Flight [0,1,100]: prices[0]=0 != INF
+  temp[1] = min(INF, 0+100) = 100
+Flight [1,2,100]: prices[1]=INF → skip
+Flight [0,2,500]: prices[0]=0 != INF
+  temp[2] = min(INF, 0+500) = 500
+
+prices = [0, 100, 500]
+
+--- Round 2 (i=1, using 2 edges = 1 stop) ---
+temp = copy of prices = [0, 100, 500]
+
+Flight [0,1,100]: temp[1] = min(100, 0+100) = 100 (no change)
+Flight [1,2,100]: prices[1]=100 != INF
+  temp[2] = min(500, 100+100) = 200
+Flight [0,2,500]: temp[2] = min(200, 0+500) = 200 (no change)
+
+prices = [0, 100, 200]
+
+Answer: prices[2] = 200
+```
+
+**Why temp copy matters:** Without it, in Round 1, after updating `prices[1]=100`, the flight `[1,2,100]` would immediately use it, giving `prices[2]=200` in round 1 — that’s a 2-edge path computed in 1 round, violating the k=0 constraint.
+
+---
+
+## Follow-up Questions
+
+**Q: Why not use standard Dijkstra?**
+Dijkstra doesn’t track the number of edges used. A node could be reached via a cheap but long path that exceeds k stops. The modified Dijkstra (Approach 3) tracks stops per state.
+
+**Q: What if k is very large (effectively unlimited)?**
+Run standard Dijkstra — the stop constraint becomes irrelevant.
+
+**Q: Can prices be 0?**
+Yes. The algorithm handles 0-weight edges correctly.
+
+**Q: What’s the state space for the Dijkstra approach?**
+O(V×K) states: each node can be visited with 0 to k stops used.
+
+**Related Problems:** LC 743 (Network Delay Time), LC 1514 (Path with Max Probability), LC 1631 (Path with Minimum Effort)

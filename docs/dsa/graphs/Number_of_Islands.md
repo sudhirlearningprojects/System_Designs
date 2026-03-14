@@ -117,3 +117,73 @@ private boolean union(int[] parent, int[] rank, int x, int y) {
 ## Key Insight
 - DFS/BFS: sink visited land to avoid revisiting — no extra visited array needed
 - Union-Find: count components by starting with all land cells and merging adjacent ones
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| All `'1'`s | 1 | Entire grid is one island |
+| All `'0'`s | 0 | No land at all |
+| Single cell `[['1']]` | 1 | Minimal island |
+| Single cell `[['0']]` | 0 | No island |
+| Single row `[1,0,1,0,1]` | 3 | Isolated cells separated by water |
+| Diagonal `'1'`s | n | Diagonal cells are NOT connected (only 4-directional) |
+| 1×n all `'1'`s | 1 | One long horizontal island |
+
+---
+
+## Dry Run
+
+**Input:**
+```
+1 1 0
+0 1 0
+0 0 1
+```
+
+**DFS trace (Approach 1):**
+```
+Scan (0,0): grid[0][0]='1' → count=1, call dfs(0,0)
+  dfs(0,0): sink → '0', recurse right/down
+    dfs(0,1): sink → '0', recurse right/down
+      dfs(0,2): grid='0', return
+      dfs(1,1): sink → '0', recurse
+        dfs(2,1): grid='0', return
+        dfs(1,2): grid='0', return
+        dfs(1,0): grid='0', return
+        dfs(0,1): already '0', return
+    dfs(1,0): grid='0', return
+
+Scan (0,1): already '0', skip
+Scan (0,2): grid='0', skip
+Scan (1,0): grid='0', skip
+Scan (1,1): already '0', skip
+...
+Scan (2,2): grid[2][2]='1' → count=2, call dfs(2,2)
+  dfs(2,2): sink → '0', all neighbors out of bounds or '0'
+
+Final count = 2
+```
+
+---
+
+## Follow-up Questions
+
+**Q: What if diagonal connections also count as connected?**
+Change 4-directional to 8-directional by adding `{1,1},{1,-1},{-1,1},{-1,-1}` to dirs.
+
+**Q: Count the area of the largest island (LC 695)?**
+Return the max DFS return value instead of incrementing a counter.
+
+**Q: What if the grid is too large to fit in memory?**
+Use Union-Find with streaming — process row by row, keeping only two rows in memory at a time.
+
+**Q: Can you solve it without modifying the input?**
+Yes — use a separate `boolean[][] visited` array instead of sinking cells.
+
+**Q: What's the max recursion depth for DFS?**
+O(M×N) in the worst case (one giant snake-shaped island). For very large grids, use iterative BFS to avoid stack overflow.
+
+**Related Problems:** LC 695 (Max Area of Island), LC 463 (Island Perimeter), LC 827 (Making a Large Island), LC 1020 (Number of Enclaves)

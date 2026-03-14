@@ -102,3 +102,84 @@ hit → hot → dot → dog → cog
               ↘         ↗
                lot → log
 ```
+
+---
+
+## Edge Cases
+
+| Input | Output | Reason |
+|-------|--------|--------|
+| `endWord` not in wordList | `[]` | No path possible |
+| No transformation exists | `[]` | Graph disconnected |
+| Only one shortest path | Single path in list | DFS finds one path |
+| `beginWord == endWord` | Not in constraints | Problem guarantees they differ |
+| Multiple paths of same length | All returned | DFS backtracks to find all |
+| Very large wordList | TLE risk | Use pattern preprocessing |
+
+---
+
+## Dry Run
+
+**Input:** `beginWord="hit"`, `endWord="cog"`, `wordList=["hot","dot","dog","lot","log","cog"]`
+
+**BFS phase — building parent DAG:**
+```
+level: {hit:0}
+Queue: [hit]
+
+--- Level 0 (processing "hit") ---
+Neighbors of "hit": "hot" (in wordSet)
+  parents[hot]=[hit], level[hot]=1, levelVisited={hot}
+wordSet after: {dot,dog,lot,log,cog}  (hot removed)
+
+--- Level 1 (processing "hot") ---
+Neighbors of "hot": "dot","lot" (in wordSet)
+  parents[dot]=[hot], level[dot]=2
+  parents[lot]=[hot], level[lot]=2
+  levelVisited={dot,lot}
+wordSet after: {dog,log,cog}
+
+--- Level 2 (processing "dot","lot") ---
+Neighbors of "dot": "dog" → parents[dog]=[dot], level[dog]=3
+Neighbors of "lot": "log" → parents[log]=[lot], level[log]=3
+levelVisited={dog,log}
+wordSet after: {cog}
+
+--- Level 3 (processing "dog","log") ---
+Neighbors of "dog": "cog" == endWord! found=true
+  parents[cog]=[dog]
+Neighbors of "log": "cog" → level[cog]=4 == level[log]+1=4 → parents[cog]=[dog,log]
+```
+
+**DFS phase — reconstruct paths from "cog" back to "hit":**
+```
+path=[cog]
+  parent=dog: path=[cog,dog]
+    parent=dot: path=[cog,dog,dot]
+      parent=hot: path=[cog,dog,dot,hot]
+        parent=hit: → reverse → [hit,hot,dot,dog,cog] ✓
+  parent=log: path=[cog,log]
+    parent=lot: path=[cog,log,lot]
+      parent=hot: path=[cog,log,lot,hot]
+        parent=hit: → reverse → [hit,hot,lot,log,cog] ✓
+
+Answer: [["hit","hot","dot","dog","cog"],["hit","hot","lot","log","cog"]]
+```
+
+---
+
+## Follow-up Questions
+
+**Q: Why is this problem harder than Word Ladder I (LC 127)?**
+LC 127 only needs the length. LC 126 needs all paths, requiring the parent DAG and DFS reconstruction. The tricky part is correctly building the DAG without including non-shortest-path edges.
+
+**Q: Why remove `levelVisited` from `wordSet` after each level?**
+If a word is reachable at level k, we don't want to add it as a parent at level k+1 (that would be a longer path). Removing it from `wordSet` prevents this.
+
+**Q: What's the time complexity of the DFS phase?**
+O(K) where K = total characters in all output paths. In the worst case, exponentially many paths exist.
+
+**Q: Can you use bidirectional BFS for LC 126?**
+Yes, but it's significantly more complex to implement correctly for all-paths reconstruction.
+
+**Related Problems:** LC 127 (Word Ladder), LC 433 (Minimum Genetic Mutation), LC 210 (Course Schedule II)
