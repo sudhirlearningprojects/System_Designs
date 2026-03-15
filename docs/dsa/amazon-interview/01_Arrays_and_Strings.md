@@ -1,295 +1,89 @@
-# Amazon Interview - Arrays & Strings Problems
+# Amazon Interview - Arrays & Strings (60 Problems)
 
-## Problem 1: Two Sum (LeetCode 1) ⭐⭐⭐⭐⭐
+## 📊 Overview
+Arrays and Strings represent **20% of all Amazon interview questions**. Master these patterns to clear most coding rounds.
 
-**Difficulty**: Easy  
-**Frequency**: Very High (Asked in 60%+ Amazon interviews)  
-**Pattern**: Hash Map
+**Frequency**: Very High (Asked in 70%+ of interviews)  
+**Total Problems**: 60  
+**Difficulty**: 20 Easy, 35 Medium, 5 Hard
 
-### Problem Statement
-Given an array of integers `nums` and an integer `target`, return indices of the two numbers such that they add up to `target`. You may assume that each input would have exactly one solution, and you may not use the same element twice.
+---
 
-### Examples
-```
-Input: nums = [2,7,11,15], target = 9
-Output: [0,1]
-Explanation: nums[0] + nums[1] = 2 + 7 = 9
+## 🔥 Top 20 Must-Know Problems
 
-Input: nums = [3,2,4], target = 6
-Output: [1,2]
+### 1. Two Sum (LC 1) ⭐⭐⭐⭐⭐
+**Difficulty**: Easy | **Frequency**: Very High
 
-Input: nums = [3,3], target = 6
-Output: [0,1]
-```
-
-### Solution 1: Brute Force
-```java
-public int[] twoSum(int[] nums, int target) {
-    for (int i = 0; i < nums.length; i++) {
-        for (int j = i + 1; j < nums.length; j++) {
-            if (nums[i] + nums[j] == target) {
-                return new int[]{i, j};
-            }
-        }
-    }
-    return new int[]{};
-}
-```
-**Time**: O(n²), **Space**: O(1)
-
-### Solution 2: Hash Map (Optimal)
 ```java
 public int[] twoSum(int[] nums, int target) {
     Map<Integer, Integer> map = new HashMap<>();
-    
     for (int i = 0; i < nums.length; i++) {
         int complement = target - nums[i];
-        
         if (map.containsKey(complement)) {
             return new int[]{map.get(complement), i};
         }
-        
         map.put(nums[i], i);
     }
-    
     return new int[]{};
 }
 ```
-**Time**: O(n), **Space**: O(n)
-
-### Dry Run
-```
-nums = [2, 7, 11, 15], target = 9
-
-i=0: complement = 9-2 = 7, map={}, add 2→0, map={2:0}
-i=1: complement = 9-7 = 2, map contains 2! return [0, 1]
-```
-
-### Follow-up Questions
-1. What if there are multiple solutions? Return all pairs
-2. What if array is sorted? Use two pointers
-3. What if we need three numbers? Use 3Sum approach
+**Time**: O(n) | **Space**: O(n)
 
 ---
 
-## Problem 2: Longest Substring Without Repeating Characters (LeetCode 3) ⭐⭐⭐⭐⭐
+### 2. Best Time to Buy and Sell Stock I (LC 121) ⭐⭐⭐⭐⭐
+**Difficulty**: Easy | **Frequency**: Very High
 
-**Difficulty**: Medium  
-**Frequency**: Very High (Asked in 55%+ Amazon interviews)  
-**Pattern**: Sliding Window + Hash Set
-
-### Problem Statement
-Given a string `s`, find the length of the longest substring without repeating characters.
-
-### Examples
-```
-Input: s = "abcabcbb"
-Output: 3
-Explanation: "abc" is the longest substring
-
-Input: s = "bbbbb"
-Output: 1
-Explanation: "b" is the longest substring
-
-Input: s = "pwwkew"
-Output: 3
-Explanation: "wke" is the longest substring
-```
-
-### Solution: Sliding Window
 ```java
-public int lengthOfLongestSubstring(String s) {
-    Set<Character> set = new HashSet<>();
-    int left = 0, maxLength = 0;
+public int maxProfit(int[] prices) {
+    int minPrice = Integer.MAX_VALUE;
+    int maxProfit = 0;
     
-    for (int right = 0; right < s.length(); right++) {
-        // Shrink window until no duplicates
-        while (set.contains(s.charAt(right))) {
-            set.remove(s.charAt(left));
-            left++;
-        }
-        
-        set.add(s.charAt(right));
-        maxLength = Math.max(maxLength, right - left + 1);
+    for (int price : prices) {
+        minPrice = Math.min(minPrice, price);
+        maxProfit = Math.max(maxProfit, price - minPrice);
     }
     
-    return maxLength;
+    return maxProfit;
 }
 ```
-**Time**: O(n), **Space**: O(min(n, m)) where m is charset size
-
-### Optimized Solution: Hash Map with Index
-```java
-public int lengthOfLongestSubstring(String s) {
-    Map<Character, Integer> map = new HashMap<>();
-    int left = 0, maxLength = 0;
-    
-    for (int right = 0; right < s.length(); right++) {
-        char c = s.charAt(right);
-        
-        if (map.containsKey(c)) {
-            left = Math.max(left, map.get(c) + 1);
-        }
-        
-        map.put(c, right);
-        maxLength = Math.max(maxLength, right - left + 1);
-    }
-    
-    return maxLength;
-}
-```
-**Time**: O(n), **Space**: O(min(n, m))
-
-### Dry Run
-```
-s = "abcabcbb"
-
-right=0: c='a', set={a}, left=0, maxLen=1
-right=1: c='b', set={a,b}, left=0, maxLen=2
-right=2: c='c', set={a,b,c}, left=0, maxLen=3
-right=3: c='a', duplicate! remove 'a', left=1, set={b,c}, add 'a', set={b,c,a}, maxLen=3
-right=4: c='b', duplicate! remove 'b', left=2, set={c,a}, add 'b', set={c,a,b}, maxLen=3
-...
-Result: 3
-```
+**Time**: O(n) | **Space**: O(1)
 
 ---
 
-## Problem 3: Trapping Rain Water (LeetCode 42) ⭐⭐⭐⭐
+### 3. Maximum Subarray (LC 53) ⭐⭐⭐⭐⭐
+**Difficulty**: Medium | **Frequency**: Very High
 
-**Difficulty**: Hard  
-**Frequency**: High (Asked in 40%+ Amazon interviews)  
-**Pattern**: Two Pointers
-
-### Problem Statement
-Given `n` non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it can trap after raining.
-
-### Examples
-```
-Input: height = [0,1,0,2,1,0,1,3,2,1,2,1]
-Output: 6
-
-Input: height = [4,2,0,3,2,5]
-Output: 9
-```
-
-### Solution 1: Two Pointers (Optimal)
 ```java
-public int trap(int[] height) {
-    if (height == null || height.length == 0) return 0;
+public int maxSubArray(int[] nums) {
+    int maxSum = nums[0];
+    int currentSum = nums[0];
     
-    int left = 0, right = height.length - 1;
-    int leftMax = 0, rightMax = 0;
-    int water = 0;
-    
-    while (left < right) {
-        if (height[left] < height[right]) {
-            if (height[left] >= leftMax) {
-                leftMax = height[left];
-            } else {
-                water += leftMax - height[left];
-            }
-            left++;
-        } else {
-            if (height[right] >= rightMax) {
-                rightMax = height[right];
-            } else {
-                water += rightMax - height[right];
-            }
-            right--;
-        }
+    for (int i = 1; i < nums.length; i++) {
+        currentSum = Math.max(nums[i], currentSum + nums[i]);
+        maxSum = Math.max(maxSum, currentSum);
     }
     
-    return water;
+    return maxSum;
 }
 ```
-**Time**: O(n), **Space**: O(1)
-
-### Solution 2: Dynamic Programming
-```java
-public int trap(int[] height) {
-    int n = height.length;
-    if (n == 0) return 0;
-    
-    int[] leftMax = new int[n];
-    int[] rightMax = new int[n];
-    
-    leftMax[0] = height[0];
-    for (int i = 1; i < n; i++) {
-        leftMax[i] = Math.max(leftMax[i - 1], height[i]);
-    }
-    
-    rightMax[n - 1] = height[n - 1];
-    for (int i = n - 2; i >= 0; i--) {
-        rightMax[i] = Math.max(rightMax[i + 1], height[i]);
-    }
-    
-    int water = 0;
-    for (int i = 0; i < n; i++) {
-        water += Math.min(leftMax[i], rightMax[i]) - height[i];
-    }
-    
-    return water;
-}
-```
-**Time**: O(n), **Space**: O(n)
-
-### Dry Run
-```
-height = [0,1,0,2,1,0,1,3,2,1,2,1]
-
-Two Pointers Approach:
-left=0, right=11, leftMax=0, rightMax=0, water=0
-
-Step 1: height[0]=0 < height[11]=1
-  leftMax = 0, left=1
-
-Step 2: height[1]=1 < height[11]=1
-  leftMax = 1, left=2
-
-Step 3: height[2]=0 < height[11]=1
-  water += 1-0 = 1, left=3
-
-...continue until left meets right
-
-Total water = 6
-```
+**Time**: O(n) | **Space**: O(1)
 
 ---
 
-## Problem 4: Product of Array Except Self (LeetCode 238) ⭐⭐⭐⭐
+### 4. Product of Array Except Self (LC 238) ⭐⭐⭐⭐⭐
+**Difficulty**: Medium | **Frequency**: Very High
 
-**Difficulty**: Medium  
-**Frequency**: High (Asked in 45%+ Amazon interviews)  
-**Pattern**: Prefix/Suffix Product
-
-### Problem Statement
-Given an integer array `nums`, return an array `answer` such that `answer[i]` is equal to the product of all the elements of `nums` except `nums[i]`.
-
-You must write an algorithm that runs in O(n) time and without using the division operation.
-
-### Examples
-```
-Input: nums = [1,2,3,4]
-Output: [24,12,8,6]
-
-Input: nums = [-1,1,0,-3,3]
-Output: [0,0,9,0,0]
-```
-
-### Solution: Prefix and Suffix Products
 ```java
 public int[] productExceptSelf(int[] nums) {
     int n = nums.length;
     int[] result = new int[n];
     
-    // Calculate prefix products
     result[0] = 1;
     for (int i = 1; i < n; i++) {
         result[i] = result[i - 1] * nums[i - 1];
     }
     
-    // Calculate suffix products and multiply
     int suffix = 1;
     for (int i = n - 1; i >= 0; i--) {
         result[i] *= suffix;
@@ -299,293 +93,293 @@ public int[] productExceptSelf(int[] nums) {
     return result;
 }
 ```
-**Time**: O(n), **Space**: O(1) (output array doesn't count)
-
-### Dry Run
-```
-nums = [1, 2, 3, 4]
-
-Step 1: Calculate prefix products
-result = [1, 1, 2, 6]
-  result[0] = 1
-  result[1] = 1 * 1 = 1
-  result[2] = 1 * 2 = 2
-  result[3] = 2 * 3 = 6
-
-Step 2: Calculate suffix and multiply
-suffix = 1
-  i=3: result[3] = 6 * 1 = 6, suffix = 1 * 4 = 4
-  i=2: result[2] = 2 * 4 = 8, suffix = 4 * 3 = 12
-  i=1: result[1] = 1 * 12 = 12, suffix = 12 * 2 = 24
-  i=0: result[0] = 1 * 24 = 24, suffix = 24 * 1 = 24
-
-result = [24, 12, 8, 6]
-```
+**Time**: O(n) | **Space**: O(1)
 
 ---
 
-## Problem 5: Valid Parentheses (LeetCode 20) ⭐⭐⭐⭐
+### 5. Container With Most Water (LC 11) ⭐⭐⭐⭐
+**Difficulty**: Medium | **Frequency**: High
 
-**Difficulty**: Easy  
-**Frequency**: High (Asked in 40%+ Amazon interviews)  
-**Pattern**: Stack
-
-### Problem Statement
-Given a string `s` containing just the characters `'('`, `')'`, `'{'`, `'}'`, `'['` and `']'`, determine if the input string is valid.
-
-### Examples
-```
-Input: s = "()"
-Output: true
-
-Input: s = "()[]{}"
-Output: true
-
-Input: s = "(]"
-Output: false
-
-Input: s = "([)]"
-Output: false
-```
-
-### Solution: Stack
 ```java
-public boolean isValid(String s) {
-    Stack<Character> stack = new Stack<>();
-    Map<Character, Character> map = new HashMap<>();
-    map.put(')', '(');
-    map.put('}', '{');
-    map.put(']', '[');
+public int maxArea(int[] height) {
+    int left = 0, right = height.length - 1;
+    int maxArea = 0;
     
-    for (char c : s.toCharArray()) {
-        if (map.containsKey(c)) {
-            // Closing bracket
-            if (stack.isEmpty() || stack.pop() != map.get(c)) {
-                return false;
-            }
+    while (left < right) {
+        int area = Math.min(height[left], height[right]) * (right - left);
+        maxArea = Math.max(maxArea, area);
+        
+        if (height[left] < height[right]) {
+            left++;
         } else {
-            // Opening bracket
-            stack.push(c);
+            right--;
         }
     }
     
-    return stack.isEmpty();
+    return maxArea;
 }
 ```
-**Time**: O(n), **Space**: O(n)
-
-### Dry Run
-```
-s = "([)]"
-
-c='(': stack=['(']
-c='[': stack=['(', '[']
-c=')': pop '[', expected '(' → false
-```
+**Time**: O(n) | **Space**: O(1)
 
 ---
 
-## Problem 6: Group Anagrams (LeetCode 49) ⭐⭐⭐⭐
+### 6. 3Sum (LC 15) ⭐⭐⭐⭐⭐
+**Difficulty**: Medium | **Frequency**: Very High
 
-**Difficulty**: Medium  
-**Frequency**: High (Asked in 35%+ Amazon interviews)  
-**Pattern**: Hash Map
-
-### Problem Statement
-Given an array of strings `strs`, group the anagrams together.
-
-### Examples
-```
-Input: strs = ["eat","tea","tan","ate","nat","bat"]
-Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
-
-Input: strs = [""]
-Output: [[""]]
-
-Input: strs = ["a"]
-Output: [["a"]]
-```
-
-### Solution: Sorted String as Key
 ```java
-public List<List<String>> groupAnagrams(String[] strs) {
-    Map<String, List<String>> map = new HashMap<>();
+public List<List<Integer>> threeSum(int[] nums) {
+    List<List<Integer>> result = new ArrayList<>();
+    Arrays.sort(nums);
     
-    for (String str : strs) {
-        char[] chars = str.toCharArray();
-        Arrays.sort(chars);
-        String key = new String(chars);
+    for (int i = 0; i < nums.length - 2; i++) {
+        if (i > 0 && nums[i] == nums[i - 1]) continue;
         
-        map.putIfAbsent(key, new ArrayList<>());
-        map.get(key).add(str);
-    }
-    
-    return new ArrayList<>(map.values());
-}
-```
-**Time**: O(n * k log k) where k is max string length  
-**Space**: O(n * k)
-
-### Optimized Solution: Character Count as Key
-```java
-public List<List<String>> groupAnagrams(String[] strs) {
-    Map<String, List<String>> map = new HashMap<>();
-    
-    for (String str : strs) {
-        int[] count = new int[26];
-        for (char c : str.toCharArray()) {
-            count[c - 'a']++;
+        int left = i + 1, right = nums.length - 1;
+        while (left < right) {
+            int sum = nums[i] + nums[left] + nums[right];
+            
+            if (sum == 0) {
+                result.add(Arrays.asList(nums[i], nums[left], nums[right]));
+                while (left < right && nums[left] == nums[left + 1]) left++;
+                while (left < right && nums[right] == nums[right - 1]) right--;
+                left++;
+                right--;
+            } else if (sum < 0) {
+                left++;
+            } else {
+                right--;
+            }
         }
-        
-        String key = Arrays.toString(count);
-        map.putIfAbsent(key, new ArrayList<>());
-        map.get(key).add(str);
     }
     
-    return new ArrayList<>(map.values());
+    return result;
 }
 ```
-**Time**: O(n * k), **Space**: O(n * k)
+**Time**: O(n²) | **Space**: O(1)
 
 ---
 
-## Problem 7: Merge Intervals (LeetCode 56) ⭐⭐⭐⭐
+### 7. Subarray Sum Equals K (LC 560) ⭐⭐⭐⭐
+**Difficulty**: Medium | **Frequency**: High
 
-**Difficulty**: Medium  
-**Frequency**: High (Asked in 45%+ Amazon interviews)  
-**Pattern**: Sorting + Greedy
-
-### Problem Statement
-Given an array of `intervals` where `intervals[i] = [starti, endi]`, merge all overlapping intervals.
-
-### Examples
+```java
+public int subarraySum(int[] nums, int k) {
+    Map<Integer, Integer> map = new HashMap<>();
+    map.put(0, 1);
+    int sum = 0, count = 0;
+    
+    for (int num : nums) {
+        sum += num;
+        if (map.containsKey(sum - k)) {
+            count += map.get(sum - k);
+        }
+        map.put(sum, map.getOrDefault(sum, 0) + 1);
+    }
+    
+    return count;
+}
 ```
-Input: intervals = [[1,3],[2,6],[8,10],[15,18]]
-Output: [[1,6],[8,10],[15,18]]
+**Time**: O(n) | **Space**: O(n)
 
-Input: intervals = [[1,4],[4,5]]
-Output: [[1,5]]
-```
+---
 
-### Solution
+### 8. Merge Intervals (LC 56) ⭐⭐⭐⭐⭐
+**Difficulty**: Medium | **Frequency**: Very High
+
 ```java
 public int[][] merge(int[][] intervals) {
     if (intervals.length <= 1) return intervals;
     
-    // Sort by start time
     Arrays.sort(intervals, (a, b) -> a[0] - b[0]);
-    
     List<int[]> result = new ArrayList<>();
     int[] current = intervals[0];
     
     for (int i = 1; i < intervals.length; i++) {
         if (intervals[i][0] <= current[1]) {
-            // Overlapping, merge
             current[1] = Math.max(current[1], intervals[i][1]);
         } else {
-            // Non-overlapping, add current and move to next
             result.add(current);
             current = intervals[i];
         }
     }
-    
     result.add(current);
+    
     return result.toArray(new int[result.size()][]);
 }
 ```
-**Time**: O(n log n), **Space**: O(n)
-
-### Dry Run
-```
-intervals = [[1,3],[2,6],[8,10],[15,18]]
-
-After sorting: [[1,3],[2,6],[8,10],[15,18]]
-
-current = [1,3]
-i=1: [2,6], 2 <= 3 → merge → current = [1,6]
-i=2: [8,10], 8 > 6 → add [1,6], current = [8,10]
-i=3: [15,18], 15 > 10 → add [8,10], current = [15,18]
-Add [15,18]
-
-Result: [[1,6],[8,10],[15,18]]
-```
+**Time**: O(n log n) | **Space**: O(n)
 
 ---
 
-## Problem 8: Rotate Image (LeetCode 48) ⭐⭐⭐
+### 9. Longest Substring Without Repeating Characters (LC 3) ⭐⭐⭐⭐⭐
+**Difficulty**: Medium | **Frequency**: Very High
 
-**Difficulty**: Medium  
-**Frequency**: Medium (Asked in 30%+ Amazon interviews)  
-**Pattern**: Matrix Manipulation
-
-### Problem Statement
-You are given an `n x n` 2D matrix representing an image, rotate the image by 90 degrees (clockwise). You have to rotate the image in-place.
-
-### Examples
-```
-Input: matrix = [[1,2,3],[4,5,6],[7,8,9]]
-Output: [[7,4,1],[8,5,2],[9,6,3]]
-
-Input: matrix = [[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]
-Output: [[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]
-```
-
-### Solution: Transpose + Reverse
 ```java
-public void rotate(int[][] matrix) {
-    int n = matrix.length;
+public int lengthOfLongestSubstring(String s) {
+    Map<Character, Integer> map = new HashMap<>();
+    int left = 0, maxLength = 0;
     
-    // Step 1: Transpose the matrix
-    for (int i = 0; i < n; i++) {
-        for (int j = i + 1; j < n; j++) {
-            int temp = matrix[i][j];
-            matrix[i][j] = matrix[j][i];
-            matrix[j][i] = temp;
+    for (int right = 0; right < s.length(); right++) {
+        char c = s.charAt(right);
+        if (map.containsKey(c)) {
+            left = Math.max(left, map.get(c) + 1);
         }
+        map.put(c, right);
+        maxLength = Math.max(maxLength, right - left + 1);
     }
     
-    // Step 2: Reverse each row
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n / 2; j++) {
-            int temp = matrix[i][j];
-            matrix[i][j] = matrix[i][n - 1 - j];
-            matrix[i][n - 1 - j] = temp;
-        }
-    }
+    return maxLength;
 }
 ```
-**Time**: O(n²), **Space**: O(1)
-
-### Dry Run
-```
-matrix = [[1,2,3],
-          [4,5,6],
-          [7,8,9]]
-
-Step 1: Transpose
-[[1,4,7],
- [2,5,8],
- [3,6,9]]
-
-Step 2: Reverse each row
-[[7,4,1],
- [8,5,2],
- [9,6,3]]
-```
+**Time**: O(n) | **Space**: O(min(n, m))
 
 ---
 
-## Summary
+### 10. Minimum Window Substring (LC 76) ⭐⭐⭐⭐
+**Difficulty**: Hard | **Frequency**: High
 
-| Problem | Difficulty | Frequency | Pattern | Time | Space |
-|---------|------------|-----------|---------|------|-------|
-| Two Sum | Easy | ⭐⭐⭐⭐⭐ | Hash Map | O(n) | O(n) |
-| Longest Substring | Medium | ⭐⭐⭐⭐⭐ | Sliding Window | O(n) | O(min(n,m)) |
-| Trapping Rain Water | Hard | ⭐⭐⭐⭐ | Two Pointers | O(n) | O(1) |
-| Product Except Self | Medium | ⭐⭐⭐⭐ | Prefix/Suffix | O(n) | O(1) |
-| Valid Parentheses | Easy | ⭐⭐⭐⭐ | Stack | O(n) | O(n) |
-| Group Anagrams | Medium | ⭐⭐⭐⭐ | Hash Map | O(n*k) | O(n*k) |
-| Merge Intervals | Medium | ⭐⭐⭐⭐ | Sorting | O(n log n) | O(n) |
-| Rotate Image | Medium | ⭐⭐⭐ | Matrix | O(n²) | O(1) |
+```java
+public String minWindow(String s, String t) {
+    if (s.length() < t.length()) return "";
+    
+    Map<Character, Integer> need = new HashMap<>();
+    for (char c : t.toCharArray()) {
+        need.put(c, need.getOrDefault(c, 0) + 1);
+    }
+    
+    int left = 0, right = 0, formed = 0, required = need.size();
+    Map<Character, Integer> window = new HashMap<>();
+    int[] result = {-1, 0, 0}; // length, left, right
+    
+    while (right < s.length()) {
+        char c = s.charAt(right);
+        window.put(c, window.getOrDefault(c, 0) + 1);
+        
+        if (need.containsKey(c) && window.get(c).intValue() == need.get(c).intValue()) {
+            formed++;
+        }
+        
+        while (left <= right && formed == required) {
+            c = s.charAt(left);
+            
+            if (result[0] == -1 || right - left + 1 < result[0]) {
+                result[0] = right - left + 1;
+                result[1] = left;
+                result[2] = right;
+            }
+            
+            window.put(c, window.get(c) - 1);
+            if (need.containsKey(c) && window.get(c) < need.get(c)) {
+                formed--;
+            }
+            left++;
+        }
+        right++;
+    }
+    
+    return result[0] == -1 ? "" : s.substring(result[1], result[2] + 1);
+}
+```
+**Time**: O(|S| + |T|) | **Space**: O(|S| + |T|)
 
-**Next**: [Trees & Graphs Problems](02_Trees_and_Graphs.md)
+---
+
+## 📋 Complete Problem List (60 Problems)
+
+### Easy (20 problems)
+1. Two Sum (1)
+2. Best Time to Buy and Sell Stock I (121)
+3. Valid Palindrome (125)
+4. Valid Anagram (242)
+5. Longest Common Prefix (14)
+6. Valid Parentheses (20)
+7. Implement strStr() (28)
+8. Roman to Integer (13)
+9. Move Zeroes (283)
+10. Missing Number (268)
+11. Majority Element (169)
+12. Plus One (66)
+13. Remove Duplicates from Sorted Array (26)
+14. Merge Sorted Array (88)
+15. Pascal's Triangle (118)
+16. Contains Duplicate (217)
+17. Single Number (136)
+18. Intersection of Two Arrays II (350)
+19. Reverse String (344)
+20. Reverse Integer (7)
+
+### Medium (35 problems)
+21. Best Time to Buy and Sell Stock II (122)
+22. Maximum Subarray (53)
+23. Product of Array Except Self (238)
+24. Maximum Product Subarray (152)
+25. Container With Most Water (11)
+26. 3Sum (15)
+27. 3Sum Closest (16)
+28. Subarray Sum Equals K (560)
+29. Longest Consecutive Sequence (128)
+30. Merge Intervals (56)
+31. Insert Interval (57)
+32. Meeting Rooms II (253)
+33. Kth Largest Element in Array (215)
+34. Top K Frequent Elements (347)
+35. Sort Colors (75)
+36. Rotate Array (189)
+37. Find Minimum in Rotated Sorted Array (153)
+38. Search in Rotated Sorted Array (33)
+39. Longest Substring Without Repeating Characters (3)
+40. Longest Repeating Character Replacement (424)
+41. Group Anagrams (49)
+42. Longest Palindromic Substring (5)
+43. Palindromic Substrings (647)
+44. String to Integer (atoi) (8)
+45. Integer to Roman (12)
+46. Reverse Words in a String (151)
+47. Find All Anagrams in a String (438)
+48. Permutation in String (567)
+49. Encode and Decode Strings (271)
+50. Reorganize String (767)
+51. Count and Say (38)
+52. Compare Version Numbers (165)
+53. Next Permutation (31)
+54. Majority Element II (229)
+55. Set Matrix Zeroes (73)
+
+### Hard (5 problems)
+56. Minimum Window Substring (76)
+57. First Missing Positive (41)
+58. Trapping Rain Water (42)
+59. Sliding Window Maximum (239)
+60. Spiral Matrix (54)
+
+---
+
+## 🎯 Key Patterns
+
+### 1. Two Pointers
+- Two Sum, 3Sum, Container With Most Water
+- Trapping Rain Water
+
+### 2. Sliding Window
+- Longest Substring Without Repeating
+- Minimum Window Substring
+- Find All Anagrams
+
+### 3. Hash Map/Set
+- Two Sum, Group Anagrams
+- Subarray Sum Equals K
+
+### 4. Prefix/Suffix
+- Product of Array Except Self
+
+### 5. Kadane's Algorithm
+- Maximum Subarray
+- Maximum Product Subarray
+
+### 6. Sorting + Greedy
+- Merge Intervals
+- Meeting Rooms II
+
+---
+
+**Next**: [Linked Lists Problems](02_Linked_Lists.md)
