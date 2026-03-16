@@ -6,6 +6,10 @@
 **Frequency**: High  
 **Pattern**: Stack
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/implement-queue-using-stacks/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/queue-using-two-stacks/)
+
 ### Solution
 ```java
 class MyQueue {
@@ -50,6 +54,10 @@ class MyQueue {
 **Frequency**: High  
 **Pattern**: Stack
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/min-stack/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/get-minimum-element-from-stack/)
+
 ### Solution
 ```java
 class MinStack {
@@ -93,6 +101,10 @@ class MinStack {
 **Difficulty**: Medium  
 **Frequency**: Medium  
 **Pattern**: Stack
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/evaluate-reverse-polish-notation/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/evaluation-of-postfix-expression/)
 
 ### Solution
 ```java

@@ -1,6 +1,11 @@
 # Dynamic Programming Deep Dive (40 Problems)
 
 ## 1. Climbing Stairs (LC 70) ⭐⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/climbing-stairs/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/count-ways-to-reach-the-nth-stair/)
+
 ```java
 public int climbStairs(int n) {
     if (n <= 2) return n;
@@ -11,6 +16,11 @@ public int climbStairs(int n) {
 ```
 
 ## 2. Coin Change (LC 322) ⭐⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/coin-change/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/coin-change/)
+
 ```java
 public int coinChange(int[] coins, int amount) {
     int[] dp = new int[amount + 1];
@@ -24,6 +34,11 @@ public int coinChange(int[] coins, int amount) {
 ```
 
 ## 3. Longest Increasing Subsequence (LC 300) ⭐⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/longest-increasing-subsequence/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/longest-increasing-subsequence/)
+
 ```java
 public int lengthOfLIS(int[] nums) {
     int[] dp = new int[nums.length];
@@ -39,6 +54,11 @@ public int lengthOfLIS(int[] nums) {
 ```
 
 ## 4. Word Break (LC 139) ⭐⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/word-break/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/word-break/)
+
 ```java
 public boolean wordBreak(String s, List<String> wordDict) {
     Set<String> set = new HashSet<>(wordDict);
@@ -52,6 +72,11 @@ public boolean wordBreak(String s, List<String> wordDict) {
 ```
 
 ## 5. House Robber (LC 198) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/house-robber/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/stickler-theif/)
+
 ```java
 public int rob(int[] nums) {
     int prev1 = 0, prev2 = 0;
@@ -61,6 +86,11 @@ public int rob(int[] nums) {
 ```
 
 ## 6. House Robber II (LC 213) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/house-robber-ii/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/house-robber-ii/)
+
 ```java
 public int rob(int[] nums) {
     if (nums.length == 1) return nums[0];
@@ -74,6 +104,11 @@ int robRange(int[] nums, int start, int end) {
 ```
 
 ## 7. Unique Paths (LC 62) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/unique-paths/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/number-of-unique-paths/)
+
 ```java
 public int uniquePaths(int m, int n) {
     int[] dp = new int[n];
@@ -86,6 +121,11 @@ public int uniquePaths(int m, int n) {
 ```
 
 ## 8. Longest Common Subsequence (LC 1143) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/longest-common-subsequence/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/longest-common-subsequence/)
+
 ```java
 public int longestCommonSubsequence(String s1, String s2) {
     int m = s1.length(), n = s2.length();
@@ -98,6 +138,11 @@ public int longestCommonSubsequence(String s1, String s2) {
 ```
 
 ## 9. Edit Distance (LC 72) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/edit-distance/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/edit-distance/)
+
 ```java
 public int minDistance(String s1, String s2) {
     int m = s1.length(), n = s2.length();
@@ -112,6 +157,11 @@ public int minDistance(String s1, String s2) {
 ```
 
 ## 10. Maximum Product Subarray (LC 152) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/maximum-product-subarray/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/maximum-product-subarray/)
+
 ```java
 public int maxProduct(int[] nums) {
     int max = nums[0], min = nums[0], result = nums[0];
@@ -126,6 +176,11 @@ public int maxProduct(int[] nums) {
 ```
 
 ## 11. Partition Equal Subset Sum (LC 416) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/partition-equal-subset-sum/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/subset-sum-problem/)
+
 ```java
 public boolean canPartition(int[] nums) {
     int sum = Arrays.stream(nums).sum();
@@ -141,6 +196,11 @@ public boolean canPartition(int[] nums) {
 ```
 
 ## 12. Best Time to Buy and Sell Stock III (LC 123) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/buy-and-sell-a-share-at-most-twice/)
+
 ```java
 public int maxProfit(int[] prices) {
     int buy1 = Integer.MIN_VALUE, sell1 = 0, buy2 = Integer.MIN_VALUE, sell2 = 0;
@@ -155,6 +215,11 @@ public int maxProfit(int[] prices) {
 ```
 
 ## 13. Decode Ways (LC 91) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/decode-ways/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/total-decoding-messages/)
+
 ```java
 public int numDecodings(String s) {
     if (s.charAt(0) == '0') return 0;
@@ -171,6 +236,11 @@ public int numDecodings(String s) {
 ```
 
 ## 14. Longest Palindromic Subsequence (LC 516) ⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/longest-palindromic-subsequence/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/longest-palindromic-subsequence/)
+
 ```java
 public int longestPalindromeSubseq(String s) {
     int n = s.length();
@@ -185,6 +255,11 @@ public int longestPalindromeSubseq(String s) {
 ```
 
 ## 15. Target Sum (LC 494) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/target-sum/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/target-sum/)
+
 ```java
 public int findTargetSumWays(int[] nums, int target) {
     int sum = Arrays.stream(nums).sum();

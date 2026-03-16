@@ -6,6 +6,10 @@
 **Frequency**: High  
 **Pattern**: Two Pointers
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/reverse-linked-list/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/reverse-a-linked-list/)
+
 ### Solution - Iterative
 ```java
 public ListNode reverseList(ListNode head) {
@@ -46,6 +50,10 @@ public ListNode reverseList(ListNode head) {
 **Frequency**: High  
 **Pattern**: Two Pointers
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/merge-two-sorted-lists/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/merge-two-sorted-linked-lists/)
+
 ### Solution
 ```java
 public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
@@ -76,6 +84,10 @@ public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
 **Difficulty**: Medium  
 **Frequency**: High  
 **Pattern**: Hash Map
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/copy-list-with-random-pointer/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/clone-a-linked-list-with-next-and-random-pointer/)
 
 ### Solution
 ```java

@@ -6,6 +6,10 @@
 **Frequency**: High  
 **Pattern**: QuickSelect / Heap
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/kth-largest-element-in-an-array/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/kth-largest-element/)
+
 ### Solution 1: Min Heap
 ```java
 public int findKthLargest(int[] nums, int k) {
@@ -73,6 +77,10 @@ private void swap(int[] nums, int i, int j) {
 **Difficulty**: Medium  
 **Frequency**: High  
 **Pattern**: Binary Search
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/search-in-rotated-sorted-array/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/search-in-a-rotated-array/)
 
 ### Solution
 ```java

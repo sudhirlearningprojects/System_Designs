@@ -6,6 +6,10 @@
 **Frequency**: Very High  
 **Pattern**: BFS
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/binary-tree-level-order-traversal/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/level-order-traversal/)
+
 ### Problem Statement
 Given the root of a binary tree, return the level order traversal of its nodes' values.
 
@@ -46,6 +50,10 @@ public List<List<Integer>> levelOrder(TreeNode root) {
 **Frequency**: High  
 **Pattern**: DFS
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/lowest-common-ancestor-in-a-binary-tree/)
+
 ### Solution
 ```java
 public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
@@ -69,6 +77,10 @@ public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
 **Difficulty**: Medium  
 **Frequency**: Very High  
 **Pattern**: DFS/BFS
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/number-of-islands/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/find-the-number-of-islands/)
 
 ### Solution
 ```java
@@ -108,6 +120,10 @@ private void dfs(char[][] grid, int i, int j) {
 **Difficulty**: Hard  
 **Frequency**: High  
 **Pattern**: BFS
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/word-ladder/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/word-ladder/)
 
 ### Solution
 ```java
@@ -155,6 +171,10 @@ public int ladderLength(String beginWord, String endWord, List<String> wordList)
 **Frequency**: High  
 **Pattern**: Topological Sort
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/course-schedule/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/prerequisite-tasks/)
+
 ### Solution
 ```java
 public boolean canFinish(int numCourses, int[][] prerequisites) {
@@ -196,6 +216,10 @@ public boolean canFinish(int numCourses, int[][] prerequisites) {
 
 **Difficulty**: Hard  
 **Pattern**: DFS
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/serialize-and-deserialize-binary-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/serialize-and-deserialize-a-binary-tree/)
 
 ### Solution
 ```java
@@ -240,6 +264,10 @@ public class Codec {
 
 **Difficulty**: Hard  
 **Pattern**: DFS
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/binary-tree-maximum-path-sum/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/maximum-path-sum/)
 
 ### Solution
 ```java

@@ -6,10 +6,51 @@
 
 **Difficulty**: Medium | **Frequency**: Very High
 
-### Problem
-Given integer array, return k most frequent elements.
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/top-k-frequent-elements/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/top-k-frequent-elements-in-array/)
 
-**Example**: `nums=[1,1,1,2,2,3], k=2` → `[1,2]`
+### Problem Statement
+Given an integer array `nums` and an integer `k`, return the `k` most frequent elements. You may return the answer in any order.
+
+**Constraints**:
+- 1 <= nums.length <= 10^5
+- -10^4 <= nums[i] <= 10^4
+- k is in the range [1, the number of unique elements in the array]
+- The answer is guaranteed to be unique
+
+**Follow-up**: Your algorithm's time complexity must be better than O(n log n), where n is the array's size.
+
+**Examples**:
+
+**Example 1**:
+```
+Input: nums = [1,1,1,2,2,3], k = 2
+Output: [1,2]
+Explanation:
+1 appears 3 times
+2 appears 2 times
+3 appears 1 time
+Top 2 frequent: [1, 2]
+```
+
+**Example 2**:
+```
+Input: nums = [1], k = 1
+Output: [1]
+Explanation: Only one element, so it's the most frequent.
+```
+
+**Example 3**:
+```
+Input: nums = [4,1,-1,2,-1,2,3], k = 2
+Output: [-1,2]
+Explanation:
+-1 appears 2 times
+2 appears 2 times
+4, 1, 3 appear 1 time each
+Top 2 frequent: [-1, 2] (order doesn't matter)
+```
 
 ### Solution
 ```java
@@ -43,9 +84,38 @@ result = [1,2]
 
 ### Test Cases
 ```java
-topKFrequent([1,1,1,2,2,3], 2) → [1,2]
-topKFrequent([1], 1)           → [1]
-topKFrequent([1,2], 2)         → [1,2]
+// Test Case 1: Standard case
+Input: nums = [1,1,1,2,2,3], k = 2
+Output: [1,2]
+Frequencies: {1:3, 2:2, 3:1}
+Expected: Top 2 are 1 and 2
+
+// Test Case 2: Single element
+Input: nums = [1], k = 1
+Output: [1]
+Expected: Only element is most frequent
+
+// Test Case 3: All elements same frequency
+Input: nums = [1,2,3], k = 2
+Output: [1,2] or [1,3] or [2,3]
+Expected: Any 2 elements (all have frequency 1)
+
+// Test Case 4: Negative numbers
+Input: nums = [4,1,-1,2,-1,2,3], k = 2
+Output: [-1,2]
+Frequencies: {-1:2, 2:2, 4:1, 1:1, 3:1}
+Expected: -1 and 2
+
+// Test Case 5: Large array
+Input: nums = [1,1,1,1,2,2,2,3,3,4], k = 3
+Output: [1,2,3]
+Frequencies: {1:4, 2:3, 3:2, 4:1}
+Expected: Top 3 are 1, 2, 3
+
+// Test Case 6: k equals unique elements
+Input: nums = [1,2,3,4,5], k = 5
+Output: [1,2,3,4,5]
+Expected: All elements
 ```
 
 ### Use Cases
@@ -56,6 +126,10 @@ topKFrequent([1,2], 2)         → [1,2]
 ## 2. Find Median from Data Stream (LC 295) ⭐⭐⭐⭐⭐
 
 **Difficulty**: Hard | **Frequency**: Very High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/find-median-from-data-stream/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/find-median-in-a-stream/)
 
 ### Problem
 Design a data structure that supports addNum and findMedian operations.
@@ -101,6 +175,10 @@ addNum(3), findMedian()            → 2.0
 
 **Difficulty**: Medium | **Frequency**: High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/k-closest-points-to-origin/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/k-closest-points-to-origin/)
+
 ### Solution
 ```java
 public int[][] kClosest(int[][] points, int k) {
@@ -127,6 +205,10 @@ kClosest([[3,3],[5,-1],[-2,4]], 2) → [[3,3],[-2,4]]
 ## 4. Task Scheduler (LC 621) ⭐⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/task-scheduler/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/task-scheduler/)
 
 ### Problem
 Given tasks and cooldown n, find minimum intervals to finish all tasks.
@@ -165,6 +247,10 @@ result = 6 + max(0,0) = 6... wait tasks=[A,A,A,B,B,B]
 
 **Difficulty**: Medium | **Frequency**: Very High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/meeting-rooms-ii/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/minimum-platforms/)
+
 ### Problem
 Given meeting intervals, find minimum number of conference rooms required.
 
@@ -201,6 +287,10 @@ rooms = heap.size() = 2
 
 **Difficulty**: Medium | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/reorganize-string/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/rearrange-characters/)
+
 ### Solution
 ```java
 public String reorganizeString(String s) {
@@ -233,6 +323,10 @@ public String reorganizeString(String s) {
 
 **Difficulty**: Hard | **Frequency**: Very High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/merge-k-sorted-lists/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/merge-k-sorted-linked-lists/)
+
 ### Solution
 ```java
 public ListNode mergeKLists(ListNode[] lists) {
@@ -257,6 +351,10 @@ public ListNode mergeKLists(ListNode[] lists) {
 ## 8. IPO (LC 502) ⭐⭐⭐
 
 **Difficulty**: Hard | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/ipo/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/maximize-capital/)
 
 ### Problem
 Maximize capital after k projects. Each project has profit and capital requirement.
@@ -286,6 +384,10 @@ public int findMaximizedCapital(int k, int w, int[] profits, int[] capital) {
 
 **Difficulty**: Medium | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/minimum-cost-to-connect-sticks/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/minimum-cost-of-ropes/)
+
 ### Solution
 ```java
 public int connectSticks(int[] sticks) {
@@ -307,6 +409,10 @@ public int connectSticks(int[] sticks) {
 ## 10. Jump Game (LC 55) ⭐⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/jump-game/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/jump-game/)
 
 ### Solution (Greedy)
 ```java
@@ -337,6 +443,10 @@ i=4: 4<=4, return true
 
 **Difficulty**: Medium | **Frequency**: High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/jump-game-ii/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/minimum-number-of-jumps/)
+
 ### Solution (Greedy)
 ```java
 public int jump(int[] nums) {
@@ -355,6 +465,10 @@ public int jump(int[] nums) {
 ## 12. Gas Station (LC 134) ⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/gas-station/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/circular-tour/)
 
 ### Solution
 ```java
@@ -375,6 +489,10 @@ public int canCompleteCircuit(int[] gas, int[] cost) {
 
 **Difficulty**: Easy | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/assign-cookies/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/assign-cookies/)
+
 ### Solution
 ```java
 public int findContentChildren(int[] g, int[] s) {
@@ -394,6 +512,10 @@ public int findContentChildren(int[] g, int[] s) {
 
 **Difficulty**: Medium | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/minimum-arrows-to-burst-balloons/)
+
 ### Solution
 ```java
 public int findMinArrowShots(int[][] points) {
@@ -411,6 +533,10 @@ public int findMinArrowShots(int[][] points) {
 ## 15. Non-overlapping Intervals (LC 435) ⭐⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/non-overlapping-intervals/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/non-overlapping-intervals/)
 
 ### Solution
 ```java
@@ -431,6 +557,10 @@ public int eraseOverlapIntervals(int[][] intervals) {
 
 **Difficulty**: Medium | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/kth-smallest-element-in-a-sorted-matrix/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/kth-element-in-matrix/)
+
 ### Solution
 ```java
 public int kthSmallest(int[][] matrix, int k) {
@@ -450,6 +580,10 @@ public int kthSmallest(int[][] matrix, int k) {
 ## 17. Sliding Window Maximum (LC 239) ⭐⭐⭐⭐
 
 **Difficulty**: Hard | **Frequency**: High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/sliding-window-maximum/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/maximum-of-all-subarrays-of-size-k/)
 
 ### Solution (Monotonic Deque)
 ```java
@@ -489,6 +623,10 @@ i=7: 7>6, deque=[7], result[5]=7
 
 **Difficulty**: Hard | **Frequency**: Very High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/trapping-rain-water/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/trapping-rain-water/)
+
 ### Solution (Two Pointers)
 ```java
 public int trap(int[] height) {
@@ -516,6 +654,10 @@ public int trap(int[] height) {
 
 **Difficulty**: Hard | **Frequency**: High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/largest-rectangle-in-histogram/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/maximum-rectangular-area-in-a-histogram/)
+
 ### Solution (Monotonic Stack)
 ```java
 public int largestRectangleArea(int[] heights) {
@@ -541,6 +683,10 @@ public int largestRectangleArea(int[] heights) {
 
 **Difficulty**: Hard | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/course-schedule-iii/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/course-schedule-iii/)
+
 ### Solution
 ```java
 public int scheduleCourse(int[][] courses) {
@@ -561,6 +707,10 @@ public int scheduleCourse(int[][] courses) {
 ## 21. Minimum Cost to Hire K Workers (LC 857) ⭐⭐⭐
 
 **Difficulty**: Hard | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/minimum-cost-to-hire-k-workers/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/minimum-cost-to-hire-k-workers/)
 
 ### Solution
 ```java
@@ -588,6 +738,10 @@ public double mincostToHireWorkers(int[] quality, int[] wage, int k) {
 
 **Difficulty**: Medium | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/find-k-pairs-with-smallest-sums/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/find-k-pairs-with-smallest-sums/)
+
 ### Solution
 ```java
 public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {
@@ -609,6 +763,10 @@ public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {
 ## 23. Ugly Number II (LC 264) ⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/ugly-number-ii/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/ugly-numbers/)
 
 ### Solution
 ```java
@@ -633,6 +791,10 @@ public int nthUglyNumber(int n) {
 
 **Difficulty**: Medium | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/hand-of-straights/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/hand-of-straights/)
+
 ### Solution
 ```java
 public boolean isNStraightHand(int[] hand, int groupSize) {
@@ -656,6 +818,10 @@ public boolean isNStraightHand(int[] hand, int groupSize) {
 ## 25. Minimum Interval to Include Each Query (LC 2158) ⭐⭐⭐
 
 **Difficulty**: Hard | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/minimum-interval-to-include-each-query/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/minimum-interval-to-include-each-query/)
 
 ### Solution
 ```java

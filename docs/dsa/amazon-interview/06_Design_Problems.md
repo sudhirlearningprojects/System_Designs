@@ -6,6 +6,10 @@
 **Frequency**: Very High (Asked in 50%+ Amazon interviews)  
 **Pattern**: Hash Map + Doubly Linked List
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/lru-cache/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/lru-cache/)
+
 ### Problem Statement
 Design a data structure that follows the constraints of a Least Recently Used (LRU) cache.
 
@@ -95,6 +99,10 @@ class LRUCache {
 **Difficulty**: Easy  
 **Frequency**: Medium  
 **Pattern**: Array + Linked List (Chaining)
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/design-hashmap/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/implement-hashmap/)
 
 ### Solution
 ```java

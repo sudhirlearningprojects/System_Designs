@@ -6,6 +6,10 @@
 **Frequency**: High  
 **Pattern**: DP - Fibonacci
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/climbing-stairs/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/count-ways-to-reach-the-nth-stair/)
+
 ### Solution
 ```java
 public int climbStairs(int n) {
@@ -29,6 +33,10 @@ public int climbStairs(int n) {
 **Difficulty**: Medium  
 **Frequency**: High  
 **Pattern**: DP - Unbounded Knapsack
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/coin-change/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/coin-change/)
 
 ### Solution
 ```java
@@ -58,6 +66,10 @@ public int coinChange(int[] coins, int amount) {
 **Frequency**: High  
 **Pattern**: DP
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/word-break/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/word-break/)
+
 ### Solution
 ```java
 public boolean wordBreak(String s, List<String> wordDict) {
@@ -86,6 +98,10 @@ public boolean wordBreak(String s, List<String> wordDict) {
 **Difficulty**: Medium  
 **Frequency**: High  
 **Pattern**: DP / Expand Around Center
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/longest-palindromic-substring/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/longest-palindrome-in-a-string/)
 
 ### Solution
 ```java
@@ -124,6 +140,10 @@ private int expandAroundCenter(String s, int left, int right) {
 **Difficulty**: Easy  
 **Frequency**: High  
 **Pattern**: DP / Greedy
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/stock-buy-and-sell/)
 
 ### Solution
 ```java

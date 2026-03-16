@@ -1,6 +1,11 @@
 # Graphs Deep Dive (40 Problems)
 
 ## 1. Number of Islands (LC 200) ⭐⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/number-of-islands/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/find-the-number-of-islands/)
+
 ```java
 public int numIslands(char[][] grid) {
     int count = 0;
@@ -17,6 +22,11 @@ void dfs(char[][] g, int i, int j) {
 ```
 
 ## 2. Clone Graph (LC 133) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/clone-graph/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/clone-graph/)
+
 ```java
 public Node cloneGraph(Node node) {
     if (node == null) return null;
@@ -33,6 +43,11 @@ Node dfs(Node node, Map<Node, Node> map) {
 ```
 
 ## 3. Course Schedule (LC 207) ⭐⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/course-schedule/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/prerequisite-tasks/)
+
 ```java
 public boolean canFinish(int n, int[][] pre) {
     List<List<Integer>> g = new ArrayList<>();
@@ -51,6 +66,11 @@ public boolean canFinish(int n, int[][] pre) {
 ```
 
 ## 4. Course Schedule II (LC 210) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/course-schedule-ii/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/course-schedule-ii/)
+
 ```java
 public int[] findOrder(int n, int[][] pre) {
     List<List<Integer>> g = new ArrayList<>();
@@ -69,6 +89,11 @@ public int[] findOrder(int n, int[][] pre) {
 ```
 
 ## 5. Word Ladder (LC 127) ⭐⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/word-ladder/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/word-ladder/)
+
 ```java
 public int ladderLength(String begin, String end, List<String> wordList) {
     Set<String> set = new HashSet<>(wordList);
@@ -99,6 +124,11 @@ public int ladderLength(String begin, String end, List<String> wordList) {
 ```
 
 ## 6. Pacific Atlantic Water Flow (LC 417) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/pacific-atlantic-water-flow/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/pacific-atlantic-water-flow/)
+
 ```java
 public List<List<Integer>> pacificAtlantic(int[][] heights) {
     int m = heights.length, n = heights[0].length;
@@ -123,6 +153,11 @@ void dfs(int[][] h, boolean[][] vis, int i, int j) {
 ```
 
 ## 7. Graph Valid Tree (LC 261) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/graph-valid-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/detect-cycle-in-an-undirected-graph/)
+
 ```java
 public boolean validTree(int n, int[][] edges) {
     if (edges.length != n - 1) return false;
@@ -143,6 +178,11 @@ boolean dfs(List<List<Integer>> g, boolean[] vis, int node, int parent) {
 ```
 
 ## 8. Alien Dictionary (LC 269) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/alien-dictionary/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/alien-dictionary/)
+
 ```java
 public String alienOrder(String[] words) {
     Map<Character, Set<Character>> g = new HashMap<>();
@@ -174,6 +214,11 @@ public String alienOrder(String[] words) {
 ```
 
 ## 9. Network Delay Time (LC 743) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/network-delay-time/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/implementing-dijkstra-set-1-adjacency-matrix/)
+
 ```java
 public int networkDelayTime(int[][] times, int n, int k) {
     Map<Integer, List<int[]>> g = new HashMap<>();
@@ -199,6 +244,11 @@ public int networkDelayTime(int[][] times, int n, int k) {
 ```
 
 ## 10. Accounts Merge (LC 721) ⭐⭐⭐⭐
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/accounts-merge/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/accounts-merge/)
+
 ```java
 public List<List<String>> accountsMerge(List<List<String>> accounts) {
     Map<String, String> parent = new HashMap<>();

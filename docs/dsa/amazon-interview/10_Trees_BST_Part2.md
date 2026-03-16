@@ -6,6 +6,10 @@
 
 **Difficulty**: Easy | **Frequency**: High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/symmetric-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/symmetric-tree/)
+
 ### Solution
 ```java
 public boolean isSymmetric(TreeNode root) {
@@ -25,6 +29,10 @@ private boolean isMirror(TreeNode l, TreeNode r) {
 
 **Difficulty**: Easy | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/same-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/determine-if-two-trees-are-identical/)
+
 ### Solution
 ```java
 public boolean isSameTree(TreeNode p, TreeNode q) {
@@ -39,6 +47,10 @@ public boolean isSameTree(TreeNode p, TreeNode q) {
 ## 23. Subtree of Another Tree (LC 572) ⭐⭐⭐
 
 **Difficulty**: Easy | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/subtree-of-another-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/check-if-subtree/)
 
 ### Solution
 ```java
@@ -60,6 +72,10 @@ private boolean isSameTree(TreeNode p, TreeNode q) {
 ## 24. Path Sum III (LC 437) ⭐⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/path-sum-iii/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/number-of-paths-with-sum-k/)
 
 ### Problem
 Count paths (not necessarily root-to-leaf) that sum to target.
@@ -90,6 +106,10 @@ private int dfs(TreeNode node, long currSum, int target, Map<Long, Integer> map)
 
 **Difficulty**: Easy | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/binary-tree-paths/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/root-to-leaf-paths/)
+
 ### Solution
 ```java
 public List<String> binaryTreePaths(TreeNode root) {
@@ -113,6 +133,10 @@ private void dfs(TreeNode node, String path, List<String> result) {
 
 **Difficulty**: Medium | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/sum-root-to-leaf-numbers/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/sum-of-root-to-leaf-numbers/)
+
 ### Solution
 ```java
 public int sumNumbers(TreeNode root) {
@@ -132,6 +156,10 @@ private int dfs(TreeNode node, int curr) {
 ## 27. Vertical Order Traversal (LC 987) ⭐⭐⭐⭐
 
 **Difficulty**: Hard | **Frequency**: High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/vertical-order-traversal-of-a-binary-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/print-a-binary-tree-in-vertical-order/)
 
 ### Solution
 ```java
@@ -163,6 +191,10 @@ private void dfs(TreeNode node, int col, int row, TreeMap<Integer, TreeMap<Integ
 ## 28. Boundary of Binary Tree (LC 545) ⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/boundary-of-binary-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/boundary-traversal-of-binary-tree/)
 
 ### Solution
 ```java
@@ -206,6 +238,10 @@ private boolean isLeaf(TreeNode node) { return node.left == null && node.right =
 
 **Difficulty**: Medium | **Frequency**: High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/delete-node-in-a-bst/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/delete-a-node-from-bst/)
+
 ### Solution
 ```java
 public TreeNode deleteNode(TreeNode root, int key) {
@@ -231,6 +267,10 @@ public TreeNode deleteNode(TreeNode root, int key) {
 
 **Difficulty**: Medium | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/insert-into-a-binary-search-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/insert-a-node-in-a-bst/)
+
 ### Solution
 ```java
 public TreeNode insertIntoBST(TreeNode root, int val) {
@@ -246,6 +286,10 @@ public TreeNode insertIntoBST(TreeNode root, int val) {
 ## 31. Trim a BST (LC 669) ⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/trim-a-binary-search-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/trim-a-binary-search-tree/)
 
 ### Solution
 ```java
@@ -264,6 +308,10 @@ public TreeNode trimBST(TreeNode root, int low, int high) {
 ## 32. Convert Sorted Array to BST (LC 108) ⭐⭐⭐
 
 **Difficulty**: Easy | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/convert-sorted-array-to-binary-search-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/array-to-bst/)
 
 ### Solution
 ```java
@@ -286,6 +334,10 @@ private TreeNode build(int[] nums, int l, int r) {
 ## 33. Minimum Absolute Difference in BST (LC 530) ⭐⭐⭐
 
 **Difficulty**: Easy | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/minimum-absolute-difference-in-bst/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/minimum-absolute-difference-in-bst/)
 
 ### Solution
 ```java
@@ -310,6 +362,10 @@ private void inorder(TreeNode node) {
 ## 34. Find Mode in BST (LC 501) ⭐⭐
 
 **Difficulty**: Easy | **Frequency**: Low
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/find-mode-in-binary-search-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/find-mode-in-bst/)
 
 ### Solution
 ```java
@@ -338,6 +394,10 @@ private void inorder(TreeNode node) {
 
 **Difficulty**: Easy | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/two-sum-iv-input-is-a-bst/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/find-a-pair-with-given-target-in-bst/)
+
 ### Solution
 ```java
 public boolean findTarget(TreeNode root, int k) {
@@ -359,6 +419,10 @@ private boolean dfs(TreeNode node, int k, Set<Integer> set) {
 
 **Difficulty**: Medium | **Frequency**: High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/unique-binary-search-trees/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/unique-bsts/)
+
 ### Solution (Catalan Number)
 ```java
 public int numTrees(int n) {
@@ -377,6 +441,10 @@ public int numTrees(int n) {
 ## 37. House Robber III (LC 337) ⭐⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/house-robber-iii/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/maximum-sum-of-non-adjacent-nodes/)
 
 ### Solution
 ```java
@@ -401,6 +469,10 @@ private int[] dfs(TreeNode node) {
 
 **Difficulty**: Hard | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/binary-tree-cameras/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/binary-tree-cameras/)
+
 ### Solution
 ```java
 private int cameras = 0;
@@ -423,6 +495,10 @@ private int dfs(TreeNode node) {
 ## 39. Maximum Width of Binary Tree (LC 662) ⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/maximum-width-of-binary-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/maximum-width-of-tree/)
 
 ### Solution
 ```java
@@ -460,6 +536,10 @@ public int widthOfBinaryTree(TreeNode root) {
 ## 40. Lowest Common Ancestor of BST (LC 235) ⭐⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/lowest-common-ancestor-in-a-bst/)
 
 ### Solution
 ```java

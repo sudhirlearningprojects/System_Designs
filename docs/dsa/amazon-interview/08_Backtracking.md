@@ -23,10 +23,42 @@ void backtrack(state, choices) {
 
 **Difficulty**: Medium | **Frequency**: Very High
 
-### Problem
-Given an array of distinct integers, return all possible permutations.
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/permutations/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/permutations-of-a-given-string/)
 
-**Example**: `nums = [1,2,3]` → `[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]`
+### Problem Statement
+Given an array `nums` of distinct integers, return all possible permutations. You can return the answer in any order.
+
+A permutation is an arrangement of all the elements in a specific order. For example, [1,2,3] has 6 permutations.
+
+**Constraints**:
+- 1 <= nums.length <= 6
+- -10 <= nums[i] <= 10
+- All integers in nums are unique
+
+**Examples**:
+
+**Example 1**:
+```
+Input: nums = [1,2,3]
+Output: [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+Explanation: There are 6 permutations of 3 distinct numbers.
+```
+
+**Example 2**:
+```
+Input: nums = [0,1]
+Output: [[0,1],[1,0]]
+Explanation: There are 2 permutations of 2 distinct numbers.
+```
+
+**Example 3**:
+```
+Input: nums = [1]
+Output: [[1]]
+Explanation: Only one permutation for a single element.
+```
 
 ### Solution
 ```java
@@ -68,9 +100,30 @@ backtrack([], used=[F,F,F])
 
 ### Test Cases
 ```java
-permute([1,2,3]) → 6 permutations
-permute([0,1])   → [[0,1],[1,0]]
-permute([1])     → [[1]]
+// Test Case 1: Standard case with 3 elements
+Input: nums = [1,2,3]
+Output: [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+Expected: 6 permutations (3! = 6)
+
+// Test Case 2: Two elements
+Input: nums = [0,1]
+Output: [[0,1],[1,0]]
+Expected: 2 permutations (2! = 2)
+
+// Test Case 3: Single element
+Input: nums = [1]
+Output: [[1]]
+Expected: 1 permutation (1! = 1)
+
+// Test Case 4: Negative numbers
+Input: nums = [-1,0,1]
+Output: [[-1,0,1],[-1,1,0],[0,-1,1],[0,1,-1],[1,-1,0],[1,0,-1]]
+Expected: 6 permutations
+
+// Test Case 5: Maximum size
+Input: nums = [1,2,3,4,5,6]
+Output: 720 permutations (6! = 720)
+Expected: All 720 unique permutations
 ```
 
 ### Use Cases
@@ -84,10 +137,44 @@ permute([1])     → [[1]]
 
 **Difficulty**: Medium | **Frequency**: Very High
 
-### Problem
-Given an integer array of unique elements, return all possible subsets (power set).
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/subsets/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/subsets/)
 
-**Example**: `nums = [1,2,3]` → `[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]`
+### Problem Statement
+Given an integer array `nums` of unique elements, return all possible subsets (the power set).
+
+The solution set must not contain duplicate subsets. Return the solution in any order.
+
+A subset is a selection of elements (possibly none or all) from the original array.
+
+**Constraints**:
+- 1 <= nums.length <= 10
+- -10 <= nums[i] <= 10
+- All numbers in nums are unique
+
+**Examples**:
+
+**Example 1**:
+```
+Input: nums = [1,2,3]
+Output: [[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]
+Explanation: The power set has 2^3 = 8 subsets.
+```
+
+**Example 2**:
+```
+Input: nums = [0]
+Output: [[],[0]]
+Explanation: The power set has 2^1 = 2 subsets.
+```
+
+**Example 3**:
+```
+Input: nums = [1,2]
+Output: [[],[1],[2],[1,2]]
+Explanation: The power set has 2^2 = 4 subsets.
+```
 
 ### Solution
 ```java
@@ -123,9 +210,30 @@ ADD []
 
 ### Test Cases
 ```java
-subsets([1,2,3]) → 8 subsets (2^3)
-subsets([0])     → [[], [0]]
-subsets([])      → [[]]
+// Test Case 1: Standard case with 3 elements
+Input: nums = [1,2,3]
+Output: [[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]
+Expected: 8 subsets (2^3 = 8)
+
+// Test Case 2: Single element
+Input: nums = [0]
+Output: [[],[0]]
+Expected: 2 subsets (2^1 = 2)
+
+// Test Case 3: Two elements
+Input: nums = [1,2]
+Output: [[],[1],[2],[1,2]]
+Expected: 4 subsets (2^2 = 4)
+
+// Test Case 4: Negative numbers
+Input: nums = [-1,0,1]
+Output: [[],[-1],[0],[-1,0],[1],[-1,1],[0,1],[-1,0,1]]
+Expected: 8 subsets
+
+// Test Case 5: Maximum size
+Input: nums = [1,2,3,4,5,6,7,8,9,10]
+Output: 1024 subsets (2^10 = 1024)
+Expected: All 1024 unique subsets
 ```
 
 ### Use Cases
@@ -139,10 +247,51 @@ subsets([])      → [[]]
 
 **Difficulty**: Medium | **Frequency**: Very High
 
-### Problem
-Given an array of distinct integers and a target, return all unique combinations that sum to target. Same number can be used unlimited times.
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/combination-sum/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/combination-sum/)
 
-**Example**: `candidates=[2,3,6,7], target=7` → `[[2,2,3],[7]]`
+### Problem Statement
+Given an array of distinct integers `candidates` and a target integer `target`, return a list of all unique combinations of candidates where the chosen numbers sum to target. You may return the combinations in any order.
+
+The same number may be chosen from candidates an unlimited number of times. Two combinations are unique if the frequency of at least one of the chosen numbers is different.
+
+The test cases are generated such that the number of unique combinations that sum up to target is less than 150 combinations for the given input.
+
+**Constraints**:
+- 1 <= candidates.length <= 30
+- 2 <= candidates[i] <= 40
+- All elements of candidates are distinct
+- 1 <= target <= 40
+
+**Examples**:
+
+**Example 1**:
+```
+Input: candidates = [2,3,6,7], target = 7
+Output: [[2,2,3],[7]]
+Explanation:
+2 and 3 are candidates, and 2 + 2 + 3 = 7. Note that 2 can be used multiple times.
+7 is a candidate, and 7 = 7.
+These are the only two combinations.
+```
+
+**Example 2**:
+```
+Input: candidates = [2,3,5], target = 8
+Output: [[2,2,2,2],[2,3,3],[3,5]]
+Explanation:
+2 + 2 + 2 + 2 = 8
+2 + 3 + 3 = 8
+3 + 5 = 8
+```
+
+**Example 3**:
+```
+Input: candidates = [2], target = 1
+Output: []
+Explanation: There are no combinations that sum to 1.
+```
 
 ### Solution
 ```java
@@ -185,9 +334,35 @@ backtrack([], remaining=7, start=0)
 
 ### Test Cases
 ```java
-combinationSum([2,3,6,7], 7) → [[2,2,3],[7]]
-combinationSum([2,3,5], 8)   → [[2,2,2,2],[2,3,3],[3,5]]
-combinationSum([2], 1)       → []
+// Test Case 1: Multiple combinations
+Input: candidates = [2,3,6,7], target = 7
+Output: [[2,2,3],[7]]
+Expected: 2 combinations
+
+// Test Case 2: Repeated use of same number
+Input: candidates = [2,3,5], target = 8
+Output: [[2,2,2,2],[2,3,3],[3,5]]
+Expected: 3 combinations
+
+// Test Case 3: No valid combination
+Input: candidates = [2], target = 1
+Output: []
+Expected: Empty list
+
+// Test Case 4: Target equals candidate
+Input: candidates = [1], target = 1
+Output: [[1]]
+Expected: 1 combination
+
+// Test Case 5: Large target
+Input: candidates = [2,3,5], target = 15
+Output: [[2,2,2,2,2,2,3],[2,2,2,3,3,3],[2,3,5,5],[3,3,3,3,3],[5,5,5]]
+Expected: Multiple combinations
+
+// Test Case 6: All candidates needed
+Input: candidates = [7,3,2], target = 18
+Output: [[2,2,2,2,2,2,2,2,2],[2,2,2,2,2,2,3,3],[2,2,2,3,3,3,3],[2,3,3,3,7],[3,3,3,3,3,3],[2,2,7,7]]
+Expected: Multiple valid combinations
 ```
 
 ### Use Cases
@@ -201,10 +376,43 @@ combinationSum([2], 1)       → []
 
 **Difficulty**: Medium | **Frequency**: Very High
 
-### Problem
-Given n pairs of parentheses, generate all combinations of well-formed parentheses.
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/generate-parentheses/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/generate-all-possible-parentheses/)
 
-**Example**: `n=3` → `["((()))","(()())","(())()","()(())","()()()"]`
+### Problem Statement
+Given `n` pairs of parentheses, write a function to generate all combinations of well-formed parentheses.
+
+A well-formed parentheses string means:
+- Every opening bracket has a corresponding closing bracket
+- Opening brackets must come before their corresponding closing brackets
+- Brackets are properly nested
+
+**Constraints**:
+- 1 <= n <= 8
+
+**Examples**:
+
+**Example 1**:
+```
+Input: n = 3
+Output: ["((()))","(()())","(())()","()(())","()()()"]
+Explanation: All 5 valid combinations of 3 pairs of parentheses.
+```
+
+**Example 2**:
+```
+Input: n = 1
+Output: ["()"]
+Explanation: Only one valid combination for 1 pair.
+```
+
+**Example 3**:
+```
+Input: n = 2
+Output: ["(())","()()"]
+Explanation: Two valid combinations for 2 pairs.
+```
 
 ### Solution
 ```java
@@ -245,9 +453,33 @@ backtrack("", open=0, close=0)
 
 ### Test Cases
 ```java
-generateParenthesis(1) → ["()"]
-generateParenthesis(2) → ["(())", "()()"]
-generateParenthesis(3) → 5 combinations
+// Test Case 1: Single pair
+Input: n = 1
+Output: ["()"]
+Expected: 1 combination (Catalan number C(1) = 1)
+
+// Test Case 2: Two pairs
+Input: n = 2
+Output: ["(())","()()"]
+Expected: 2 combinations (Catalan number C(2) = 2)
+
+// Test Case 3: Three pairs
+Input: n = 3
+Output: ["((()))","(()())","(())()","()(())","()()()"]
+Expected: 5 combinations (Catalan number C(3) = 5)
+
+// Test Case 4: Four pairs
+Input: n = 4
+Output: 14 combinations
+Expected: ["(((())))","((()()))","((())())","((()))()","(()(()))",
+          "(()()())","(()())()","(())(())","(())()()","()((()))",
+          "()(()())","()(())()","()()(())","()()()()"]
+Catalan number C(4) = 14
+
+// Test Case 5: Maximum size
+Input: n = 8
+Output: 1430 combinations
+Expected: Catalan number C(8) = 1430
 ```
 
 ### Use Cases
@@ -261,10 +493,56 @@ generateParenthesis(3) → 5 combinations
 
 **Difficulty**: Medium | **Frequency**: High
 
-### Problem
-Given an m×n grid of characters and a string word, return true if word exists in the grid (adjacent cells, no reuse).
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/word-search/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/word-search/)
 
-**Example**: `board=[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word="ABCCED"` → `true`
+### Problem Statement
+Given an `m x n` grid of characters `board` and a string `word`, return `true` if `word` exists in the grid.
+
+The word can be constructed from letters of sequentially adjacent cells, where adjacent cells are horizontally or vertically neighboring. The same letter cell may not be used more than once.
+
+**Constraints**:
+- m == board.length
+- n = board[i].length
+- 1 <= m, n <= 6
+- 1 <= word.length <= 15
+- board and word consists of only lowercase and uppercase English letters
+
+**Examples**:
+
+**Example 1**:
+```
+Input: board = [["A","B","C","E"],
+                ["S","F","C","S"],
+                ["A","D","E","E"]], 
+       word = "ABCCED"
+Output: true
+Explanation: 
+A → B → C → C → E → D (path exists)
+```
+
+**Example 2**:
+```
+Input: board = [["A","B","C","E"],
+                ["S","F","C","S"],
+                ["A","D","E","E"]], 
+       word = "SEE"
+Output: true
+Explanation:
+S → E → E (path exists)
+```
+
+**Example 3**:
+```
+Input: board = [["A","B","C","E"],
+                ["S","F","C","S"],
+                ["A","D","E","E"]], 
+       word = "ABCB"
+Output: false
+Explanation:
+Cannot reuse the same cell (B at position [0,1])
+```
 
 ### Solution
 ```java
@@ -292,9 +570,45 @@ private boolean dfs(char[][] board, String word, int i, int j, int k) {
 
 ### Test Cases
 ```java
-exist([["A","B"],["C","D"]], "ABDC") → true
-exist([["A","B"],["C","D"]], "ABCD") → false
-exist([["A"]], "A") → true
+// Test Case 1: Word exists with path
+Input: board = [["A","B","C","E"],
+                ["S","F","C","S"],
+                ["A","D","E","E"]], word = "ABCCED"
+Output: true
+Path: (0,0)→(0,1)→(0,2)→(1,2)→(2,2)→(2,1)
+
+// Test Case 2: Word exists, shorter path
+Input: board = [["A","B","C","E"],
+                ["S","F","C","S"],
+                ["A","D","E","E"]], word = "SEE"
+Output: true
+Path: (1,0)→(2,0)→(2,1) or other valid paths
+
+// Test Case 3: Word doesn't exist (reuse required)
+Input: board = [["A","B","C","E"],
+                ["S","F","C","S"],
+                ["A","D","E","E"]], word = "ABCB"
+Output: false
+Reason: Would need to reuse B at (0,1)
+
+// Test Case 4: Simple 2x2 grid
+Input: board = [["A","B"],["C","D"]], word = "ABDC"
+Output: true
+Path: (0,0)→(0,1)→(1,1)→(1,0)
+
+// Test Case 5: Word doesn't exist
+Input: board = [["A","B"],["C","D"]], word = "ABCD"
+Output: false
+Reason: No valid path exists
+
+// Test Case 6: Single cell
+Input: board = [["A"]], word = "A"
+Output: true
+
+// Test Case 7: Word longer than grid
+Input: board = [["A","B"]], word = "ABCDEF"
+Output: false
+Reason: Not enough cells
 ```
 
 ### Use Cases
@@ -308,10 +622,42 @@ exist([["A"]], "A") → true
 
 **Difficulty**: Medium | **Frequency**: High
 
-### Problem
-Given a string s, partition it such that every substring is a palindrome. Return all possible partitions.
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/palindrome-partitioning/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/palindromic-patitioning/)
 
-**Example**: `s="aab"` → `[["a","a","b"],["aa","b"]]`
+### Problem Statement
+Given a string `s`, partition `s` such that every substring of the partition is a palindrome. Return all possible palindrome partitioning of `s`.
+
+A palindrome is a string that reads the same backward as forward.
+
+**Constraints**:
+- 1 <= s.length <= 16
+- s contains only lowercase English letters
+
+**Examples**:
+
+**Example 1**:
+```
+Input: s = "aab"
+Output: [["a","a","b"],["aa","b"]]
+Explanation:
+- "a", "a", "b" are all palindromes
+- "aa", "b" are all palindromes
+```
+
+**Example 2**:
+```
+Input: s = "a"
+Output: [["a"]]
+Explanation: Single character is always a palindrome.
+```
+
+**Example 3**:
+```
+Input: s = "aabb"
+Output: [["a","a","b","b"],["a","a","bb"],["aa","b","b"],["aa","bb"]]
+```
 
 ### Solution
 ```java
@@ -343,9 +689,35 @@ private boolean isPalindrome(String s) {
 
 ### Test Cases
 ```java
-partition("aab") → [["a","a","b"],["aa","b"]]
-partition("a")   → [["a"]]
-partition("ab")  → [["a","b"]]
+// Test Case 1: Multiple partitions
+Input: s = "aab"
+Output: [["a","a","b"],["aa","b"]]
+Expected: 2 valid partitions
+
+// Test Case 2: Single character
+Input: s = "a"
+Output: [["a"]]
+Expected: 1 partition
+
+// Test Case 3: All same characters
+Input: s = "aaa"
+Output: [["a","a","a"],["a","aa"],["aa","a"],["aaa"]]
+Expected: 4 partitions
+
+// Test Case 4: No palindrome substrings except single chars
+Input: s = "abc"
+Output: [["a","b","c"]]
+Expected: 1 partition (only single characters)
+
+// Test Case 5: Full string is palindrome
+Input: s = "aba"
+Output: [["a","b","a"],["aba"]]
+Expected: 2 partitions
+
+// Test Case 6: Complex case
+Input: s = "aabb"
+Output: [["a","a","b","b"],["a","a","bb"],["aa","b","b"],["aa","bb"]]
+Expected: 4 partitions
 ```
 
 ---
@@ -354,10 +726,61 @@ partition("ab")  → [["a","b"]]
 
 **Difficulty**: Hard | **Frequency**: Medium
 
-### Problem
-Place n queens on an n×n chessboard such that no two queens attack each other.
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/n-queens/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/n-queen-problem/)
 
-**Example**: `n=4` → `[[".Q..","...Q","Q...","..Q."],["..Q.","Q...","...Q",".Q.."]]`
+### Problem Statement
+The n-queens puzzle is the problem of placing `n` queens on an `n x n` chessboard such that no two queens attack each other.
+
+Given an integer `n`, return all distinct solutions to the n-queens puzzle. You may return the answer in any order.
+
+Each solution contains a distinct board configuration of the n-queens' placement, where 'Q' and '.' both indicate a queen and an empty space, respectively.
+
+Queens can attack:
+- Horizontally (same row)
+- Vertically (same column)  
+- Diagonally (both diagonals)
+
+**Constraints**:
+- 1 <= n <= 9
+
+**Examples**:
+
+**Example 1**:
+```
+Input: n = 4
+Output: [[".Q..","...Q","Q...","..Q."],
+         ["..Q.","Q...","...Q",".Q.."]]
+Explanation: There are 2 distinct solutions to the 4-queens puzzle.
+
+Solution 1:        Solution 2:
+. Q . .            . . Q .
+Q . . .            Q . . .
+. . . Q            . . . Q
+. . Q .            . Q . .
+```
+
+**Example 2**:
+```
+Input: n = 1
+Output: [["Q"]]
+Explanation: Only one queen on 1x1 board.
+```
+
+**Example 3**:
+```
+Input: n = 2
+Output: []
+Explanation: No solution exists for 2x2 board.
+```
+
+**Example 4**:
+```
+Input: n = 3
+Output: []
+Explanation: No solution exists for 3x3 board.
+```
 
 ### Solution
 ```java
@@ -397,9 +820,36 @@ private List<String> buildBoard(char[][] board) {
 
 ### Test Cases
 ```java
-solveNQueens(1) → [["Q"]]
-solveNQueens(4) → 2 solutions
-solveNQueens(8) → 92 solutions
+// Test Case 1: Minimum valid case
+Input: n = 1
+Output: [["Q"]]
+Expected: 1 solution
+
+// Test Case 2: No solution
+Input: n = 2
+Output: []
+Expected: 0 solutions (impossible)
+
+// Test Case 3: No solution
+Input: n = 3
+Output: []
+Expected: 0 solutions (impossible)
+
+// Test Case 4: Classic 4-queens
+Input: n = 4
+Output: [[".Q..","...Q","Q...","..Q."],
+         ["..Q.","Q...","...Q",".Q.."]]
+Expected: 2 solutions
+
+// Test Case 5: 8-queens (classic chess problem)
+Input: n = 8
+Output: 92 distinct solutions
+Expected: 92 solutions
+
+// Test Case 6: Maximum size
+Input: n = 9
+Output: 352 distinct solutions
+Expected: 352 solutions
 ```
 
 ---
@@ -408,10 +858,64 @@ solveNQueens(8) → 92 solutions
 
 **Difficulty**: Medium | **Frequency**: High
 
-### Problem
-Given a string of digits 2-9, return all possible letter combinations.
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/letter-combinations-of-a-phone-number/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/possible-words-from-phone-digits/)
 
-**Example**: `digits="23"` → `["ad","ae","af","bd","be","bf","cd","ce","cf"]`
+### Problem Statement
+Given a string containing digits from `2-9` inclusive, return all possible letter combinations that the number could represent. Return the answer in any order.
+
+A mapping of digits to letters (just like on the telephone buttons) is given below. Note that 1 does not map to any letters.
+
+```
+2 -> "abc"
+3 -> "def"
+4 -> "ghi"
+5 -> "jkl"
+6 -> "mno"
+7 -> "pqrs"
+8 -> "tuv"
+9 -> "wxyz"
+```
+
+**Constraints**:
+- 0 <= digits.length <= 4
+- digits[i] is a digit in the range ['2', '9']
+
+**Examples**:
+
+**Example 1**:
+```
+Input: digits = "23"
+Output: ["ad","ae","af","bd","be","bf","cd","ce","cf"]
+Explanation:
+2 maps to "abc"
+3 maps to "def"
+All combinations: a+d, a+e, a+f, b+d, b+e, b+f, c+d, c+e, c+f
+```
+
+**Example 2**:
+```
+Input: digits = ""
+Output: []
+Explanation: Empty input returns empty list.
+```
+
+**Example 3**:
+```
+Input: digits = "2"
+Output: ["a","b","c"]
+Explanation: Single digit returns all its letters.
+```
+
+**Example 4**:
+```
+Input: digits = "234"
+Output: ["adg","adh","adi","aeg","aeh","aei","afg","afh","afi",
+         "bdg","bdh","bdi","beg","beh","bei","bfg","bfh","bfi",
+         "cdg","cdh","cdi","ceg","ceh","cei","cfg","cfh","cfi"]
+Explanation: 3 * 3 * 3 = 27 combinations
+```
 
 ### Solution
 ```java
@@ -436,9 +940,41 @@ private void backtrack(List<String> result, StringBuilder current, String digits
 
 ### Test Cases
 ```java
-letterCombinations("23") → ["ad","ae","af","bd","be","bf","cd","ce","cf"]
-letterCombinations("")   → []
-letterCombinations("2")  → ["a","b","c"]
+// Test Case 1: Two digits
+Input: digits = "23"
+Output: ["ad","ae","af","bd","be","bf","cd","ce","cf"]
+Expected: 9 combinations (3 * 3)
+
+// Test Case 2: Empty string
+Input: digits = ""
+Output: []
+Expected: Empty list
+
+// Test Case 3: Single digit
+Input: digits = "2"
+Output: ["a","b","c"]
+Expected: 3 combinations
+
+// Test Case 4: Digit with 4 letters (7 or 9)
+Input: digits = "7"
+Output: ["p","q","r","s"]
+Expected: 4 combinations
+
+// Test Case 5: Three digits
+Input: digits = "234"
+Output: 27 combinations
+Expected: 3 * 3 * 3 = 27 combinations
+
+// Test Case 6: Maximum length with 7s and 9s
+Input: digits = "7777"
+Output: 256 combinations
+Expected: 4^4 = 256 combinations
+
+// Test Case 7: Mixed digits
+Input: digits = "79"
+Output: ["pw","px","py","pz","qw","qx","qy","qz",
+         "rw","rx","ry","rz","sw","sx","sy","sz"]
+Expected: 16 combinations (4 * 4)
 ```
 
 ### Use Cases
@@ -450,6 +986,10 @@ letterCombinations("2")  → ["a","b","c"]
 ## 9. Subsets II (LC 90) - With Duplicates ⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/subsets-ii/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/subsets-with-duplicates/)
 
 ### Problem
 Given an integer array that may contain duplicates, return all possible subsets without duplicates.
@@ -483,6 +1023,10 @@ private void backtrack(List<List<Integer>> result, List<Integer> current, int[] 
 
 **Difficulty**: Medium | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/permutations-ii/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/permutations-of-a-given-string-with-duplicates/)
+
 ### Solution
 ```java
 public List<List<Integer>> permuteUnique(int[] nums) {
@@ -511,6 +1055,10 @@ private void backtrack(List<List<Integer>> result, List<Integer> current, int[] 
 ## 11. Combination Sum II (LC 40) ⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/combination-sum-ii/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/combination-sum-ii/)
 
 ### Problem
 Each number may only be used once. Find all unique combinations that sum to target.
@@ -541,6 +1089,10 @@ private void backtrack(List<List<Integer>> result, List<Integer> current, int[] 
 ## 12. Restore IP Addresses (LC 93) ⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/restore-ip-addresses/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/generate-ip-addresses/)
 
 ### Problem
 Given a string of digits, return all valid IP addresses.
@@ -575,6 +1127,10 @@ private void backtrack(List<String> result, List<String> parts, String s, int st
 ## 13. Sudoku Solver (LC 37) ⭐⭐⭐⭐
 
 **Difficulty**: Hard | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/sudoku-solver/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/solve-the-sudoku/)
 
 ### Solution
 ```java
@@ -616,6 +1172,10 @@ private boolean isValid(char[][] board, int row, int col, char c) {
 ## 14. Expression Add Operators (LC 282) ⭐⭐⭐
 
 **Difficulty**: Hard | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/expression-add-operators/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/expression-add-operators/)
 
 ### Problem
 Given a string of digits and a target, add operators (+, -, *) to make the expression equal target.
@@ -659,6 +1219,10 @@ private void backtrack(List<String> result, String num, int target, StringBuilde
 ## 15. Word Search II (LC 212) ⭐⭐⭐⭐
 
 **Difficulty**: Hard | **Frequency**: High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/word-search-ii/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/word-search-ii/)
 
 ### Problem
 Given a board and a list of words, find all words in the board.

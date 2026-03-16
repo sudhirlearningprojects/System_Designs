@@ -6,6 +6,10 @@
 
 **Difficulty**: Medium | **Frequency**: Very High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/binary-tree-level-order-traversal/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/level-order-traversal/)
+
 ### Problem
 Return level-by-level values of a binary tree.
 
@@ -67,6 +71,10 @@ levelOrder([3,9,20,null,null,15,7]) → [[3],[9,20],[15,7]]
 
 **Difficulty**: Medium | **Frequency**: High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/zigzag-tree-traversal/)
+
 ### Solution
 ```java
 public List<List<Integer>> zigzagLevelOrder(TreeNode root) {
@@ -99,6 +107,10 @@ public List<List<Integer>> zigzagLevelOrder(TreeNode root) {
 
 **Difficulty**: Easy | **Frequency**: Very High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/maximum-depth-of-binary-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/height-of-binary-tree/)
+
 ### Solution
 ```java
 public int maxDepth(TreeNode root) {
@@ -121,6 +133,10 @@ maxDepth([3,9,20,null,null,15,7]) → 3
 
 **Difficulty**: Easy | **Frequency**: Very High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/invert-binary-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/mirror-tree/)
+
 ### Solution
 ```java
 public TreeNode invertTree(TreeNode root) {
@@ -138,6 +154,10 @@ public TreeNode invertTree(TreeNode root) {
 ## 5. Diameter of Binary Tree (LC 543) ⭐⭐⭐⭐
 
 **Difficulty**: Easy | **Frequency**: High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/diameter-of-binary-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/diameter-of-binary-tree/)
 
 ### Solution
 ```java
@@ -177,6 +197,10 @@ depth(1): left=2,right=1, diameter=max(2,3)=3, return 3
 
 **Difficulty**: Easy | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/balanced-binary-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/check-for-balanced-tree/)
+
 ### Solution
 ```java
 public boolean isBalanced(TreeNode root) {
@@ -199,6 +223,10 @@ private int checkHeight(TreeNode node) {
 ## 7. Binary Tree Right Side View (LC 199) ⭐⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/binary-tree-right-side-view/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/right-view-of-binary-tree/)
 
 ### Solution
 ```java
@@ -225,6 +253,10 @@ public List<Integer> rightSideView(TreeNode root) {
 ## 8. Path Sum II (LC 113) ⭐⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/path-sum-ii/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/root-to-leaf-paths-sum/)
 
 ### Problem
 Find all root-to-leaf paths where sum equals target.
@@ -254,6 +286,10 @@ private void dfs(TreeNode node, int remaining, List<Integer> path, List<List<Int
 
 **Difficulty**: Medium | **Frequency**: Very High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/lowest-common-ancestor-in-a-binary-tree/)
+
 ### Solution
 ```java
 public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
@@ -277,6 +313,10 @@ LCA(3): LCA(5)=5, LCA(1)=1 → both non-null → return 3
 ## 10. Validate Binary Search Tree (LC 98) ⭐⭐⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: Very High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/validate-binary-search-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/check-for-bst/)
 
 ### Solution
 ```java
@@ -305,6 +345,10 @@ isValidBST([2,2,2])     → false
 
 **Difficulty**: Medium | **Frequency**: High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/kth-smallest-element-in-a-bst/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/find-k-th-smallest-element-in-bst/)
+
 ### Solution (Inorder)
 ```java
 private int count = 0, result = 0;
@@ -328,6 +372,10 @@ private void inorder(TreeNode node, int k) {
 ## 12. Binary Tree Maximum Path Sum (LC 124) ⭐⭐⭐⭐⭐
 
 **Difficulty**: Hard | **Frequency**: Very High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/binary-tree-maximum-path-sum/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/maximum-path-sum/)
 
 ### Solution
 ```java
@@ -367,6 +415,10 @@ gain(-10): left=9,right=35, maxSum=max(42,-10+9+35)=42, return -10+35=25
 
 **Difficulty**: Hard | **Frequency**: Very High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/serialize-and-deserialize-binary-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/serialize-and-deserialize-a-binary-tree/)
+
 ### Solution
 ```java
 public String serialize(TreeNode root) {
@@ -395,6 +447,10 @@ private TreeNode build(Queue<String> q) {
 
 **Difficulty**: Medium | **Frequency**: High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/construct-tree-1/)
+
 ### Solution
 ```java
 public TreeNode buildTree(int[] preorder, int[] inorder) {
@@ -420,6 +476,10 @@ private TreeNode build(int[] pre, int preL, int preR, int inL, int inR, Map<Inte
 
 **Difficulty**: Medium | **Frequency**: High
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/flatten-binary-tree-to-linked-list/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/flatten-binary-tree-to-linked-list/)
+
 ### Solution (Morris-like)
 ```java
 public void flatten(TreeNode root) {
@@ -444,6 +504,10 @@ public void flatten(TreeNode root) {
 
 **Difficulty**: Medium | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/count-complete-tree-nodes/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/count-number-of-nodes-in-a-complete-binary-tree/)
+
 ### Solution
 ```java
 public int countNodes(TreeNode root) {
@@ -463,6 +527,10 @@ public int countNodes(TreeNode root) {
 ## 17. All Nodes Distance K (LC 863) ⭐⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: High
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/all-nodes-distance-k-in-binary-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/nodes-at-given-distance-in-binary-tree/)
 
 ### Solution
 ```java
@@ -507,6 +575,10 @@ private void buildParent(TreeNode node, TreeNode par, Map<TreeNode, TreeNode> pa
 
 **Difficulty**: Medium | **Frequency**: Medium
 
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/binary-search-tree-iterator/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/binary-search-tree-iterator/)
+
 ### Solution
 ```java
 class BSTIterator {
@@ -534,6 +606,10 @@ class BSTIterator {
 ## 19. Recover Binary Search Tree (LC 99) ⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/recover-binary-search-tree/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/fixed-two-nodes-of-a-bst/)
 
 ### Solution (Morris Inorder)
 ```java
@@ -571,6 +647,10 @@ public void recoverTree(TreeNode root) {
 ## 20. Populating Next Right Pointers (LC 116) ⭐⭐⭐
 
 **Difficulty**: Medium | **Frequency**: Medium
+
+**Practice Links**:
+- 🔗 [LeetCode](https://leetcode.com/problems/populating-next-right-pointers-in-each-node/)
+- 🔗 [GeeksforGeeks](https://www.geeksforgeeks.org/problems/connect-nodes-at-same-level/)
 
 ### Solution (O(1) space)
 ```java
