@@ -27,6 +27,9 @@ if [ -z "$SYSTEM" ]; then
     echo "  distributeddb   - Port 8097"
     echo "  netflix         - Port 8098"
     echo "  spotify         - Port 8099"
+    echo "  probability     - Port 8100"
+    echo "  alertmanager    - Port 8101"
+    echo "  cronjob         - Port 8102"
     exit 1
 fi
 
@@ -106,6 +109,18 @@ case $SYSTEM in
     "spotify")
         echo "Starting Spotify Clone on port 8099..."
         mvn spring-boot:run -Dspring-boot.run.profiles=spotify
+        ;;
+    "probability")
+        echo "Starting Probability Management System on port 8100..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=probability
+        ;;
+    "alertmanager")
+        echo "Starting Alert Manager on port 8101..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=alertmanager
+        ;;
+    "cronjob")
+        echo "Starting Distributed Cron Job System on port 8102..."
+        mvn spring-boot:run -Dspring-boot.run.profiles=cronjob
         ;;
     *)
         echo "Unknown system: $SYSTEM"

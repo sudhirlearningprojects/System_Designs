@@ -1,19 +1,28 @@
 package org.sudhir512kj.netflix.model;
 
-import org.springframework.data.cassandra.core.mapping.PrimaryKey;
-import org.springframework.data.cassandra.core.mapping.Table;
+import jakarta.persistence.*;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@Table("user_profiles")
+@Entity
+@Table(name = "user_profiles")
 public class UserProfile {
-    @PrimaryKey
+    @Id
     private UUID userId;
     private String name;
     private String email;
+    
+    @ElementCollection
+    @CollectionTable(name = "user_profile_preferences")
     private List<String> preferences;
+    
     private String subscriptionTier;
+    
+    @ElementCollection
+    @CollectionTable(name = "user_genre_affinity")
+    @MapKeyColumn(name = "genre")
+    @Column(name = "score")
     private Map<String, Double> genreAffinityScores;
     
     public UserProfile() {}
