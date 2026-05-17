@@ -1,11 +1,11 @@
 package org.sudhir512kj.netflix.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.cassandra.core.mapping.Table;
+import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
 
-@Table("viewing_sessions")
+@Entity
+@Table(name = "viewing_sessions")
 public class ViewingSession {
     @Id
     private UUID sessionId;

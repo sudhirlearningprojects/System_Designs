@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: cron-job-system
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cronjob
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+server:
+  port: 8102
+
+cronjob:
+  lock:
+    ttl-seconds: 60
+  scheduler:
+    tick-interval-ms: 1000
+    batch-size: 100
+
+logging:
+  level:
+    org.sudhir512kj.cronjob: INFO

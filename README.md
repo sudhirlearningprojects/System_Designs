@@ -663,6 +663,7 @@ mvn clean install
 ./run-systems.sh spotify         # Port 8099
 ./run-systems.sh probability     # Port 8100
 ./run-systems.sh alertmanager    # Port 8101
+./run-systems.sh cronjob         # Port 8102
 ```
 
 **Alternative: Run directly with Maven profiles**
@@ -688,6 +689,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=netflix
 mvn spring-boot:run -Dspring-boot.run.profiles=spotify
 mvn spring-boot:run -Dspring-boot.run.profiles=probability
 mvn spring-boot:run -Dspring-boot.run.profiles=alertmanager
+mvn spring-boot:run -Dspring-boot.run.profiles=cronjob
 ```
 
 ## 🏗️ Project Structure
@@ -844,6 +846,15 @@ src/main/java/org/sudhir512kj/
 │   ├── webhook/                # Webhook controllers
 │   └── config/                 # Alert configuration
 │
+├── cronjob/                    # Distributed Cron Job System
+│   ├── model/                  # Cron entities (CronJob, CronDAG, CronLock)
+│   ├── service/                # Cron business logic
+│   ├── repository/             # Cron data access
+│   ├── controller/             # Cron APIs
+│   ├── dto/                    # Cron DTOs
+│   ├── engine/                 # Scheduler engine and task executor
+│   └── config/                 # Cron configuration
+│
 ├── [future-system]/            # Next system design
 │   └── ...
 │
@@ -986,6 +997,11 @@ docs/
 │   ├── System_Design.md        # Alert Manager HLD/LLD with multi-channel integration
 │   ├── API_Documentation.md    # Alert Manager API reference
 │   └── README.md               # Alert Manager overview
+│
+├── cronjob/                    # Distributed Cron Job System documentation
+│   ├── System_Design.md        # Cron system HLD/LLD with distributed locks
+│   ├── API_Documentation.md    # Cron API reference
+│   └── README.md               # Cron system overview
 │
 └── [future-system]/            # Future system docs
 ```
@@ -1292,6 +1308,56 @@ curl -X POST http://localhost:8100/api/v1/rules \
 
 # Jira webhook (auto-configured)
 POST /api/v1/webhooks/jira
+```
+
+---
+
+### 22. Distributed Cron Job System - Fault-Tolerant Cron Scheduling
+**Location**: `org.sudhir512kj.cronjob` package
+
+A fault-tolerant, multi-node distributed cron system with DAG-based dependencies and exactly-once execution:
+- Timezone-aware cron scheduling with DST handling
+- DAG-based job dependencies (run B after A completes)
+- Distributed locks with fencing tokens for exactly-once execution
+- Concurrency policies: Allow, Forbid (skip), Replace (kill previous)
+- Multi-tenant namespace isolation
+- HTTP webhook, shell command, Kafka, gRPC task types
+- High availability (99.99% uptime)
+
+**Documentation**: [docs/cronjob/](docs/cronjob/)
+
+**Key Features**:
+- **Timezone-Aware**: Correct DST handling with per-job timezone config
+- **DAG Dependencies**: Job B runs only after Job A succeeds
+- **Fencing Tokens**: Prevents stale execution after GC pauses or network partitions
+- **Concurrency Policies**: ALLOW / FORBID / REPLACE per job
+- **Namespace Isolation**: Multi-tenant with per-namespace job management
+- **Multiple Task Types**: HTTP webhook, shell command, Kafka publish, gRPC call
+- **Manual Trigger**: On-demand execution with full history tracking
+- **Execution History**: Complete audit trail with logs and response data
+
+**Scale**: 10M cron jobs, 100K executions/sec, ±1s scheduling precision, 99.99% availability
+
+**Quick Example**:
+```bash
+# Create a cron job
+curl -X POST http://localhost:8102/api/v1/cron/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "daily-report",
+    "namespace": "analytics",
+    "cronExpression": "0 0 9 * * MON-FRI",
+    "timezone": "America/New_York",
+    "taskType": "HTTP_WEBHOOK",
+    "taskConfig": {"url": "https://api.example.com/reports", "method": "POST"},
+    "concurrencyPolicy": "FORBID"
+  }'
+
+# Trigger manually
+curl -X POST http://localhost:8102/api/v1/cron/jobs/{id}/trigger
+
+# View execution history
+curl http://localhost:8102/api/v1/cron/jobs/{id}/executions
 ```
 
 ---

@@ -1,23 +1,35 @@
 package org.sudhir512kj.netflix.model;
 
-import org.springframework.data.cassandra.core.mapping.PrimaryKey;
-import org.springframework.data.cassandra.core.mapping.Table;
+import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
-@Table("encoded_videos")
+@Entity
+@Table(name = "encoded_videos")
 public class EncodedVideo {
-    @PrimaryKey
+    @Id
     private UUID videoId;
     private UUID contentId;
+    
+    @Enumerated(EnumType.STRING)
     private VideoQuality quality;
+    
     private String videoUrl;
     private Long fileSize;
+    
+    @Enumerated(EnumType.STRING)
     private EncodingStatus status;
+    
     private String sourceUrl;
     private Instant createdAt;
     private Instant completedAt;
+    
+    @ElementCollection
+    @CollectionTable(name = "encoded_video_urls")
+    @MapKeyEnumerated(EnumType.STRING)
+    @MapKeyColumn(name = "quality")
+    @Column(name = "url")
     private Map<VideoQuality, String> encodedUrls;
     
     public EncodedVideo() {}
