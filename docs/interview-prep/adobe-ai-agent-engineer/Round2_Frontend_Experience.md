@@ -2,10 +2,268 @@
 
 ## What They're Evaluating
 
-- Can you build intuitive conversational interfaces?
-- Do you understand UX principles for AI-powered products?
-- Can you handle streaming responses, real-time updates, and accessibility?
-- Do you think about error states, loading states, and edge cases in AI UIs?
+- Can you build production frontends with React/Angular? (JD: hands-on experience required)
+- Do you understand PWAs and SPAs deeply? (JD: explicit requirement)
+- Do you know DOM manipulation and WCM (Web Content Management) core components/templates?
+- Can you build streaming conversational interfaces with accessibility?
+- Do you understand HTML, CSS, JavaScript fundamentals?
+- Can you implement Real User Monitoring (RUM) in frontend code?
+
+---
+
+## 0. JD-Specific Frontend Knowledge
+
+### PWA (Progressive Web App) for Agent Chat
+
+```javascript
+// Service Worker for offline agent support
+// sw.js
+const CACHE_NAME = 'agent-chat-v1';
+const OFFLINE_URLS = ['/chat', '/offline.html', '/styles/chat.css', '/js/agent.js'];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(OFFLINE_URLS))
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  // Network-first for API calls, cache-first for static assets
+  if (event.request.url.includes('/api/')) {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          // Offline: queue message for later sync
+          return new Response(JSON.stringify({
+            status: 'queued',
+            message: 'Your message will be sent when you\'re back online'
+          }), { headers: { 'Content-Type': 'application/json' } });
+        })
+    );
+  } else {
+    event.respondWith(
+      caches.match(event.request).then(cached => cached || fetch(event.request))
+    );
+  }
+});
+
+// Background Sync for queued messages
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'send-queued-messages') {
+    event.waitUntil(sendQueuedMessages());
+  }
+});
+```
+
+```json
+// manifest.json for PWA
+{
+  "name": "Adobe AI Assistant",
+  "short_name": "AI Help",
+  "start_url": "/chat",
+  "display": "standalone",
+  "background_color": "#1B1B1B",
+  "theme_color": "#E03C31",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
+```
+
+### SPA Architecture (React)
+
+```typescript
+// SPA routing for agent chat application
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+
+const ChatView = lazy(() => import('./views/ChatView'));
+const HistoryView = lazy(() => import('./views/HistoryView'));
+const SettingsView = lazy(() => import('./views/SettingsView'));
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Suspense fallback={<LoadingSkeleton />}>
+        <Routes>
+          <Route path="/chat" element={<ChatView />} />
+          <Route path="/chat/:conversationId" element={<ChatView />} />
+          <Route path="/history" element={<HistoryView />} />
+          <Route path="/settings" element={<SettingsView />} />
+          <Route path="*" element={<Navigate to="/chat" />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+}
+
+// State management for agent conversations
+import { create } from 'zustand';
+
+interface AgentStore {
+  conversations: Map<string, Conversation>;
+  activeConversationId: string | null;
+  isStreaming: boolean;
+  sendMessage: (content: string) => Promise<void>;
+  cancelStream: () => void;
+}
+
+const useAgentStore = create<AgentStore>((set, get) => ({
+  conversations: new Map(),
+  activeConversationId: null,
+  isStreaming: false,
+  
+  sendMessage: async (content: string) => {
+    set({ isStreaming: true });
+    const convId = get().activeConversationId;
+    // Stream response via SSE
+    const eventSource = new EventSource(`/api/v1/conversations/${convId}/stream`);
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      // Update conversation state incrementally
+      set(state => {
+        const conv = state.conversations.get(convId!)!;
+        conv.messages[conv.messages.length - 1].content += data.token;
+        return { conversations: new Map(state.conversations) };
+      });
+    };
+    eventSource.onerror = () => {
+      eventSource.close();
+      set({ isStreaming: false });
+    };
+  },
+  
+  cancelStream: () => { /* abort controller */ }
+}));
+```
+
+### DOM & WCM (Web Content Management)
+
+```javascript
+// WCM Component: Reusable agent widget that can be embedded in any Adobe page
+// Uses Web Components (Custom Elements) for framework-agnostic embedding
+
+class AdobeAgentWidget extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+
+  static get observedAttributes() {
+    return ['product', 'context', 'theme', 'position'];
+  }
+
+  connectedCallback() {
+    this.render();
+    this.initializeAgent();
+  }
+
+  attributeChangedCallback(name, oldVal, newVal) {
+    if (oldVal !== newVal) this.render();
+  }
+
+  render() {
+    const theme = this.getAttribute('theme') || 'dark';
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          --agent-bg: ${theme === 'dark' ? '#1B1B1B' : '#FFFFFF'};
+          --agent-text: ${theme === 'dark' ? '#FFFFFF' : '#1B1B1B'};
+          --agent-accent: #E03C31;
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          z-index: 10000;
+        }
+        .agent-container {
+          width: 380px;
+          height: 600px;
+          background: var(--agent-bg);
+          color: var(--agent-text);
+          border-radius: 12px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+          display: flex;
+          flex-direction: column;
+          font-family: 'Adobe Clean', sans-serif;
+        }
+        .messages { flex: 1; overflow-y: auto; padding: 16px; }
+        .input-area { padding: 12px; border-top: 1px solid rgba(255,255,255,0.1); }
+      </style>
+      <div class="agent-container">
+        <div class="header" role="banner">
+          <span>Adobe AI Assistant</span>
+          <button aria-label="Close assistant">×</button>
+        </div>
+        <div class="messages" role="log" aria-live="polite" aria-label="Conversation"></div>
+        <div class="input-area">
+          <input type="text" placeholder="Ask me anything..." aria-label="Message input" />
+        </div>
+      </div>
+    `;
+  }
+
+  initializeAgent() {
+    const product = this.getAttribute('product');
+    const context = this.getAttribute('context');
+    // Initialize with product context for relevant responses
+    this.agentClient = new AgentClient({ product, context });
+  }
+}
+
+customElements.define('adobe-agent', AdobeAgentWidget);
+
+// Usage in any Adobe page (WCM template):
+// <adobe-agent product="photoshop" context="export-dialog" theme="dark"></adobe-agent>
+```
+
+### DOM Performance Optimization
+
+```javascript
+// Efficient DOM updates for streaming chat messages
+class ChatRenderer {
+  constructor(container) {
+    this.container = container;
+    this.currentMessageEl = null;
+    this.observer = new IntersectionObserver(this.handleVisibility.bind(this));
+  }
+
+  // Batch DOM updates using requestAnimationFrame
+  appendToken(token) {
+    if (!this.pendingTokens) {
+      this.pendingTokens = '';
+      requestAnimationFrame(() => {
+        if (this.currentMessageEl) {
+          // Use textContent for plain text (faster than innerHTML)
+          this.currentMessageEl.textContent += this.pendingTokens;
+          this.autoScroll();
+        }
+        this.pendingTokens = null;
+      });
+    }
+    this.pendingTokens += token;
+  }
+
+  // Virtual scrolling for long conversations
+  autoScroll() {
+    // Only scroll if user is near bottom (don't interrupt reading)
+    const { scrollTop, scrollHeight, clientHeight } = this.container;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    if (isNearBottom) {
+      this.container.scrollTop = scrollHeight;
+    }
+  }
+
+  // Lazy-load old messages when scrolling up
+  handleVisibility(entries) {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && entry.target.dataset.placeholder) {
+        this.loadMessage(entry.target.dataset.messageId);
+      }
+    });
+  }
+}
+```
 
 ---
 

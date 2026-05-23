@@ -2,21 +2,188 @@
 
 ## What They're Evaluating
 
-- Can you design and build production-grade AI agent systems?
-- Do you understand distributed systems, APIs, and cloud infrastructure?
-- Can you instrument, monitor, and debug complex AI pipelines?
-- Do you write clean, testable, performant code?
+- Can you write clean, efficient code with strong DSA fundamentals? (Java, Python, JavaScript)
+- Can you design and build production-grade RESTful APIs and data pipelines?
+- Do you understand observability deeply? (New Relic, Splunk, Nagios, RUM)
+- Can you operate on public clouds (AWS, Azure, GCP)?
+- Can you design AI agent systems that integrate with existing products?
+- Do you understand web servers, middleware, and Linux operations?
 
 ---
 
-## Part A: Software Engineering & Coding
+## Part A: Data Structures & Algorithms
+
+### What to Expect
+
+The JD explicitly lists **Algorithms** and **Data Structures** as key skills. Expect LeetCode Medium-Hard level problems, likely with a practical twist related to agent systems.
+
+### High-Priority Topics
+
+| Topic | Why It Matters for This Role | Example Problem |
+|-------|------------------------------|------------------|
+| **Graphs (BFS/DFS)** | Agent workflow DAGs, dependency resolution | Find execution order for multi-step agent plan |
+| **Trees/Tries** | Intent classification, routing trees | Autocomplete for agent suggestions |
+| **Hash Maps** | Caching, deduplication, session management | LRU cache for agent responses |
+| **Queues/Priority Queues** | Task scheduling, message processing | Priority-based agent request handling |
+| **Sliding Window** | Rate limiting, token counting, RUM metrics | Token budget management for LLM calls |
+| **Dynamic Programming** | Optimal tool selection, cost minimization | Minimum cost to resolve a query (model selection) |
+| **String Matching** | Entity extraction, pattern detection | Extract user intent from natural language |
+| **Heap** | Top-K results, real-time analytics | Top-K most common agent failures |
+
+### Practice Problems (Agent-Themed)
+
+```python
+# 1. Agent Task Scheduler (Topological Sort)
+# Given agent tasks with dependencies, find valid execution order
+def schedule_agent_tasks(tasks: List[str], dependencies: List[Tuple[str, str]]) -> List[str]:
+    graph = defaultdict(list)
+    in_degree = defaultdict(int)
+    for task, dep in dependencies:
+        graph[dep].append(task)
+        in_degree[task] += 1
+    
+    queue = deque([t for t in tasks if in_degree[t] == 0])
+    order = []
+    while queue:
+        task = queue.popleft()
+        order.append(task)
+        for next_task in graph[task]:
+            in_degree[next_task] -= 1
+            if in_degree[next_task] == 0:
+                queue.append(next_task)
+    
+    return order if len(order) == len(tasks) else []  # cycle detection
+
+
+# 2. Token Budget Allocator (Knapsack variant)
+# Given multiple tools with token costs and value scores,
+# select tools that maximize value within token budget
+def select_tools(tools: List[dict], token_budget: int) -> List[str]:
+    # tools = [{"name": "search", "tokens": 500, "value": 8}, ...]
+    n = len(tools)
+    dp = [[0] * (token_budget + 1) for _ in range(n + 1)]
+    
+    for i in range(1, n + 1):
+        for w in range(token_budget + 1):
+            dp[i][w] = dp[i-1][w]
+            if tools[i-1]["tokens"] <= w:
+                dp[i][w] = max(dp[i][w], 
+                    dp[i-1][w - tools[i-1]["tokens"]] + tools[i-1]["value"])
+    
+    # Backtrack to find selected tools
+    selected = []
+    w = token_budget
+    for i in range(n, 0, -1):
+        if dp[i][w] != dp[i-1][w]:
+            selected.append(tools[i-1]["name"])
+            w -= tools[i-1]["tokens"]
+    return selected
+
+
+# 3. Rate Limiter (Sliding Window)
+class SlidingWindowRateLimiter:
+    def __init__(self, max_requests: int, window_seconds: int):
+        self.max_requests = max_requests
+        self.window = window_seconds
+        self.requests = defaultdict(deque)  # user_id -> timestamps
+    
+    def allow_request(self, user_id: str, timestamp: float) -> bool:
+        queue = self.requests[user_id]
+        # Remove expired timestamps
+        while queue and queue[0] <= timestamp - self.window:
+            queue.popleft()
+        
+        if len(queue) < self.max_requests:
+            queue.append(timestamp)
+            return True
+        return False
+
+
+# 4. Conversation Context Window (Sliding Window on Tokens)
+def truncate_conversation(messages: List[dict], max_tokens: int) -> List[dict]:
+    """Keep most recent messages that fit within token budget.
+    Always keep system message (first) + most recent messages."""
+    system_msg = messages[0] if messages[0]["role"] == "system" else None
+    user_msgs = messages[1:] if system_msg else messages
+    
+    result = []
+    token_count = count_tokens(system_msg["content"]) if system_msg else 0
+    
+    # Add messages from most recent, stop when budget exceeded
+    for msg in reversed(user_msgs):
+        msg_tokens = count_tokens(msg["content"])
+        if token_count + msg_tokens > max_tokens:
+            break
+        result.append(msg)
+        token_count += msg_tokens
+    
+    result.reverse()
+    return ([system_msg] if system_msg else []) + result
+
+
+# 5. LRU Cache for Agent Responses
+class AgentResponseCache:
+    def __init__(self, capacity: int):
+        self.capacity = capacity
+        self.cache = OrderedDict()
+    
+    def get(self, query_hash: str) -> Optional[str]:
+        if query_hash in self.cache:
+            self.cache.move_to_end(query_hash)
+            return self.cache[query_hash]
+        return None
+    
+    def put(self, query_hash: str, response: str):
+        if query_hash in self.cache:
+            self.cache.move_to_end(query_hash)
+        else:
+            if len(self.cache) >= self.capacity:
+                self.cache.popitem(last=False)
+        self.cache[query_hash] = response
+```
+
+### Java Coding (JD mentions Java)
+
+```java
+// Implement a concurrent request deduplicator for agent API calls
+// If same query is in-flight, wait for result instead of making duplicate call
+public class RequestDeduplicator<K, V> {
+    private final ConcurrentHashMap<K, CompletableFuture<V>> inFlight = new ConcurrentHashMap<>();
+    
+    public V executeOrWait(K key, Callable<V> action) throws Exception {
+        CompletableFuture<V> future = new CompletableFuture<>();
+        CompletableFuture<V> existing = inFlight.putIfAbsent(key, future);
+        
+        if (existing != null) {
+            // Another thread is already executing this request
+            return existing.get(30, TimeUnit.SECONDS);
+        }
+        
+        try {
+            V result = action.call();
+            future.complete(result);
+            return result;
+        } catch (Exception e) {
+            future.completeExceptionally(e);
+            throw e;
+        } finally {
+            inFlight.remove(key);
+        }
+    }
+}
+```
+
+---
+
+## Part B: System Design & RESTful APIs
 
 ### 1. System Design for AI Agents
 
 **Expect questions like:**
 - "Design an AI agent system that handles customer support for Adobe Creative Cloud"
 - "Design the orchestration layer for a multi-step AI workflow"
-- "How would you build a system that routes customer queries to the right agent?"
+- "Design a RESTful API for a conversational agent platform"
+- "Design a data pipeline that ingests user interactions for agent improvement"
 
 #### Reference Architecture: AI Agent Platform
 
@@ -102,77 +269,81 @@ Loop:
 
 ---
 
-### 2. Coding Topics to Prepare
+### 2. RESTful API Design
 
-#### Data Structures & Algorithms (Medium-Hard)
+**JD emphasizes**: RESTful API services (XML/JSON), data pipelines
 
-Focus areas for AI agent systems:
-- **Graph traversal**: Agent workflow DAGs, dependency resolution
-- **Queue/Priority Queue**: Task scheduling, message processing
-- **Trie/String matching**: Intent classification, entity extraction
-- **Sliding window**: Rate limiting, token counting
-- **Dynamic programming**: Optimal tool selection, cost minimization
+#### Design a Conversational Agent API
 
-#### Coding Patterns Likely Asked
+```yaml
+# Core Agent API
+POST /api/v1/conversations
+  Headers: Authorization: Bearer <token>
+  Body: { "context": { "product": "photoshop", "page": "export" } }
+  Response: { "conversationId": "conv-123", "greeting": "Hi! How can I help?" }
 
-```python
-# 1. Implement a conversation memory with sliding window + summarization
-class ConversationMemory:
-    def __init__(self, max_tokens=4000, summary_threshold=3000):
-        self.messages = []
-        self.max_tokens = max_tokens
-        self.summary_threshold = summary_threshold
-    
-    def add(self, role, content):
-        self.messages.append({"role": role, "content": content})
-        if self.token_count() > self.summary_threshold:
-            self._summarize_old_messages()
-    
-    def get_context(self):
-        """Return messages fitting within token budget"""
-        # Keep system prompt + recent messages + summary of old
-        pass
+POST /api/v1/conversations/{id}/messages
+  Body: { "content": "How do I export as PDF?", "attachments": [] }
+  Response: {
+    "messageId": "msg-456",
+    "content": "Here's how to export...",
+    "sources": [{"title": "Export Guide", "url": "..."}],
+    "suggestions": ["PDF settings", "Batch export"],
+    "metadata": { "model": "gpt-4", "tokens": 450, "latency_ms": 1200 }
+  }
 
-# 2. Implement retry with exponential backoff for LLM API calls
-class LLMClient:
-    async def call_with_retry(self, prompt, max_retries=3):
-        for attempt in range(max_retries):
-            try:
-                response = await self.llm.generate(prompt)
-                if self._passes_guardrails(response):
-                    return response
-                # Retry with modified prompt if guardrails fail
-                prompt = self._add_guardrail_reminder(prompt)
-            except RateLimitError:
-                await asyncio.sleep(2 ** attempt)
-            except TimeoutError:
-                if attempt == max_retries - 1:
-                    return self._fallback_response()
-        return self._escalate_to_human()
+POST /api/v1/conversations/{id}/feedback
+  Body: { "messageId": "msg-456", "rating": "helpful", "comment": "" }
 
-# 3. Implement a tool router that selects optimal tool based on query
-class ToolRouter:
-    def __init__(self, tools: List[Tool]):
-        self.tools = tools
-        self.embeddings = self._embed_tool_descriptions()
-    
-    def route(self, query: str, context: dict) -> Tool:
-        """Select best tool using semantic similarity + rule-based filters"""
-        query_embedding = embed(query)
-        scores = cosine_similarity(query_embedding, self.embeddings)
-        
-        # Filter by preconditions
-        eligible = [t for t, s in zip(self.tools, scores) 
-                   if t.precondition_met(context)]
-        
-        # Return highest scoring eligible tool
-        return max(eligible, key=lambda t: scores[self.tools.index(t)])
+POST /api/v1/conversations/{id}/escalate
+  Body: { "reason": "complex_issue", "summary": "auto-generated" }
+  Response: { "ticketId": "T-789", "estimatedWait": "5 min" }
+
+GET /api/v1/agents/{agentId}/metrics
+  Response: { "taskCompletion": 0.85, "avgLatency": 1.4, "csat": 4.2 }
+
+# Webhook for async tool results
+POST /api/v1/webhooks/tool-complete
+  Body: { "executionId": "exec-123", "result": {...}, "status": "success" }
 ```
 
-#### System Design Coding
+#### API Design Best Practices to Discuss
+
+| Principle | Implementation |
+|-----------|----------------|
+| Versioning | `/api/v1/` prefix, header-based for minor versions |
+| Pagination | Cursor-based for conversation history |
+| Rate limiting | 429 with `Retry-After` header, per-user quotas |
+| Idempotency | `Idempotency-Key` header for POST requests |
+| Error format | RFC 7807 Problem Details (`type`, `title`, `status`, `detail`) |
+| Streaming | SSE for token streaming, WebSocket for bidirectional |
+| HATEOAS | Include `_links` for next actions |
+
+#### Data Pipeline Design
+
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│ Agent Events │────►│ Kafka/Kinesis │────►│ Processing   │
+│ (interactions│     │ (streaming)  │     │ (Spark/Flink)│
+│  feedback,   │     └──────────────┘     └──────┬───────┘
+│  tool calls) │                                  │
+└──────────────┘                           ┌──────▼───────┐
+                                           │ Data Lake    │
+                                           │ (S3/ADLS)    │
+                                           └──────┬───────┘
+                                                  │
+                              ┌────────────────────┼────────────────┐
+                              │                    │                │
+                       ┌──────▼───────┐  ┌────────▼─────┐  ┌──────▼──────┐
+                       │ Analytics    │  │ ML Training  │  │ Real-time   │
+                       │ (Redshift/BQ)│  │ (fine-tuning)│  │ Dashboard   │
+                       └──────────────┘  └──────────────┘  └─────────────┘
+```
+
+### 3. System Design Coding
 
 ```java
-// Implement a circuit breaker for LLM API calls
+// Circuit breaker for LLM API calls (Java - JD mentions Java)
 public class LLMCircuitBreaker {
     private final AtomicInteger failureCount = new AtomicInteger(0);
     private final AtomicReference<State> state = new AtomicReference<>(State.CLOSED);
@@ -199,7 +370,62 @@ public class LLMCircuitBreaker {
             return fallback.get();
         }
     }
+    
+    private boolean shouldAttemptReset() {
+        return Duration.between(lastFailureTime, Instant.now()).compareTo(resetTimeout) > 0;
+    }
+    
+    private void onSuccess() {
+        failureCount.set(0);
+        state.set(State.CLOSED);
+    }
+    
+    private void onFailure() {
+        lastFailureTime = Instant.now();
+        if (failureCount.incrementAndGet() >= failureThreshold) {
+            state.set(State.OPEN);
+        }
+    }
+    
+    enum State { CLOSED, OPEN, HALF_OPEN }
 }
+```
+
+```python
+# Retry with exponential backoff for LLM API calls (Python - JD mentions Python)
+import asyncio
+from typing import Optional
+
+class LLMClient:
+    def __init__(self, primary_model: str, fallback_model: str):
+        self.primary = primary_model
+        self.fallback = fallback_model
+    
+    async def call_with_retry(
+        self, prompt: str, max_retries: int = 3
+    ) -> dict:
+        for attempt in range(max_retries):
+            try:
+                response = await self._call_llm(self.primary, prompt)
+                if self._passes_guardrails(response):
+                    return {"response": response, "model": self.primary}
+                # Guardrail failed - retry with stricter prompt
+                prompt = self._add_safety_prefix(prompt)
+            except RateLimitError:
+                await asyncio.sleep(2 ** attempt + random.uniform(0, 1))
+            except TimeoutError:
+                if attempt == max_retries - 1:
+                    # Fallback to cheaper/faster model
+                    return await self._call_fallback(prompt)
+        
+        return {"response": None, "escalate": True}
+    
+    async def _call_fallback(self, prompt: str) -> dict:
+        try:
+            response = await self._call_llm(self.fallback, prompt)
+            return {"response": response, "model": self.fallback, "degraded": True}
+        except Exception:
+            return {"response": None, "escalate": True}
 ```
 
 ---
@@ -239,7 +465,187 @@ WS /api/v1/conversations/{id}/stream
 
 ---
 
-## Part B: Observability
+## Part C: Observability (Critical — JD Emphasizes This)
+
+### JD-Specific Tools You MUST Know
+
+| Tool | Category | What to Demonstrate |
+|------|----------|---------------------|
+| **New Relic** | APM + Browser RUM | Transaction tracing, custom attributes, error analytics, SLA dashboards |
+| **Splunk** | Log aggregation + SIEM | SPL queries, index management, dashboards, alerts, correlation |
+| **Nagios/Icinga** | Infrastructure monitoring | Host/service checks, plugins, alerting, escalation policies |
+| **RUM Tools** | Frontend performance | Core Web Vitals (LCP, FID, CLS), session replay, user journey tracking |
+
+### Splunk Queries for AI Agent Monitoring
+
+```spl
+# Find all failed agent conversations in last hour
+index=agents status=error earliest=-1h
+| stats count by error_type, agent_name
+| sort -count
+
+# Average response latency by model
+index=agents event_type=llm_call
+| stats avg(latency_ms) as avg_latency, p95(latency_ms) as p95_latency by model
+| sort -avg_latency
+
+# Hallucination detection (grounding score < threshold)
+index=agents event_type=response grounding_score<0.7
+| table _time, conversation_id, user_query, response, grounding_score
+| sort -_time
+
+# Cost tracking per conversation
+index=agents event_type=llm_call
+| eval cost = tokens_used * 0.00003
+| stats sum(cost) as total_cost by conversation_id
+| where total_cost > 0.50
+| sort -total_cost
+
+# User abandonment pattern
+index=agents event_type=conversation_end
+| eval abandoned = if(resolution_status="abandoned", 1, 0)
+| timechart span=1h avg(abandoned) as abandonment_rate
+```
+
+### New Relic Custom Instrumentation
+
+```python
+import newrelic.agent
+
+@newrelic.agent.function_trace(name='agent_orchestration')
+async def handle_message(conversation_id: str, message: str):
+    # Add custom attributes for agent-specific tracing
+    newrelic.agent.add_custom_attribute('conversation_id', conversation_id)
+    newrelic.agent.add_custom_attribute('message_length', len(message))
+    
+    # Trace intent classification
+    with newrelic.agent.FunctionTrace(name='intent_classification'):
+        intent = await classify_intent(message)
+        newrelic.agent.add_custom_attribute('intent', intent)
+    
+    # Trace LLM call
+    with newrelic.agent.FunctionTrace(name='llm_call'):
+        response = await call_llm(message, intent)
+        newrelic.agent.add_custom_attribute('model', response.model)
+        newrelic.agent.add_custom_attribute('tokens_used', response.tokens)
+        newrelic.agent.add_custom_attribute('latency_ms', response.latency_ms)
+    
+    # Trace guardrail check
+    with newrelic.agent.FunctionTrace(name='guardrail_check'):
+        safe = await check_guardrails(response.content)
+        newrelic.agent.add_custom_attribute('guardrail_passed', safe)
+    
+    # Record custom metrics
+    newrelic.agent.record_custom_metric('Agent/ResponseLatency', response.latency_ms)
+    newrelic.agent.record_custom_metric('Agent/TokensUsed', response.tokens)
+    
+    return response
+```
+
+### RUM Implementation for Agent Chat Widget
+
+```javascript
+// Real User Monitoring for agent chat interface
+class AgentRUM {
+  constructor() {
+    this.sessionId = crypto.randomUUID();
+    this.messageSentAt = null;
+  }
+
+  trackMessageSent() {
+    this.messageSentAt = performance.now();
+  }
+
+  trackTimeToFirstToken(messageId) {
+    const ttft = performance.now() - this.messageSentAt;
+    // Report to New Relic Browser
+    if (window.newrelic) {
+      window.newrelic.addPageAction('agent_ttft', {
+        ttft_ms: ttft,
+        messageId,
+        sessionId: this.sessionId
+      });
+    }
+  }
+
+  trackResponseComplete(messageId) {
+    const totalTime = performance.now() - this.messageSentAt;
+    if (window.newrelic) {
+      window.newrelic.addPageAction('agent_response_complete', {
+        total_ms: totalTime,
+        messageId
+      });
+    }
+  }
+
+  trackUserFrustration(signal) {
+    // Detect: rapid re-sends, rage clicks, immediate escalation
+    if (window.newrelic) {
+      window.newrelic.addPageAction('agent_frustration', {
+        signal,
+        sessionId: this.sessionId
+      });
+    }
+  }
+
+  // Core Web Vitals for chat widget
+  trackWebVitals() {
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (window.newrelic) {
+          window.newrelic.addPageAction('web_vital', {
+            name: entry.name,
+            value: entry.value
+          });
+        }
+      }
+    }).observe({ type: 'largest-contentful-paint', buffered: true });
+  }
+}
+```
+
+### Nagios/Icinga Health Checks for Agent Infrastructure
+
+```bash
+#!/bin/bash
+# Custom Nagios plugin: check_agent_health.sh
+# Checks if AI agent service is responding correctly
+
+AGENT_URL="http://localhost:8080/health"
+TIMEOUT=5
+WARNING_LATENCY=2000  # ms
+CRITICAL_LATENCY=5000 # ms
+
+START=$(date +%s%N)
+RESPONSE=$(curl -s -o /tmp/agent_health.json -w "%{http_code}" --max-time $TIMEOUT $AGENT_URL)
+END=$(date +%s%N)
+LATENCY=$(( (END - START) / 1000000 ))
+
+if [ "$RESPONSE" != "200" ]; then
+    echo "CRITICAL - Agent health endpoint returned $RESPONSE"
+    exit 2
+fi
+
+# Check internal health status
+STATUS=$(jq -r '.status' /tmp/agent_health.json)
+if [ "$STATUS" != "healthy" ]; then
+    echo "CRITICAL - Agent reports unhealthy: $(jq -r '.reason' /tmp/agent_health.json)"
+    exit 2
+fi
+
+if [ $LATENCY -gt $CRITICAL_LATENCY ]; then
+    echo "CRITICAL - Agent response time ${LATENCY}ms exceeds ${CRITICAL_LATENCY}ms"
+    exit 2
+elif [ $LATENCY -gt $WARNING_LATENCY ]; then
+    echo "WARNING - Agent response time ${LATENCY}ms exceeds ${WARNING_LATENCY}ms"
+    exit 1
+fi
+
+echo "OK - Agent healthy, response time ${LATENCY}ms | latency=${LATENCY}ms;${WARNING_LATENCY};${CRITICAL_LATENCY}"
+exit 0
+```
+
+---
 
 ### AI Agent Observability Stack
 
@@ -377,7 +783,7 @@ groups:
 
 ---
 
-## Part C: DevOps & Cloud Operations
+## Part D: DevOps & Cloud Operations
 
 ### CI/CD for AI Agents
 
